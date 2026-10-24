@@ -1,0 +1,39 @@
+---
+source: crates/ratakit-widgets/tests/g4_snapshots.rs
+expression: rendered
+---
+✓ Saved                                                                         
+ℹ Syncing…                                                                      
+⚠ Network slow                                                                  
+--- styles ---
+(0,0): fg=rgb(166,227,161) bg=rgb(30,30,46) bold
+(1,0): fg=rgb(166,227,161) bg=rgb(30,30,46) bold
+(2,0): fg=rgb(166,227,161) bg=rgb(30,30,46) bold
+(3,0): fg=rgb(166,227,161) bg=rgb(30,30,46) bold
+(4,0): fg=rgb(166,227,161) bg=rgb(30,30,46) bold
+(5,0): fg=rgb(166,227,161) bg=rgb(30,30,46) bold
+(6,0): fg=rgb(166,227,161) bg=rgb(30,30,46) bold
+(0,1): fg=rgb(205,214,244) bg=rgb(69,71,90) bold
+(1,1): fg=rgb(205,214,244) bg=rgb(69,71,90) bold
+(2,1): fg=rgb(205,214,244) bg=rgb(69,71,90) bold
+(3,1): fg=rgb(205,214,244) bg=rgb(69,71,90) bold
+(4,1): fg=rgb(205,214,244) bg=rgb(69,71,90) bold
+(5,1): fg=rgb(205,214,244) bg=rgb(69,71,90) bold
+(6,1): fg=rgb(205,214,244) bg=rgb(69,71,90) bold
+(7,1): fg=rgb(205,214,244) bg=rgb(69,71,90) bold
+(8,1): fg=rgb(205,214,244) bg=rgb(69,71,90) bold
+(9,1): fg=rgb(205,214,244) bg=rgb(69,71,90) bold
+(0,2): fg=rgb(249,226,175) bg=rgb(30,30,46) bold
+(1,2): fg=rgb(249,226,175) bg=rgb(30,30,46) bold
+(2,2): fg=rgb(249,226,175) bg=rgb(30,30,46) bold
+(3,2): fg=rgb(249,226,175) bg=rgb(30,30,46) bold
+(4,2): fg=rgb(249,226,175) bg=rgb(30,30,46) bold
+(5,2): fg=rgb(249,226,175) bg=rgb(30,30,46) bold
+(6,2): fg=rgb(249,226,175) bg=rgb(30,30,46) bold
+(7,2): fg=rgb(249,226,175) bg=rgb(30,30,46) bold
+(8,2): fg=rgb(249,226,175) bg=rgb(30,30,46) bold
+(9,2): fg=rgb(249,226,175) bg=rgb(30,30,46) bold
+(10,2): fg=rgb(249,226,175) bg=rgb(30,30,46) bold
+(11,2): fg=rgb(249,226,175) bg=rgb(30,30,46) bold
+(12,2): fg=rgb(249,226,175) bg=rgb(30,30,46) bold
+(13,2): fg=rgb(249,226,175) bg=rgb(30,30,46) bold

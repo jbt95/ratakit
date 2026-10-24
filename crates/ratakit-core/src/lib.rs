@@ -11,13 +11,16 @@ mod event;
 mod focus;
 #[cfg(feature = "fuzzy")]
 mod fuzzy;
+mod key_hints;
 mod keymap;
 mod list;
+mod motion;
 mod outcome;
 mod revision;
 mod scroll;
 mod text;
 mod theme;
+mod toast;
 
 pub use component::Component;
 pub use event::{
@@ -28,10 +31,15 @@ pub use focus::{FocusId, FocusRing};
 pub use fuzzy::{
     FuzzyDelimiterMode, FuzzyFilter, FuzzyOptions, FuzzyRankedMatch, normalize_match_indices,
 };
-pub use keymap::{ActionId, KeyChord, Keymap, KeymapPreset, Scope};
+pub use key_hints::{
+    ActionLabels, KeyHint, format_chord, key_hints_from_keymap, key_hints_revision,
+};
+pub use keymap::{ActionId, KeyBinding, KeyChord, Keymap, KeymapPreset, Scope};
 pub use list::{HeightCache, ItemHeights, ListLayoutHint, ListState, VisibleRows, visible_rows};
+pub use motion::Motion;
 pub use outcome::Outcome;
 pub use revision::Revisioned;
 pub use scroll::ScrollState;
 pub use text::{Atom, AtomKind, PasteBurst, Position, TextBuffer};
 pub use theme::{GlyphSet, MotionMode, Palette, SemanticColor, SyntaxThemeId, Theme};
+pub use toast::{Toast, ToastLevel, ToastQueue};

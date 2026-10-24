@@ -17,9 +17,11 @@ macro_rules! assert_widget_snapshot {
 }
 
 /// Render a stateful widget with [`crate::render_stateful`] and compare to an insta snapshot.
+///
+/// Argument order: `name`, `widget`, `state`, `width`, `height` (state before size).
 #[macro_export]
 macro_rules! assert_stateful_widget_snapshot {
-    ($name:expr, $widget:expr, $width:expr, $height:expr, $state:expr) => {{
+    ($name:expr, $widget:expr, $state:expr, $width:expr, $height:expr) => {{
         let rendered = $crate::render_stateful($widget, $width, $height, $state);
         ::insta::assert_snapshot!($name, rendered);
     }};

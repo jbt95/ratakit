@@ -64,7 +64,7 @@ fn virtual_list_viewport_40x5() {
     ]);
     let widget = VirtualList::new(&rows, &theme);
     let mut state = ListState::new();
-    assert_stateful_widget_snapshot!("virtual_list_40x5", widget, 40, 5, &mut state);
+    assert_stateful_widget_snapshot!("virtual_list_40x5", widget, &mut state, 40, 5);
 }
 
 #[test]
@@ -76,5 +76,5 @@ fn virtual_list_with_scrollbar_30x4() {
     state.prepare_layout(&rows, 29, 4);
     let content_height = state.layout().content_height;
     state.scroll_mut().scroll_by(-2, 4, content_height);
-    assert_stateful_widget_snapshot!("virtual_list_scrollbar_30x4", widget, 30, 4, &mut state);
+    assert_stateful_widget_snapshot!("virtual_list_scrollbar_30x4", widget, &mut state, 30, 4);
 }
