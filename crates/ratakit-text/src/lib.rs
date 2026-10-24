@@ -9,6 +9,13 @@ mod highlight;
 mod styled;
 mod wrap;
 
+#[cfg(feature = "markdown")]
+mod markdown_doc;
+#[cfg(feature = "markdown")]
+mod markdown_render;
+#[cfg(feature = "markdown")]
+mod markdown_stream;
+
 #[cfg(feature = "highlight-syntect")]
 mod highlight_syntect;
 
@@ -23,3 +30,10 @@ pub use wrap::{
 pub use highlight::SyntectHighlighter;
 #[cfg(feature = "highlight-syntect")]
 pub use highlight_syntect::{SyntectHlState, language_from_shebang};
+
+#[cfg(feature = "markdown")]
+pub use markdown_doc::MarkdownDoc;
+#[cfg(feature = "markdown")]
+pub use markdown_render::{MarkdownOptions, MarkdownStyles, StreamingCodeState, render_markdown};
+#[cfg(feature = "markdown")]
+pub use markdown_stream::MarkdownStream;

@@ -99,6 +99,8 @@ impl TextStyle {
 pub struct StyledSpan {
     pub text: String,
     pub style: TextStyle,
+    /// OSC 8 hyperlink destination when rendered in a terminal (visible text is the span's `text` field).
+    pub link: Option<String>,
 }
 
 impl StyledSpan {
@@ -107,6 +109,7 @@ impl StyledSpan {
         Self {
             text: text.into(),
             style: TextStyle::PLAIN,
+            link: None,
         }
     }
 
@@ -115,6 +118,16 @@ impl StyledSpan {
         Self {
             text: text.into(),
             style,
+            link: None,
+        }
+    }
+
+    /// Hyperlink span (underline styling should be applied separately).
+    pub fn link(text: impl Into<String>, style: TextStyle, destination: impl Into<String>) -> Self {
+        Self {
+            text: text.into(),
+            style,
+            link: Some(destination.into()),
         }
     }
 
