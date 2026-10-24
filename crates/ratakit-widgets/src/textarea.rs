@@ -10,6 +10,7 @@ use ratatui_core::style::Style;
 use ratatui_core::widgets::{StatefulWidget, Widget};
 use ratatui_widgets::block::Block;
 use ratatui_widgets::borders::{BorderType, Borders};
+use ratatui_widgets::paragraph::Paragraph;
 
 use crate::style::{accent, border, cursor_style, fg, muted, palette_bg};
 use crate::wrap::{WrappedLine, cursor_wrapped_position, wrap_lines};
@@ -65,25 +66,41 @@ impl TextAreaState {
     fn ensure_cursor_visible(&mut self, width: u16, height: u16) {
         let lines = self.wrapped(width);
         let (row, _) = cursor_wrapped_position(&lines, self.buffer.cursor());
+        if height == 0 {
+            self.scroll_top = row;
+            return;
+        }
         if row < self.scroll_top {
             self.scroll_top = row;
         } else if row >= self.scroll_top + height as usize {
-            self.scroll_top = row.saturating_sub(height as usize - 1);
+            self.scroll_top = row.saturating_sub(height.saturating_sub(1) as usize);
         }
     }
 
     /// Inner content rect and absolute cursor coordinates for anchoring overlays.
     pub fn cursor_layout(&mut self, area: Rect, max_height: Option<u16>) -> TextAreaCursorLayout {
-        let inner_width = area.width.saturating_sub(2);
+        self.cursor_layout_with_border(area, max_height, true)
+    }
+
+    /// Like [`Self::cursor_layout`], with geometry matching a borderless text area.
+    pub fn cursor_layout_with_border(
+        &mut self,
+        area: Rect,
+        max_height: Option<u16>,
+        bordered: bool,
+    ) -> TextAreaCursorLayout {
+        let horizontal_chrome = if bordered { 2 } else { 0 };
+        let vertical_chrome = if bordered { 2 } else { 1 };
+        let inner_width = area.width.saturating_sub(horizontal_chrome);
         let inner_height = area
             .height
-            .saturating_sub(2)
+            .saturating_sub(vertical_chrome)
             .min(max_height.unwrap_or(area.height));
         self.last_width = inner_width;
         self.ensure_cursor_visible(inner_width, inner_height);
 
         let inner = Rect {
-            x: area.x + 1,
+            x: area.x + if bordered { 1 } else { 0 },
             y: area.y + 1,
             width: inner_width,
             height: inner_height,
@@ -210,6 +227,7 @@ pub struct TextArea<'a> {
     placeholder: Option<&'a str>,
     max_height: Option<u16>,
     block_title: Option<&'a str>,
+    bordered: bool,
 }
 
 impl<'a> TextArea<'a> {
@@ -219,6 +237,7 @@ impl<'a> TextArea<'a> {
             placeholder: None,
             max_height: None,
             block_title: None,
+            bordered: true,
         }
     }
 
@@ -236,6 +255,12 @@ impl<'a> TextArea<'a> {
         self.block_title = Some(title);
         self
     }
+
+    /// Render a text label instead of a box border when false.
+    pub fn bordered(mut self, bordered: bool) -> Self {
+        self.bordered = bordered;
+        self
+    }
 }
 
 impl Widget for TextArea<'_> {
@@ -249,28 +274,39 @@ impl StatefulWidget for TextArea<'_> {
     type State = TextAreaState;
 
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        if area.width < 2 || area.height < 2 {
+        let horizontal_chrome = if self.bordered { 2 } else { 0 };
+        let vertical_chrome = if self.bordered { 2 } else { 1 };
+        if area.width <= horizontal_chrome || area.height <= vertical_chrome {
             return;
         }
 
-        let inner_width = area.width.saturating_sub(2);
+        let inner_width = area.width.saturating_sub(horizontal_chrome);
         let inner_height = area
             .height
-            .saturating_sub(2)
+            .saturating_sub(vertical_chrome)
             .min(self.max_height.unwrap_or(area.height));
 
         state.last_width = inner_width;
         state.ensure_cursor_visible(inner_width, inner_height);
 
-        let block = Block::default()
-            .borders(Borders::ALL)
-            .border_type(BorderType::Rounded)
-            .border_style(border(self.theme))
-            .style(palette_bg(self.theme));
         let title = self.block_title.unwrap_or("composer");
-        let block = block.title(title).title_style(accent(self.theme));
-        let inner = block.inner(area);
-        block.render(area, buf);
+        let inner = if self.bordered {
+            let block = Block::default()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded)
+                .border_style(border(self.theme))
+                .style(palette_bg(self.theme))
+                .title(title)
+                .title_style(accent(self.theme));
+            let inner = block.inner(area);
+            block.render(area, buf);
+            inner
+        } else {
+            Paragraph::new(format!("{title}:"))
+                .style(accent(self.theme))
+                .render(Rect::new(area.x, area.y, area.width, 1), buf);
+            Rect::new(area.x, area.y + 1, area.width, area.height - 1)
+        };
 
         let wrapped = state.wrapped(inner_width);
         let (cursor_row, cursor_col) = cursor_wrapped_position(&wrapped, state.buffer.cursor());

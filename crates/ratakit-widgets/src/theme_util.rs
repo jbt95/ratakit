@@ -30,7 +30,7 @@ pub fn status_bar_style(theme: &Theme) -> Style {
 
 pub fn toast_style(theme: &Theme, level: ToastLevel) -> Style {
     let (fg, bg) = match level {
-        ToastLevel::Info => (theme.palette.foreground, theme.palette.border),
+        ToastLevel::Info => (theme.palette.foreground, theme.palette.background),
         ToastLevel::Success => (theme.palette.success, theme.palette.background),
         ToastLevel::Warning => (theme.palette.warning, theme.palette.background),
         ToastLevel::Error => (theme.palette.error, theme.palette.background),
@@ -39,4 +39,20 @@ pub fn toast_style(theme: &Theme, level: ToastLevel) -> Style {
         .fg(semantic_color(fg))
         .bg(semantic_color(bg))
         .add_modifier(Modifier::BOLD)
+}
+
+#[cfg(test)]
+mod tests {
+    use ratakit_core::{Theme, ToastLevel};
+
+    use super::{semantic_color, toast_style};
+
+    #[test]
+    fn info_toast_uses_the_palette_background_for_text_contrast() {
+        for theme in [Theme::high_contrast_dark(), Theme::high_contrast_light()] {
+            let style = toast_style(&theme, ToastLevel::Info);
+            assert_eq!(style.fg, Some(semantic_color(theme.palette.foreground)));
+            assert_eq!(style.bg, Some(semantic_color(theme.palette.background)));
+        }
+    }
 }

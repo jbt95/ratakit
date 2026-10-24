@@ -54,7 +54,17 @@ pub(crate) fn render_wrapped_lines(
         .render(area, buf);
 }
 
-pub(crate) fn thinking_summary(folded: bool, done: bool, line_count: usize) -> String {
+pub(crate) fn thinking_summary(
+    folded: bool,
+    done: bool,
+    line_count: usize,
+    theme: &Theme,
+) -> String {
+    if theme.screen_reader {
+        let state = if folded { "collapsed" } else { "expanded" };
+        let status = if done { "done" } else { "streaming" };
+        return format!("Thinking, {state}, {status}, {line_count} lines");
+    }
     let marker = if folded { '▸' } else { '▾' };
     let status = if done { "done" } else { "streaming" };
     format!("{marker} Thinking ({status}, {line_count} lines)")

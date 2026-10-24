@@ -24,6 +24,41 @@ fn motion_tick_advances_in_full_mode() {
 }
 
 #[test]
+fn reduced_motion_does_not_advance_or_consume_ticks() {
+    let mut motion = Motion::new();
+    motion.set_mode(MotionMode::Reduced);
+    let mut theme = ratakit_core::Theme::dark();
+    theme.with_motion(MotionMode::Reduced);
+    let before_frame = motion.frame();
+    let before_revision = Revisioned::revision(&motion);
+
+    assert!(!motion.advance(&theme));
+    assert!(matches!(
+        motion.handle(&Event::Tick(Instant::now()), &Keymap::empty()),
+        ratakit_core::Outcome::Ignored
+    ));
+    assert_eq!(motion.frame(), before_frame);
+    assert_eq!(Revisioned::revision(&motion), before_revision);
+}
+
+#[test]
+fn screen_reader_motion_is_a_static_text_label() {
+    let mut theme = ratakit_core::Theme::dark();
+    theme.enable_screen_reader();
+    let mut motion = Motion::new();
+    motion.set_screen_reader(true);
+    let before = Revisioned::revision(&motion);
+
+    assert_eq!(motion.indicator(&theme), "Working");
+    assert!(!motion.advance(&theme));
+    assert!(matches!(
+        motion.handle(&Event::Tick(Instant::now()), &Keymap::empty()),
+        ratakit_core::Outcome::Ignored
+    ));
+    assert_eq!(Revisioned::revision(&motion), before);
+}
+
+#[test]
 fn toast_queue_expires_on_tick() {
     let start = Instant::now();
     let mut queue = ToastQueue::new();

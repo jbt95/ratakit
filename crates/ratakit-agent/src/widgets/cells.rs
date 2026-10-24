@@ -7,7 +7,7 @@ use crate::tool_call_aux::ToolCallCardAux;
 use crate::widgets::extras::{
     label_line, render_wrapped_lines, thinking_summary, user_plain_text, wrapped_line_count,
 };
-use crate::widgets::plan_view::{plan_cell_height, render_plan_cell};
+use crate::widgets::plan_view::{plan_cell_height_for_theme, render_plan_cell};
 use crate::widgets::tool_call_card::{
     TOOL_OUTPUT_HEAD_LINES, TOOL_OUTPUT_TAIL_LINES, measure_tool_call_card, render_tool_call_card,
 };
@@ -60,8 +60,8 @@ pub(crate) fn measure_cell(
         Cell::Thinking(t) => measure_thinking(t, width, theme),
         Cell::ToolCall(tc) => measure_tool_call(tc, width, theme, highlighter, tool_aux),
         Cell::Plan(p) => measure_plan(p, width, theme),
-        Cell::Notice(n) => measure_notice(n, width),
-        Cell::Error(e) => measure_error(e, width),
+        Cell::Notice(n) => measure_notice(n, width, theme),
+        Cell::Error(e) => measure_error(e, width, theme),
     }
 }
 
@@ -92,13 +92,13 @@ pub(crate) fn render_cell(
 
 fn measure_user(user: &UserCell, width: u16, theme: &Theme) -> u16 {
     let body = user_plain_text(&user.content);
-    let line = label_line(theme, USER_LABEL, &body);
+    let line = label_line(theme, user_label(theme), &body);
     wrapped_line_count(&line, width)
 }
 
 fn render_user(user: &UserCell, area: Rect, buf: &mut Buffer, skip_top: u16, theme: &Theme) {
     let body = user_plain_text(&user.content);
-    let line = label_line(theme, USER_LABEL, &body);
+    let line = label_line(theme, user_label(theme), &body);
     render_wrapped_lines(&[&line], area, buf, skip_top, fg(theme.palette.accent));
 }
 
@@ -122,7 +122,12 @@ fn render_assistant(
         .cached_lines(area.width, theme)
         .expect("markdown layout must be warmed before render");
     let mut rows: Vec<Line> = Vec::new();
-    rows.push(Line::from(ASSISTANT_LABEL).style(fg(theme.palette.muted)));
+    let label = if theme.screen_reader {
+        "Assistant:"
+    } else {
+        ASSISTANT_LABEL
+    };
+    rows.push(Line::from(label).style(fg(theme.palette.muted)));
     for line in styled {
         rows.push(styled_line_to_ratatui_owned(line));
     }
@@ -151,7 +156,7 @@ fn render_thinking(
         .stream
         .cached_line_count(area.width, theme)
         .unwrap_or(1) as usize;
-    let summary = thinking_summary(thinking.folded, thinking.done, line_count);
+    let summary = thinking_summary(thinking.folded, thinking.done, line_count, theme);
     if thinking.folded {
         render_wrapped_lines(&[&summary], area, buf, skip_top, fg(theme.palette.muted));
         return;
@@ -211,20 +216,28 @@ fn render_tool_call(
 }
 
 fn measure_plan(plan: &Plan, width: u16, theme: &Theme) -> u16 {
-    plan_cell_height(plan, width, theme.glyphs)
+    plan_cell_height_for_theme(plan, width, theme)
 }
 
 fn render_plan(plan: &Plan, area: Rect, buf: &mut Buffer, skip_top: u16, theme: &Theme) {
     render_plan_cell(plan, theme, area, buf, skip_top);
 }
 
-fn measure_notice(notice: &NoticeCell, width: u16) -> u16 {
-    let line = format!("{NOTICE_LABEL} {}", notice.text);
+fn measure_notice(notice: &NoticeCell, width: u16, theme: &Theme) -> u16 {
+    let line = format!(
+        "{} {}",
+        notice_label(notice.level, theme.screen_reader),
+        notice.text
+    );
     wrapped_line_count(&line, width)
 }
 
 fn render_notice(notice: &NoticeCell, area: Rect, buf: &mut Buffer, skip_top: u16, theme: &Theme) {
-    let line = format!("{NOTICE_LABEL} {}", notice.text);
+    let line = format!(
+        "{} {}",
+        notice_label(notice.level, theme.screen_reader),
+        notice.text
+    );
     let style = match notice.level {
         Level::Info => fg(theme.palette.muted),
         Level::Warning => fg(theme.palette.accent),
@@ -233,14 +246,44 @@ fn render_notice(notice: &NoticeCell, area: Rect, buf: &mut Buffer, skip_top: u1
     render_wrapped_lines(&[&line], area, buf, skip_top, style);
 }
 
-fn measure_error(err: &ErrorCell, width: u16) -> u16 {
-    let line = format!("{ERROR_LABEL} {}", err.text);
+fn measure_error(err: &ErrorCell, width: u16, theme: &Theme) -> u16 {
+    let label = if theme.screen_reader {
+        "Error:"
+    } else {
+        ERROR_LABEL
+    };
+    let line = format!("{label} {}", err.text);
     wrapped_line_count(&line, width)
 }
 
 fn render_error(err: &ErrorCell, area: Rect, buf: &mut Buffer, skip_top: u16, theme: &Theme) {
-    let line = format!("{ERROR_LABEL} {}", err.text);
+    let label = if theme.screen_reader {
+        "Error:"
+    } else {
+        ERROR_LABEL
+    };
+    let line = format!("{label} {}", err.text);
     render_wrapped_lines(&[&line], area, buf, skip_top, fg(theme.palette.error));
+}
+
+fn user_label(theme: &Theme) -> &'static str {
+    if theme.screen_reader {
+        "User:"
+    } else {
+        USER_LABEL
+    }
+}
+
+fn notice_label(level: Level, screen_reader: bool) -> &'static str {
+    if screen_reader {
+        match level {
+            Level::Info => "Info:",
+            Level::Warning => "Warning:",
+            Level::Error => "Error:",
+        }
+    } else {
+        NOTICE_LABEL
+    }
 }
 
 fn render_line_stack(lines: Vec<Line<'static>>, area: Rect, buf: &mut Buffer, skip_top: u16) {

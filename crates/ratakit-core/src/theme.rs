@@ -116,6 +116,38 @@ impl Palette {
             }),
         }
     }
+
+    /// Black background and bright semantic colors for high-contrast dark terminals.
+    pub fn high_contrast_dark() -> Self {
+        Self {
+            background: rgb(0x00, 0x00, 0x00),
+            foreground: rgb(0xff, 0xff, 0xff),
+            accent: rgb(0x00, 0xe5, 0xff),
+            success: rgb(0x00, 0xff, 0x5a),
+            warning: rgb(0xff, 0xff, 0x00),
+            error: rgb(0xff, 0x85, 0x85),
+            muted: rgb(0xd6, 0xd6, 0xd6),
+            border: rgb(0xa0, 0xa0, 0xa0),
+        }
+    }
+
+    /// White background and dark semantic colors for high-contrast light terminals.
+    pub fn high_contrast_light() -> Self {
+        Self {
+            background: rgb(0xff, 0xff, 0xff),
+            foreground: rgb(0x00, 0x00, 0x00),
+            accent: rgb(0x00, 0x33, 0xcc),
+            success: rgb(0x00, 0x5a, 0x24),
+            warning: rgb(0x70, 0x45, 0x00),
+            error: rgb(0xa0, 0x00, 0x00),
+            muted: rgb(0x40, 0x40, 0x40),
+            border: rgb(0x59, 0x59, 0x59),
+        }
+    }
+}
+
+const fn rgb(r: u8, g: u8, b: u8) -> SemanticColor {
+    SemanticColor::Rgb(Rgb { r, g, b })
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -145,6 +177,8 @@ pub struct Theme {
     pub syntax: SyntaxThemeId,
     pub motion: MotionMode,
     pub glyphs: GlyphSet,
+    /// Text-first labels and static output intended for screen-reader workflows.
+    pub screen_reader: bool,
     revision: u64,
 }
 
@@ -155,6 +189,7 @@ impl Theme {
             syntax: SyntaxThemeId::BASE16_MARDUK,
             motion: MotionMode::Full,
             glyphs: GlyphSet::Unicode,
+            screen_reader: false,
             revision: 0,
         }
     }
@@ -165,7 +200,39 @@ impl Theme {
             syntax: SyntaxThemeId::BASE16_MARDUK,
             motion: MotionMode::Full,
             glyphs: GlyphSet::Unicode,
+            screen_reader: false,
             revision: 0,
+        }
+    }
+
+    /// High-contrast theme for dark terminal backgrounds.
+    pub fn high_contrast_dark() -> Self {
+        Self {
+            palette: Palette::high_contrast_dark(),
+            ..Self::dark()
+        }
+    }
+
+    /// High-contrast theme for light terminal backgrounds.
+    pub fn high_contrast_light() -> Self {
+        Self {
+            palette: Palette::high_contrast_light(),
+            ..Self::light()
+        }
+    }
+
+    /// Enable text-first labels, ASCII markers, and reduced motion.
+    ///
+    /// The selected motion and glyph settings can still be customized separately.
+    pub fn enable_screen_reader(&mut self) {
+        if !self.screen_reader
+            || self.motion != MotionMode::Reduced
+            || self.glyphs != GlyphSet::Ascii
+        {
+            self.screen_reader = true;
+            self.motion = MotionMode::Reduced;
+            self.glyphs = GlyphSet::Ascii;
+            self.revision += 1;
         }
     }
 
@@ -187,5 +254,68 @@ impl Theme {
 impl Revisioned for Theme {
     fn revision(&self) -> u64 {
         self.revision
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Palette, Rgb, SemanticColor, Theme};
+
+    #[test]
+    fn high_contrast_palettes_meet_seven_to_one_for_semantic_text() {
+        for palette in [
+            Palette::high_contrast_dark(),
+            Palette::high_contrast_light(),
+        ] {
+            for color in [
+                palette.foreground,
+                palette.accent,
+                palette.success,
+                palette.warning,
+                palette.error,
+                palette.muted,
+                palette.border,
+            ] {
+                assert!(contrast_ratio(color, palette.background) >= 7.0);
+            }
+        }
+    }
+
+    #[test]
+    fn screen_reader_profile_selects_static_ascii_output() {
+        let mut theme = Theme::dark();
+        let before = theme.theme_revision();
+        theme.enable_screen_reader();
+
+        assert!(theme.screen_reader);
+        assert_eq!(theme.motion, super::MotionMode::Reduced);
+        assert_eq!(theme.glyphs, super::GlyphSet::Ascii);
+        assert!(theme.theme_revision() > before);
+    }
+
+    fn contrast_ratio(foreground: SemanticColor, background: SemanticColor) -> f64 {
+        let foreground = luminance(rgb_color(foreground));
+        let background = luminance(rgb_color(background));
+        (foreground.max(background) + 0.05) / (foreground.min(background) + 0.05)
+    }
+
+    fn rgb_color(color: SemanticColor) -> Rgb {
+        match color {
+            SemanticColor::Rgb(rgb) => rgb,
+            SemanticColor::Index(_) => panic!("high-contrast palette should use RGB colors"),
+        }
+    }
+
+    fn luminance(rgb: Rgb) -> f64 {
+        fn linear(channel: u8) -> f64 {
+            let channel = f64::from(channel) / 255.0;
+            if channel <= 0.04045 {
+                channel / 12.92
+            } else {
+                ((channel + 0.055) / 1.055).powf(2.4)
+            }
+        }
+
+        0.2126 * linear(rgb.r) + 0.7152 * linear(rgb.g) + 0.0722 * linear(rgb.b)
     }
 }

@@ -46,13 +46,56 @@ impl<'a> UsageBar<'a> {
 
 impl Widget for UsageBar<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let segments = if self.compact {
+        let segments = if self.theme.screen_reader {
+            usage_segments_screen_reader(self.usage, self.mode, self.git_branch, self.compact)
+        } else if self.compact {
             usage_segments_compact(self.usage, self.mode)
         } else {
             usage_segments(self.usage, self.mode, self.git_branch)
         };
         StatusBar::new(self.theme, &segments).render(area, buf);
     }
+}
+
+fn usage_segments_screen_reader(
+    usage: &Usage,
+    mode: &ModeId,
+    git_branch: Option<&str>,
+    compact: bool,
+) -> Vec<StatusSegment> {
+    let context = match usage.context_used {
+        Some(fraction) => format!("Context {}%", context_percent(fraction)),
+        None => "Context unavailable".to_string(),
+    };
+    let mode = format!("Mode {}", mode.status_label());
+    if compact {
+        return vec![
+            StatusSegment::center(context, 9),
+            StatusSegment::right(mode, 10),
+        ];
+    }
+
+    let mut segments = vec![
+        StatusSegment::left(
+            format!(
+                "Input {} output {}",
+                format_token_count(usage.input_tokens),
+                format_token_count(usage.output_tokens)
+            ),
+            8,
+        ),
+        StatusSegment::left(
+            format!("Cached {}", format_token_count(usage.cached_tokens)),
+            5,
+        ),
+        StatusSegment::center(context, 9),
+        StatusSegment::right(mode, 10),
+        StatusSegment::right(format_cost(usage.cost_usd), 7),
+    ];
+    if let Some(branch) = git_branch {
+        segments.push(StatusSegment::right(format!("Branch {branch}"), 6));
+    }
+    segments
 }
 
 /// Compact footer segments for narrow terminals (context gauge + mode only).

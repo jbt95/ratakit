@@ -343,8 +343,12 @@ impl StatefulWidget for AgentLayout<'_> {
         state.last_width = area.width;
 
         let usage_h = 1u16;
-        let composer_h =
-            measure_composer_height(&state.composer.0, area.width, self.composer_max_lines);
+        let composer_h = measure_composer_height(
+            &state.composer.0,
+            area.width,
+            self.composer_max_lines,
+            self.theme.screen_reader,
+        );
         let main_h = area.height.saturating_sub(usage_h + composer_h);
 
         let main_area = Rect {
@@ -355,7 +359,7 @@ impl StatefulWidget for AgentLayout<'_> {
         };
 
         let plan_snapshot = state.current_plan().cloned();
-        let transcript_area = if state.show_plan_side_panel() {
+        let transcript_area = if !self.theme.screen_reader && state.show_plan_side_panel() {
             let chunks =
                 Layout::horizontal([Constraint::Min(24), Constraint::Length(28)]).split(main_area);
             if let Some(plan) = plan_snapshot.as_ref() {
@@ -367,11 +371,9 @@ impl StatefulWidget for AgentLayout<'_> {
             main_area
         };
 
-        Transcript::new(self.theme, self.highlighter).render(
-            transcript_area,
-            buf,
-            &mut state.transcript,
-        );
+        Transcript::new(self.theme, self.highlighter)
+            .scrollbar(!self.theme.screen_reader)
+            .render(transcript_area, buf, &mut state.transcript);
 
         let composer_area = Rect {
             x: area.x,
@@ -379,12 +381,20 @@ impl StatefulWidget for AgentLayout<'_> {
             width: area.width,
             height: composer_h,
         };
+        let placeholder = self
+            .composer_placeholder
+            .unwrap_or(if self.theme.screen_reader {
+                "Message input. Tab changes focus; Ctrl+M opens model selection."
+            } else {
+                "Type a message… (Tab: focus, Ctrl+M: model)"
+            });
         let composer = Composer::new(self.theme, self.files)
-            .placeholder(
-                self.composer_placeholder
-                    .unwrap_or("Type a message… (Tab: focus, Ctrl+M: model)"),
-            )
-            .max_height(composer_h.saturating_sub(2).max(1));
+            .placeholder(placeholder)
+            .max_height(
+                composer_h
+                    .saturating_sub(if self.theme.screen_reader { 1 } else { 2 })
+                    .max(1),
+            );
         composer.render(composer_area, buf, &mut state.composer);
 
         let usage_area = Rect {
@@ -409,10 +419,17 @@ impl StatefulWidget for AgentLayout<'_> {
     }
 }
 
-fn measure_composer_height(composer: &ComposerState, width: u16, max_lines: u16) -> u16 {
-    let inner_w = width.saturating_sub(2).max(1);
+fn measure_composer_height(
+    composer: &ComposerState,
+    width: u16,
+    max_lines: u16,
+    screen_reader: bool,
+) -> u16 {
+    let inner_w = width
+        .saturating_sub(if screen_reader { 0 } else { 2 })
+        .max(1);
     let wrapped = wrap_lines(&composer.buffer.display(), inner_w);
     let line_count = u16::try_from(wrapped.len().max(1)).unwrap_or(u16::MAX);
     let inner_h = line_count.min(max_lines);
-    inner_h + 2
+    inner_h + if screen_reader { 1 } else { 2 }
 }

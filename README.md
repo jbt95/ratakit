@@ -40,6 +40,16 @@ cargo test --workspace
 cargo run -p hello-headless
 ```
 
+## Accessibility profiles
+
+Choose `Theme::high_contrast_dark()` or `Theme::high_contrast_light()` for a
+palette whose semantic text colors meet a tested 7:1 contrast ratio. For
+text-first agent UI, call `theme.enable_screen_reader()`: it selects ASCII
+markers and reduced motion, names transcript and tool states in text, disables
+the scrollbar and side panel, and renders the composer with a text label. The
+ACP examples enable the same profile with `RATAKIT_SCREEN_READER=1`. Inline
+transcript-to-scrollback output is tracked separately under R2.
+
 ## Examples
 
 ```bash

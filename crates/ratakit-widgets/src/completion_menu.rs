@@ -37,6 +37,7 @@ pub struct CompletionMenu<'a> {
     width: CompletionMenuWidth,
     max_rows: u16,
     textarea_max_height: Option<u16>,
+    textarea_bordered: bool,
 }
 
 impl<'a> CompletionMenu<'a> {
@@ -52,6 +53,7 @@ impl<'a> CompletionMenu<'a> {
             width: CompletionMenuWidth::Full,
             max_rows: 6,
             textarea_max_height: None,
+            textarea_bordered: true,
         }
     }
 
@@ -65,13 +67,22 @@ impl<'a> CompletionMenu<'a> {
         self
     }
 
+    pub fn textarea_bordered(mut self, bordered: bool) -> Self {
+        self.textarea_bordered = bordered;
+        self
+    }
+
     /// Computes popup geometry from the text area without drawing.
     pub fn layout_for(&mut self, area: Rect) -> CompletionMenuLayout {
         if !self.completion.is_open() || self.completion.ranked_matches().is_empty() {
             return CompletionMenuLayout::default();
         }
 
-        let cursor_layout = self.textarea.cursor_layout(area, self.textarea_max_height);
+        let cursor_layout = self.textarea.cursor_layout_with_border(
+            area,
+            self.textarea_max_height,
+            self.textarea_bordered,
+        );
         let inner = cursor_layout.inner;
         let (cursor_x, cursor_y) = cursor_layout.cursor;
 

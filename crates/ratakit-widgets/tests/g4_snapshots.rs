@@ -95,3 +95,18 @@ fn toasts_stack_80x3() {
     let widget = Toasts::new(&theme).max_visible(3);
     assert_stateful_widget_snapshot!("toasts_dark_80x3", widget, &mut queue, 80, 3);
 }
+
+#[test]
+fn screen_reader_toasts_include_status_labels() {
+    let mut theme = dark_theme();
+    theme.enable_screen_reader();
+    let mut queue = ToastQueue::new();
+    queue.push(Toast::persistent("Saved", ToastLevel::Success));
+    queue.push(Toast::persistent("Network slow", ToastLevel::Warning));
+    let rendered = ratakit_testing::render_stateful(Toasts::new(&theme), 40, 2, &mut queue);
+
+    assert!(rendered.contains("Success: Saved"));
+    assert!(rendered.contains("Warning: Network slow"));
+    assert!(!rendered.contains('✓'));
+    assert!(!rendered.contains('⚠'));
+}

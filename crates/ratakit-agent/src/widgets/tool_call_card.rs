@@ -405,6 +405,18 @@ fn draw_header(
     let kind_label = kind_label(cell.kind());
     let kind_icon = kind_icon(cell.kind(), theme.glyphs);
 
+    if theme.screen_reader {
+        let line = Line::from(vec![
+            Span::styled(
+                format!("{}: ", status_name(cell.status())),
+                status_style.add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(format!("{kind_label} tool"), accent_style(theme)),
+        ]);
+        Paragraph::new(line).render(area, buf);
+        return;
+    }
+
     let mut spans = Vec::new();
 
     if cell.status() == ToolStatus::InProgress {

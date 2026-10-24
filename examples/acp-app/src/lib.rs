@@ -82,7 +82,10 @@ struct App {
 
 impl App {
     fn new(recorder: Option<Recorder>) -> Self {
-        let theme = Theme::dark();
+        let mut theme = Theme::dark();
+        if env::var_os("RATAKIT_SCREEN_READER").is_some() {
+            theme.enable_screen_reader();
+        }
         SyntectHighlighter::apply_theme(&theme);
         Self {
             theme,
@@ -236,8 +239,13 @@ impl App {
     }
 
     fn draw(&mut self, frame: &mut ratatui::Frame) {
+        let placeholder = if self.theme.screen_reader {
+            "Message the ACP agent. Tab changes focus; Ctrl+M opens model selection."
+        } else {
+            "Message the ACP agent…"
+        };
         let widget = AgentLayout::new(&self.theme, &self.highlighter, &self.files)
-            .composer_placeholder("Message the ACP agent…");
+            .composer_placeholder(placeholder);
         frame.render_stateful_widget(widget, frame.area(), &mut self.layout);
     }
 }
@@ -339,11 +347,21 @@ fn run_headless(agent_name: &str) -> io::Result<()> {
     app.layout.apply_agent_event(AgentEvent::MessageDone {
         id: MessageId::new("headless-preview"),
     });
+    let placeholder = if app.theme.screen_reader {
+        "Message the ACP agent. Tab changes focus; Ctrl+M opens model selection."
+    } else {
+        "Message the ACP agent…"
+    };
     let widget = AgentLayout::new(&app.theme, &app.highlighter, &app.files)
-        .composer_placeholder("Message the ACP agent…");
+        .composer_placeholder(placeholder);
     let snapshot = render_stateful(widget, 80, 20, &mut app.layout);
     assert!(snapshot.contains("Message the ACP agent"));
     assert!(snapshot.contains(agent_name));
+    if app.theme.screen_reader {
+        assert!(snapshot.contains("composer:"));
+        assert!(!snapshot.contains('╭'));
+        assert!(!snapshot.contains('╰'));
+    }
     println!("ok: {agent_name} ACP example headless render");
     Ok(())
 }

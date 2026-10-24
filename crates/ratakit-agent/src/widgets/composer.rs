@@ -98,13 +98,15 @@ impl StatefulWidget for Composer<'_> {
         let textarea_widget = TextArea::new(self.theme)
             .placeholder(self.placeholder.unwrap_or("Type a message…"))
             .max_height(self.max_height.unwrap_or(area.height))
-            .block_title(&title);
+            .block_title(&title)
+            .bordered(!self.theme.screen_reader);
         textarea_widget.render(area, buf, &mut view.textarea);
 
         if composer.completion.is_open() {
             let menu = CompletionMenu::new(self.theme, &mut view.textarea, &composer.completion)
                 .max_rows(6)
-                .textarea_max_height(self.max_height);
+                .textarea_max_height(self.max_height)
+                .textarea_bordered(!self.theme.screen_reader);
             menu.render(area, buf, &mut view.menu);
         }
 

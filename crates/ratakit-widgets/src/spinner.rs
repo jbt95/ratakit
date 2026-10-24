@@ -31,6 +31,7 @@ impl StatefulWidget for Spinner<'_> {
     type State = Motion;
 
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
+        state.set_screen_reader(self.theme.screen_reader);
         state.set_mode(self.theme.motion);
         if area.is_empty() {
             return;

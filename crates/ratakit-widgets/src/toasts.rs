@@ -44,7 +44,11 @@ impl StatefulWidget for Toasts<'_> {
             if row >= area.y + area.height {
                 break;
             }
-            let glyph = level_glyph(self.theme, toast.level);
+            let prefix = if self.theme.screen_reader {
+                format!("{}:", level_label(toast.level))
+            } else {
+                level_glyph(self.theme, toast.level).to_string()
+            };
             let line_area = Rect {
                 x: area.x,
                 y: row,
@@ -52,13 +56,22 @@ impl StatefulWidget for Toasts<'_> {
                 height: 1,
             };
             let text = truncate_to_width(
-                format!("{glyph} {message}", message = toast.message),
+                format!("{prefix} {message}", message = toast.message),
                 area.width as usize,
             );
             let style = toast_style(self.theme, toast.level);
             Paragraph::new(Line::from(Span::styled(text, style))).render(line_area, buf);
             row += 1;
         }
+    }
+}
+
+fn level_label(level: ToastLevel) -> &'static str {
+    match level {
+        ToastLevel::Info => "Info",
+        ToastLevel::Success => "Success",
+        ToastLevel::Warning => "Warning",
+        ToastLevel::Error => "Error",
     }
 }
 

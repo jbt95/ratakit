@@ -194,3 +194,53 @@ fn transcript_mixed_scrollbar_40x7() {
     let w = widget(&theme).scrollbar(true);
     assert_stateful_widget_snapshot!("transcript_mixed_scrollbar_40x7", w, &mut t, 40, 7);
 }
+
+#[test]
+fn transcript_screen_reader_uses_spoken_labels() {
+    let mut theme = Theme::dark();
+    theme.enable_screen_reader();
+    let mut transcript = TranscriptState::new();
+    transcript.apply(AgentEvent::UserMessage {
+        id: mid("user"),
+        content: vec![ContentPart::Text("Please inspect this".into())],
+    });
+    transcript.apply(AgentEvent::AssistantDelta {
+        id: mid("assistant"),
+        text: "I will inspect it.".into(),
+    });
+    transcript.apply(AgentEvent::MessageDone {
+        id: mid("assistant"),
+    });
+    transcript.apply(AgentEvent::Notice {
+        level: Level::Warning,
+        text: "One warning".into(),
+    });
+    transcript.apply(AgentEvent::Error("One error".into()));
+    transcript.apply(AgentEvent::ToolCallStarted(ToolCall {
+        id: ToolCallId::new("tool"),
+        title: "Search files".into(),
+        kind: ToolKind::Search,
+        status: ToolStatus::InProgress,
+        locations: Vec::new(),
+        content: Vec::new(),
+    }));
+
+    let rendered = render_stateful_widget(
+        Transcript::new(&theme, &SyntectHighlighter).scrollbar(false),
+        &mut transcript,
+        80,
+        16,
+    );
+    for label in [
+        "User:",
+        "Assistant:",
+        "Warning:",
+        "Error:",
+        "running: search tool",
+    ] {
+        assert!(rendered.contains(label), "missing {label:?} in {rendered}");
+    }
+    for decorative_glyph in ["›", "◆", "·", "▸", "✓"] {
+        assert!(!rendered.contains(decorative_glyph));
+    }
+}

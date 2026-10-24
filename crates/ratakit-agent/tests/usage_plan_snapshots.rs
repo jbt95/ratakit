@@ -56,6 +56,25 @@ fn usage_bar_narrow_40x1() {
 }
 
 #[test]
+fn usage_bar_screen_reader_uses_text_instead_of_a_gauge() {
+    let mut theme = Theme::dark();
+    theme.enable_screen_reader();
+    let usage = sample_usage();
+    let mode = ModeId::new("auto");
+    let rendered = ratakit_testing::render_widget(
+        UsageBar::new(&usage, &mode, &theme).git_branch(Some("main")),
+        120,
+        1,
+    );
+
+    assert!(rendered.contains("Context 42%"));
+    assert!(rendered.contains("Mode auto"));
+    assert!(rendered.contains("Branch main"));
+    assert!(!rendered.contains('█'));
+    assert!(!rendered.contains('░'));
+}
+
+#[test]
 fn plan_view_states_48x8() {
     let theme = Theme::dark();
     let plan = sample_plan();
@@ -88,4 +107,21 @@ fn plan_view_ascii_40x5() {
     let widget = PlanView::new(&plan, &theme);
     let mut state = ListState::new();
     assert_stateful_widget_snapshot!("plan_view_ascii_40x5", widget, &mut state, 40, 5);
+}
+
+#[test]
+fn plan_view_screen_reader_names_each_status() {
+    let mut theme = Theme::dark();
+    theme.enable_screen_reader();
+    let plan = sample_plan();
+    let mut state = ListState::new();
+    let rendered =
+        ratakit_testing::render_stateful(PlanView::new(&plan, &theme), 80, 6, &mut state);
+
+    for status in ["Completed:", "In progress:", "Pending:"] {
+        assert!(
+            rendered.contains(status),
+            "missing {status:?} in {rendered}"
+        );
+    }
 }

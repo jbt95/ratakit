@@ -65,11 +65,11 @@ impl ItemHeights for PlanRows<'_> {
 
     fn height(&self, index: usize, width: u16) -> u16 {
         let entry = &self.plan.entries[index];
-        plan_entry_height(entry, width, self.theme.glyphs)
+        plan_entry_height_for_theme(entry, width, self.theme)
     }
 
     fn revision(&self) -> u64 {
-        self.plan.layout_revision()
+        self.plan.layout_revision() ^ self.theme.theme_revision()
     }
 }
 
@@ -92,6 +92,16 @@ pub fn plan_cell_height(plan: &Plan, width: u16, glyphs: GlyphSet) -> u16 {
         .sum()
 }
 
+pub(crate) fn plan_cell_height_for_theme(plan: &Plan, width: u16, theme: &Theme) -> u16 {
+    if plan.entries.is_empty() {
+        return 1;
+    }
+    plan.entries
+        .iter()
+        .map(|entry| plan_entry_height_for_theme(entry, width, theme))
+        .sum()
+}
+
 /// Render a plan transcript cell; `skip_top` skips leading rows when partially scrolled.
 pub fn render_plan_cell(plan: &Plan, theme: &Theme, area: Rect, buf: &mut Buffer, skip_top: u16) {
     if area.width == 0 || area.height == 0 {
@@ -107,7 +117,7 @@ pub fn render_plan_cell(plan: &Plan, theme: &Theme, area: Rect, buf: &mut Buffer
     let mut remaining = area.height;
 
     for entry in &plan.entries {
-        let entry_h = plan_entry_height(entry, area.width, theme.glyphs);
+        let entry_h = plan_entry_height_for_theme(entry, area.width, theme);
         if skip >= entry_h {
             skip -= entry_h;
             continue;
@@ -139,6 +149,17 @@ fn plan_entry_height(entry: &PlanEntry, width: u16, _glyphs: GlyphSet) -> u16 {
     u16::try_from(lines.len().max(1)).unwrap_or(1)
 }
 
+fn plan_entry_height_for_theme(entry: &PlanEntry, width: u16, theme: &Theme) -> u16 {
+    let marker_columns = if theme.screen_reader {
+        u16::try_from(plan_marker(entry.status, theme).len() + 1).unwrap_or(u16::MAX)
+    } else {
+        MARKER_COLUMNS
+    };
+    let text_width = width.saturating_sub(marker_columns).max(1);
+    let lines = wrap_lines(&entry.title, text_width);
+    u16::try_from(lines.len().max(1)).unwrap_or(1)
+}
+
 fn render_plan_entry(
     entry: &PlanEntry,
     theme: &Theme,
@@ -150,9 +171,14 @@ fn render_plan_entry(
         return;
     }
 
-    let marker = plan_marker(entry.status, theme.glyphs);
+    let marker = plan_marker(entry.status, theme);
     let marker_style = plan_marker_style(entry.status, theme);
-    let text_width = area.width.saturating_sub(MARKER_COLUMNS).max(1);
+    let marker_columns = if theme.screen_reader {
+        u16::try_from(marker.len() + 1).unwrap_or(u16::MAX)
+    } else {
+        MARKER_COLUMNS
+    };
+    let text_width = area.width.saturating_sub(marker_columns).max(1);
     let wrapped = wrap_lines(&entry.title, text_width);
     let title_style = plan_title_style(entry.status, theme);
 
@@ -180,8 +206,15 @@ fn render_plan_entry(
     Paragraph::new(visible.collect::<Vec<_>>()).render(area, buf);
 }
 
-fn plan_marker(status: PlanEntryStatus, glyphs: GlyphSet) -> &'static str {
-    match (status, glyphs) {
+fn plan_marker(status: PlanEntryStatus, theme: &Theme) -> &'static str {
+    if theme.screen_reader {
+        return match status {
+            PlanEntryStatus::Pending => "Pending:",
+            PlanEntryStatus::InProgress => "In progress:",
+            PlanEntryStatus::Completed => "Completed:",
+        };
+    }
+    match (status, theme.glyphs) {
         (PlanEntryStatus::Pending, GlyphSet::Ascii) => "[ ]",
         (PlanEntryStatus::InProgress, GlyphSet::Ascii) => "[>]",
         (PlanEntryStatus::Completed, GlyphSet::Ascii) => "[x]",

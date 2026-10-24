@@ -8,6 +8,7 @@ use crate::{Component, Event, Keymap, Outcome};
 pub struct Motion {
     frame: usize,
     mode: MotionMode,
+    screen_reader: bool,
     revision: u64,
 }
 
@@ -27,6 +28,7 @@ impl Motion {
         Self {
             frame: 0,
             mode: MotionMode::Full,
+            screen_reader: false,
             revision: 0,
         }
     }
@@ -44,6 +46,17 @@ impl Motion {
         }
     }
 
+    /// Synchronize screen-reader mode so tick handling remains static as well.
+    pub fn set_screen_reader(&mut self, enabled: bool) {
+        if self.screen_reader != enabled {
+            self.screen_reader = enabled;
+            if enabled {
+                self.mode = MotionMode::Reduced;
+            }
+            self.revision += 1;
+        }
+    }
+
     /// Zero-based frame index (meaningful only in [`MotionMode::Full`]).
     pub fn frame(&self) -> usize {
         self.frame
@@ -56,6 +69,9 @@ impl Motion {
 
     /// Glyph or label for the current theme and motion settings.
     pub fn indicator(&self, theme: &Theme) -> &str {
+        if theme.screen_reader {
+            return "Working";
+        }
         if theme.motion == MotionMode::Reduced {
             return self.reduced_label();
         }
@@ -68,7 +84,7 @@ impl Motion {
 
     /// Advance one animation step; returns `true` if [`Motion::revision`] changed.
     pub fn advance(&mut self, theme: &Theme) -> bool {
-        if theme.motion != MotionMode::Full {
+        if theme.screen_reader || theme.motion != MotionMode::Full {
             return false;
         }
         let count = frame_count(theme.glyphs);
@@ -89,7 +105,7 @@ impl Component for Motion {
 
     fn handle(&mut self, ev: &Event, _keys: &Keymap) -> Outcome<Self::Intent> {
         match ev {
-            Event::Tick(_) if self.mode == MotionMode::Full => {
+            Event::Tick(_) if self.mode == MotionMode::Full && !self.screen_reader => {
                 // Frame count without theme: use the longer Unicode cycle so ticks stay in sync
                 // when the widget renders with either glyph set.
                 self.frame = (self.frame + 1) % SPINNER_UNICODE.len();
