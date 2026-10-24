@@ -8,6 +8,8 @@
 mod code_block;
 #[cfg(feature = "fuzzy")]
 mod completion_menu;
+#[cfg(feature = "crossterm")]
+mod crossterm;
 mod dialog;
 mod key_hints;
 #[cfg(feature = "markdown")]
@@ -21,8 +23,17 @@ mod tabs;
 mod textarea;
 mod theme_util;
 mod toasts;
+#[cfg(feature = "tokio")]
+mod tokio;
 mod virtual_list;
 mod wrap;
+
+#[cfg(feature = "crossterm")]
+pub use crossterm::{
+    TerminalSession, TerminalViewport, enter_terminal, enter_terminal_with, from_crossterm_event,
+};
+#[cfg(feature = "tokio")]
+pub use tokio::{FrameScheduler, event_stream};
 
 pub use code_block::{CodeBlock, CodeBlockState};
 #[cfg(feature = "fuzzy")]

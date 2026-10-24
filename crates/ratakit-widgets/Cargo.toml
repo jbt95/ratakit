@@ -13,8 +13,8 @@ default = []
 fuzzy = ["ratakit-core/fuzzy"]
 markdown = ["ratakit-text/markdown"]
 highlight-syntect = ["ratakit-text/highlight-syntect"]
-crossterm = []
-tokio = []
+crossterm = ["dep:crossterm"]
+tokio = ["crossterm", "dep:tokio", "dep:futures-util"]
 
 [dependencies]
 ratakit-core.workspace = true
@@ -22,6 +22,9 @@ ratakit-text.workspace = true
 ratatui-core.workspace = true
 ratatui-widgets.workspace = true
 unicode-width.workspace = true
+crossterm = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
+futures-util = { workspace = true, optional = true }
 
 [dev-dependencies]
 ratakit-core = { workspace = true, features = ["fuzzy"] }
@@ -30,6 +33,7 @@ ratatui.workspace = true
 insta.workspace = true
 proptest.workspace = true
 ratakit-text = { workspace = true, features = ["highlight-syntect", "markdown"] }
+tokio = { workspace = true, features = ["macros", "rt", "test-util", "time"] }
 
 [[test]]
 name = "markdown_snapshots"
