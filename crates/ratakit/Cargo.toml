@@ -28,6 +28,7 @@ diff = [
 ]
 fuzzy = [
     "ratakit-core/fuzzy",
+    "widgets",
     "dep:ratakit-text",
     "ratakit-text/fuzzy",
     "ratakit-widgets/fuzzy",

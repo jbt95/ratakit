@@ -1,0 +1,39 @@
+---
+source: crates/ratakit-widgets/tests/fuzzy_picker_snapshots.rs
+expression: compact_picker_snapshot(rendered)
+---
+╭Open file─────────────────────────────────────────────╮
+│>                                                     │
+│src                                                  ▲│
+│src/main.rs                                          █│
+│src/lib.rs                                           █│
+│docs                                                 █│
+│docs/DISENO.md                                       █│
+│                                                     █│
+│                                                     █│
+│                                                     ║│
+│                                                     ║│
+│                                                     ▼│
+│        ↑↓ select · enter confirm · esc cancel        │
+╰──────────────────────────────────────────────────────╯
+--- styles ---
+(1,1): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(2,1): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(1,2): fg=rgb(108,112,134) bg=rgb(30,30,46) bold
+(2,2): fg=rgb(108,112,134) bg=rgb(30,30,46) bold
+(3,2): fg=rgb(108,112,134) bg=rgb(30,30,46) bold
+(1,3): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(2,3): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(3,3): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(4,3): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(5,3): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(6,3): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(7,3): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(8,3): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(9,3): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(10,3): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(11,3): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(1,5): fg=rgb(108,112,134) bg=rgb(30,30,46) bold
+(2,5): fg=rgb(108,112,134) bg=rgb(30,30,46) bold
+(3,5): fg=rgb(108,112,134) bg=rgb(30,30,46) bold
+(4,5): fg=rgb(108,112,134) bg=rgb(30,30,46) bold

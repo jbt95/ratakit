@@ -13,6 +13,8 @@ mod crossterm;
 mod dialog;
 #[cfg(feature = "diff")]
 mod diff_view;
+#[cfg(feature = "fuzzy")]
+mod fuzzy_picker;
 mod key_hints;
 #[cfg(feature = "markdown")]
 mod markdown;
@@ -45,12 +47,19 @@ pub use completion_menu::{CompletionMenu, CompletionMenuLayout, CompletionMenuSt
 pub use dialog::{ConfirmDialog, Dialog, DialogButton, Modal};
 #[cfg(feature = "diff")]
 pub use diff_view::{DiffMode, DiffView, DiffViewState};
+#[cfg(feature = "fuzzy")]
+pub use fuzzy_picker::FuzzyPicker;
 pub use key_hints::KeyHints;
 #[cfg(feature = "markdown")]
 pub use markdown::{Markdown, MarkdownState};
 pub use ratakit_core::{
     DialogIntent, DialogState, FlatTreeRow, ScrollLayoutHint, ScrollState, SortDirection,
     TableState, TabsState, TreeIntent, TreePath, TreeRowSizing, TreeSource, TreeState,
+};
+#[cfg(feature = "fuzzy")]
+pub use ratakit_core::{
+    PickerDisplayMode, PickerIntent, PickerItem, PickerRow, PickerRowKind, PickerSecondaryAxis,
+    PickerSecondaryState, PickerSection, PickerState,
 };
 pub use scroll_view::{ScrollView, ScrollViewContent, ScrollViewMode};
 pub use spinner::Spinner;

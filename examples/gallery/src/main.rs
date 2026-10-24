@@ -9,15 +9,16 @@ use std::time::{Duration, Instant};
 
 use futures_util::StreamExt;
 use ratakit::core::{
-    ActionLabels, Component, Event, FuzzyFilter, KeyCode, Keymap, KeymapPreset, ListState, Motion,
-    MotionMode, TableState, TabsState, Theme, Toast, ToastLevel, ToastQueue, key_hints_from_keymap,
+    ActionLabels, Component, Event, KeyCode, Keymap, KeymapPreset, ListState, Motion, MotionMode,
+    PickerSection, TableState, TabsState, Theme, Toast, ToastLevel, ToastQueue,
+    key_hints_from_keymap,
 };
 use ratakit::text::{DiffModel, LangId, MarkdownOptions, SyntectHighlighter};
 use ratakit::widgets::{
     CodeBlock, CodeBlockState, ConfirmDialog, DialogState, DiffView, DiffViewState, FrameScheduler,
-    KeyHints, Markdown, MarkdownState, RowRenderer, Spinner, StatusBar, StatusSegment,
-    TabItem as WidgetTabItem, Table, TableColumn, Tabs, TextArea, TextAreaState, Toasts, Tree,
-    VirtualList, enter_terminal, event_stream,
+    FuzzyPicker, KeyHints, Markdown, MarkdownState, PickerItem, PickerState, RowRenderer, Spinner,
+    StatusBar, StatusSegment, TabItem as WidgetTabItem, Table, TableColumn, Tabs, TextArea,
+    TextAreaState, Toasts, Tree, VirtualList, enter_terminal, event_stream,
 };
 use ratakit::widgets::{TreeSource, TreeState};
 use ratakit_testing::render_stateful;
@@ -27,7 +28,7 @@ use ratatui::widgets::StatefulWidget;
 use ratatui_crossterm::CrosstermBackend;
 
 const GALLERY_TABS: [&str; 9] = [
-    "Input", "List", "Tree", "Code", "Diff", "Markdown", "Chrome", "Data", "Fuzzy",
+    "Input", "List", "Tree", "Code", "Diff", "Markdown", "Chrome", "Data", "Picker",
 ];
 
 fn gallery_markdown_sample() -> String {
@@ -107,6 +108,22 @@ enum GalleryNode {
     LibRs,
 }
 
+#[derive(Clone)]
+struct GalleryFile {
+    path: String,
+    detail: Option<String>,
+}
+
+impl PickerItem for GalleryFile {
+    fn label(&self) -> std::borrow::Cow<'_, str> {
+        std::borrow::Cow::Borrowed(&self.path)
+    }
+
+    fn detail(&self) -> Option<std::borrow::Cow<'_, str>> {
+        self.detail.as_deref().map(std::borrow::Cow::Borrowed)
+    }
+}
+
 struct GalleryFileTree;
 
 impl TreeSource<GalleryNode> for GalleryFileTree {
@@ -165,10 +182,7 @@ struct App {
     dialog: DialogState,
     inner_tabs: TabsState,
     table: TableState,
-    fuzzy: FuzzyFilter,
-    fuzzy_query: String,
-    fuzzy_hits: Vec<String>,
-    fuzzy_candidates: Vec<String>,
+    picker: PickerState<GalleryFile>,
     hint_labels: ActionLabels,
     highlighter: SyntectHighlighter,
     should_quit: bool,
@@ -248,34 +262,37 @@ impl App {
             dialog: DialogState::new(),
             inner_tabs,
             table,
-            fuzzy: FuzzyFilter::new(),
-            fuzzy_query: "gal".into(),
-            fuzzy_hits: Vec::new(),
-            fuzzy_candidates: [
-                "gallery",
-                "gamma",
-                "global",
-                "git",
-                "grep",
-                "go",
-                "grep files",
-            ]
-            .into_iter()
-            .map(str::to_string)
-            .collect(),
+            picker: {
+                let mut picker = PickerState::new();
+                picker.set_sections(vec![
+                    PickerSection {
+                        title: "src".into(),
+                        items: vec![
+                            GalleryFile {
+                                path: "src/main.rs".into(),
+                                detail: Some("fn main() { … }".into()),
+                            },
+                            GalleryFile {
+                                path: "src/lib.rs".into(),
+                                detail: Some("pub mod widgets;".into()),
+                            },
+                        ],
+                    },
+                    PickerSection {
+                        title: "docs".into(),
+                        items: vec![GalleryFile {
+                            path: "docs/DISENO.md".into(),
+                            detail: Some("Design document".into()),
+                        }],
+                    },
+                ]);
+                picker.open();
+                picker
+            },
             hint_labels,
             highlighter: SyntectHighlighter,
             should_quit: false,
         }
-    }
-
-    fn refresh_fuzzy(&mut self) {
-        self.fuzzy.set_pattern(&self.fuzzy_query);
-        let ranked = self.fuzzy.rank(&self.fuzzy_candidates, 8);
-        self.fuzzy_hits = ranked
-            .iter()
-            .map(|m| self.fuzzy_candidates[m.item_index].clone())
-            .collect();
     }
 
     fn handle(&mut self, ev: &Event) {
@@ -316,21 +333,7 @@ impl App {
                     .handle_with_source(ev, &self.keys, &self.file_tree);
             }
             8 => {
-                if let Event::Key(key) = ev {
-                    if key.kind == ratakit::core::KeyEventKind::Press {
-                        match key.code {
-                            KeyCode::Char(c) => {
-                                self.fuzzy_query.push(c);
-                                self.refresh_fuzzy();
-                            }
-                            KeyCode::Backspace => {
-                                self.fuzzy_query.pop();
-                                self.refresh_fuzzy();
-                            }
-                            _ => {}
-                        }
-                    }
-                }
+                let _ = self.picker.handle(ev, &self.keys);
             }
             _ => {}
         }
@@ -482,20 +485,8 @@ impl App {
                 );
             }
             8 => {
-                use ratatui::style::Style;
-                use ratatui::text::Line;
-                use ratatui::widgets::Paragraph;
-                let body = format!(
-                    "Query: {}\n\nMatches:\n{}",
-                    self.fuzzy_query,
-                    self.fuzzy_hits.join("\n")
-                );
-                ratatui::widgets::Widget::render(
-                    Paragraph::new(body.lines().map(Line::from).collect::<Vec<_>>())
-                        .style(Style::default()),
-                    chunks[1],
-                    frame.buffer_mut(),
-                );
+                let widget = FuzzyPicker::new("Open file", &self.theme).preview(true);
+                widget.render(chunks[1], frame.buffer_mut(), &mut self.picker);
             }
             _ => {}
         }
@@ -524,7 +515,6 @@ impl App {
 
 fn run_headless() {
     let mut app = App::new();
-    app.refresh_fuzzy();
     let theme = Theme::dark();
     let tab_items: Vec<WidgetTabItem> = GALLERY_TABS
         .iter()
@@ -537,7 +527,12 @@ fn run_headless() {
     assert!(snapshot.contains("Tree"));
     assert!(snapshot.contains("Diff"));
     assert!(snapshot.contains("Markdown"));
-    assert!(snapshot.contains("Fuzzy"));
+    assert!(snapshot.contains("Picker"));
+
+    let picker_widget = FuzzyPicker::new("Open file", &theme).preview(true);
+    let picker_snapshot = render_stateful(picker_widget, 80, 20, &mut app.picker);
+    assert!(picker_snapshot.contains("Open file"));
+    assert!(picker_snapshot.contains("src/main.rs"));
     println!("ok: gallery headless snapshot {} bytes", snapshot.len());
 }
 
@@ -553,7 +548,6 @@ async fn main() -> std::io::Result<()> {
     terminal.clear()?;
 
     let mut app = App::new();
-    app.refresh_fuzzy();
 
     let mut scheduler = FrameScheduler::with_motion(app.theme.motion);
     scheduler.request();
