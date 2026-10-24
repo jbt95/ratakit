@@ -26,6 +26,7 @@ mod tabs;
 mod text;
 mod theme;
 mod toast;
+mod tree;
 
 #[cfg(feature = "fuzzy")]
 pub use completion::{
@@ -50,9 +51,13 @@ pub use list::{HeightCache, ItemHeights, ListLayoutHint, ListState, VisibleRows,
 pub use motion::Motion;
 pub use outcome::Outcome;
 pub use revision::Revisioned;
-pub use scroll::ScrollState;
+pub use scroll::{ScrollLayoutHint, ScrollState};
 pub use table::{SortDirection, TableState};
 pub use tabs::TabsState;
 pub use text::{Atom, AtomKind, PasteBurst, Position, TextBuffer};
 pub use theme::{GlyphSet, MotionMode, Palette, Rgb, SemanticColor, SyntaxThemeId, Theme};
 pub use toast::{Toast, ToastLevel, ToastQueue};
+pub use tree::{
+    FlatTreeRow, TreeIntent, TreePath, TreeRowSizing, TreeSource, TreeState, tree_indent_cols,
+    tree_row_height,
+};

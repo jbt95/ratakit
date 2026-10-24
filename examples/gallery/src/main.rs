@@ -16,16 +16,18 @@ use ratakit::text::{LangId, MarkdownOptions, SyntectHighlighter};
 use ratakit::widgets::{
     CodeBlock, CodeBlockState, ConfirmDialog, DialogState, FrameScheduler, KeyHints, Markdown,
     MarkdownState, RowRenderer, Spinner, StatusBar, StatusSegment, TabItem as WidgetTabItem, Table,
-    TableColumn, Tabs, TextArea, TextAreaState, Toasts, VirtualList, enter_terminal, event_stream,
+    TableColumn, Tabs, TextArea, TextAreaState, Toasts, Tree, VirtualList, enter_terminal,
+    event_stream,
 };
+use ratakit::widgets::{TreeSource, TreeState};
 use ratakit_testing::render_stateful;
 use ratatui::Terminal;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::widgets::StatefulWidget;
 use ratatui_crossterm::CrosstermBackend;
 
-const GALLERY_TABS: [&str; 7] = [
-    "Input", "List", "Code", "Markdown", "Chrome", "Data", "Fuzzy",
+const GALLERY_TABS: [&str; 8] = [
+    "Input", "List", "Tree", "Code", "Markdown", "Chrome", "Data", "Fuzzy",
 ];
 
 fn gallery_markdown_sample() -> String {
@@ -98,6 +100,53 @@ impl RowRenderer for DemoRows {
     }
 }
 
+#[derive(Clone, PartialEq, Eq, Hash)]
+enum GalleryNode {
+    Src,
+    MainRs,
+    LibRs,
+}
+
+struct GalleryFileTree;
+
+impl TreeSource<GalleryNode> for GalleryFileTree {
+    fn child_count(&self, parent: &[GalleryNode]) -> usize {
+        match parent {
+            [] => 1,
+            [GalleryNode::Src] => 2,
+            _ => 0,
+        }
+    }
+
+    fn child_at(&self, parent: &[GalleryNode], index: usize) -> GalleryNode {
+        match parent {
+            [] => GalleryNode::Src,
+            [GalleryNode::Src] => match index {
+                0 => GalleryNode::MainRs,
+                _ => GalleryNode::LibRs,
+            },
+            _ => GalleryNode::MainRs,
+        }
+    }
+
+    fn label(&self, path: &[GalleryNode]) -> &str {
+        match path.last() {
+            Some(GalleryNode::Src) => "src",
+            Some(GalleryNode::MainRs) => "main.rs",
+            Some(GalleryNode::LibRs) => "lib.rs",
+            None => "",
+        }
+    }
+
+    fn is_branch(&self, path: &[GalleryNode]) -> bool {
+        matches!(path, [] | [GalleryNode::Src])
+    }
+
+    fn children_loaded(&self, _path: &[GalleryNode]) -> bool {
+        true
+    }
+}
+
 struct App {
     theme: Theme,
     keys: Keymap,
@@ -105,6 +154,8 @@ struct App {
     textarea: TextAreaState,
     list_rows: DemoRows,
     list_state: ListState,
+    file_tree: GalleryFileTree,
+    tree_state: TreeState<GalleryNode>,
     code: CodeBlockState,
     markdown: MarkdownState,
     motion: Motion,
@@ -174,6 +225,12 @@ impl App {
                 "eta",
             ]),
             list_state: ListState::new(),
+            file_tree: GalleryFileTree,
+            tree_state: {
+                let mut tree = TreeState::new();
+                tree.open(vec![GalleryNode::Src]);
+                tree
+            },
             code,
             markdown,
             motion: Motion::new(),
@@ -243,7 +300,12 @@ impl App {
             1 => {
                 let _ = self.list_state.handle(ev, &self.keys);
             }
-            6 => {
+            2 => {
+                let _ = self
+                    .tree_state
+                    .handle_with_source(ev, &self.keys, &self.file_tree);
+            }
+            7 => {
                 if let Event::Key(key) = ev {
                     if key.kind == ratakit::core::KeyEventKind::Press {
                         match key.code {
@@ -325,14 +387,18 @@ impl App {
                 widget.render(chunks[1], frame.buffer_mut(), &mut self.list_state);
             }
             2 => {
+                let widget = Tree::new(&self.file_tree, &self.theme).scrollbar(true);
+                widget.render(chunks[1], frame.buffer_mut(), &mut self.tree_state);
+            }
+            3 => {
                 let widget = CodeBlock::new(&self.theme, &self.highlighter);
                 widget.render(chunks[1], frame.buffer_mut(), &mut self.code);
             }
-            3 => {
+            4 => {
                 let widget = Markdown::new(&self.theme, &self.highlighter);
                 widget.render(chunks[1], frame.buffer_mut(), &mut self.markdown);
             }
-            4 => {
+            5 => {
                 let inner = Layout::default()
                     .direction(Direction::Vertical)
                     .constraints([
@@ -365,7 +431,7 @@ impl App {
                 );
                 Toasts::new(&self.theme).render(inner[3], frame.buffer_mut(), &mut self.toasts);
             }
-            5 => {
+            6 => {
                 let inner = Layout::default()
                     .direction(Direction::Vertical)
                     .constraints([Constraint::Length(3), Constraint::Min(3)])
@@ -401,7 +467,7 @@ impl App {
                     &mut self.table,
                 );
             }
-            6 => {
+            7 => {
                 use ratatui::style::Style;
                 use ratatui::text::Line;
                 use ratatui::widgets::Paragraph;
@@ -421,7 +487,7 @@ impl App {
         }
 
         let footer = format!(
-            "Tab/1-7: sections · m: modal · q: quit · motion: {}",
+            "Tab/1-8: sections · m: modal · q: quit · motion: {}",
             match self.theme.motion {
                 MotionMode::Full => "full",
                 MotionMode::Reduced => "reduced",
@@ -454,6 +520,7 @@ fn run_headless() {
     let mut tabs_state = app.gallery_tab.clone();
     let snapshot = render_stateful(tabs, 80, 3, &mut tabs_state);
     assert!(snapshot.contains("Input"));
+    assert!(snapshot.contains("Tree"));
     assert!(snapshot.contains("Markdown"));
     assert!(snapshot.contains("Fuzzy"));
     println!("ok: gallery headless snapshot {} bytes", snapshot.len());

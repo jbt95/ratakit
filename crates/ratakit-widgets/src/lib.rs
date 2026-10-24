@@ -14,6 +14,7 @@ mod dialog;
 mod key_hints;
 #[cfg(feature = "markdown")]
 mod markdown;
+mod scroll_view;
 mod spinner;
 mod status_bar;
 mod style;
@@ -25,6 +26,7 @@ mod theme_util;
 mod toasts;
 #[cfg(feature = "tokio")]
 mod tokio;
+mod tree;
 mod virtual_list;
 mod wrap;
 
@@ -42,7 +44,11 @@ pub use dialog::{ConfirmDialog, Dialog, DialogButton, Modal};
 pub use key_hints::KeyHints;
 #[cfg(feature = "markdown")]
 pub use markdown::{Markdown, MarkdownState};
-pub use ratakit_core::{DialogIntent, DialogState, SortDirection, TableState, TabsState};
+pub use ratakit_core::{
+    DialogIntent, DialogState, FlatTreeRow, ScrollLayoutHint, ScrollState, SortDirection,
+    TableState, TabsState, TreeIntent, TreePath, TreeRowSizing, TreeSource, TreeState,
+};
+pub use scroll_view::{ScrollView, ScrollViewContent, ScrollViewMode};
 pub use spinner::Spinner;
 pub use status_bar::{StatusBar, StatusSegment, StatusZone};
 pub use styled_convert::{
@@ -53,4 +59,5 @@ pub use table::{Table, TableColumn};
 pub use tabs::{TabItem, Tabs};
 pub use textarea::{TextArea, TextAreaCursorLayout, TextAreaState, TextIntent};
 pub use toasts::Toasts;
+pub use tree::Tree;
 pub use virtual_list::{RowRenderer, VirtualList};

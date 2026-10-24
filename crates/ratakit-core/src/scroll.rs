@@ -1,4 +1,14 @@
-use crate::Revisioned;
+use crate::component::Component;
+use crate::event::{Event, KeyCode, KeyEventKind, MouseEventKind};
+use crate::keymap::Keymap;
+use crate::outcome::Outcome;
+
+/// Last measured layout for scroll key handling (set by scroll views).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct ScrollLayoutHint {
+    pub viewport_height: u16,
+    pub content_height: usize,
+}
 
 /// Vertical scroll offset for virtualized content, with optional *follow tail* during streaming.
 ///
@@ -9,6 +19,7 @@ use crate::Revisioned;
 pub struct ScrollState {
     offset: usize,
     follow_tail: bool,
+    layout: ScrollLayoutHint,
     revision: u64,
 }
 
@@ -19,8 +30,25 @@ impl ScrollState {
         Self {
             offset: 0,
             follow_tail: true,
+            layout: ScrollLayoutHint::default(),
             revision: 0,
         }
+    }
+
+    /// Last layout hint written by a scroll view widget.
+    #[must_use]
+    pub fn layout(&self) -> ScrollLayoutHint {
+        self.layout
+    }
+
+    /// Update follow-tail and clamp offset after layout changes.
+    pub fn sync_layout(&mut self, viewport_height: u16, content_height: usize) {
+        self.layout = ScrollLayoutHint {
+            viewport_height,
+            content_height,
+        };
+        self.maintain_tail(viewport_height, content_height);
+        self.clamp(viewport_height, content_height);
     }
 
     /// Current scroll offset in terminal rows from the top of the content.
@@ -103,7 +131,57 @@ impl ScrollState {
     }
 }
 
-impl Revisioned for ScrollState {
+impl Component for ScrollState {
+    type Intent = ();
+
+    fn handle(&mut self, ev: &Event, _keys: &Keymap) -> Outcome<()> {
+        let hint = self.layout;
+        let viewport = hint.viewport_height.max(1);
+        let content = hint.content_height;
+        match ev {
+            Event::Key(key) if key.kind == KeyEventKind::Press => match key.code {
+                KeyCode::Up => {
+                    self.scroll_by(-1, viewport, content);
+                    Outcome::Consumed
+                }
+                KeyCode::Down => {
+                    self.scroll_by(1, viewport, content);
+                    Outcome::Consumed
+                }
+                KeyCode::PageUp => {
+                    self.scroll_by(-(viewport as isize), viewport, content);
+                    Outcome::Consumed
+                }
+                KeyCode::PageDown => {
+                    self.scroll_by(viewport as isize, viewport, content);
+                    Outcome::Consumed
+                }
+                KeyCode::Home => {
+                    self.release_tail();
+                    self.scroll_to_offset(0);
+                    Outcome::Consumed
+                }
+                KeyCode::End => {
+                    self.scroll_to_end(viewport, content);
+                    Outcome::Consumed
+                }
+                _ => Outcome::Ignored,
+            },
+            Event::Mouse(mouse) => match mouse.kind {
+                MouseEventKind::ScrollUp => {
+                    self.scroll_by(-3, viewport, content);
+                    Outcome::Consumed
+                }
+                MouseEventKind::ScrollDown => {
+                    self.scroll_by(3, viewport, content);
+                    Outcome::Consumed
+                }
+                _ => Outcome::Ignored,
+            },
+            _ => Outcome::Ignored,
+        }
+    }
+
     fn revision(&self) -> u64 {
         self.revision
     }

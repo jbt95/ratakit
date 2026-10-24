@@ -289,6 +289,6 @@ impl Component for ListState {
     }
 
     fn revision(&self) -> u64 {
-        self.revision.max(self.scroll.revision())
+        self.revision.max(Revisioned::revision(&self.scroll))
     }
 }
