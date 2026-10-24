@@ -1,6 +1,6 @@
 [package]
 name = "ratakit-agent"
-description = "Agentic coding TUI state and widgets for ratakit (stub — milestone 3+)"
+description = "Agentic coding TUI state and widgets for ratakit"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -10,10 +10,33 @@ authors.workspace = true
 
 [features]
 default = ["widgets"]
-widgets = ["dep:ratakit-widgets"]
+widgets = [
+    "dep:ratakit-widgets",
+    "dep:ratatui-core",
+    "ratakit-widgets/fuzzy",
+    "ratakit-core/fuzzy",
+]
 serde = []
 
 [dependencies]
 ratakit-core.workspace = true
 ratakit-text.workspace = true
 ratakit-widgets = { workspace = true, optional = true }
+ratatui-core = { workspace = true, optional = true }
+
+[dev-dependencies]
+ratakit-core = { workspace = true, features = ["fuzzy"] }
+ratakit-testing.workspace = true
+ratakit-widgets = { workspace = true, features = ["fuzzy"] }
+ratatui.workspace = true
+insta.workspace = true
+
+[[test]]
+name = "model_picker_state"
+path = "tests/model_picker_state.rs"
+required-features = ["widgets"]
+
+[[test]]
+name = "model_picker_snapshots"
+path = "tests/model_picker_snapshots.rs"
+required-features = ["widgets"]

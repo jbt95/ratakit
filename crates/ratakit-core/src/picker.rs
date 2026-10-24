@@ -85,6 +85,11 @@ pub trait PickerItem {
         let _ = (option_index, option_label);
         true
     }
+
+    /// Short muted suffix rendered after the label (e.g. marking the active configuration).
+    fn annotation(&self) -> Option<Cow<'_, str>> {
+        None
+    }
 }
 
 /// Result of confirming or dismissing the picker.
@@ -221,6 +226,15 @@ impl<T: PickerItem> PickerState<T> {
         self.bump();
     }
 
+    /// Select a secondary-axis option by index (no-op when the axis is absent).
+    pub fn select_secondary(&mut self, index: usize) {
+        if let Some(secondary) = self.secondary.as_mut() {
+            secondary.select(index);
+            self.rebuild_rows();
+            self.bump();
+        }
+    }
+
     pub fn open(&mut self) {
         if !self.open {
             self.open = true;
@@ -264,6 +278,36 @@ impl<T: PickerItem> PickerState<T> {
 
     pub fn selected_detail(&self) -> Option<Cow<'_, str>> {
         self.selected_item().and_then(|item| item.detail())
+    }
+
+    /// Item for a flattened row index, if that row is a selectable item.
+    pub fn item_for_row(&self, row_index: usize) -> Option<&T> {
+        let row = self.rows.get(row_index)?;
+        match row.kind {
+            PickerRowKind::Item { section, item } => {
+                self.sections.get(section).and_then(|s| s.items.get(item))
+            }
+            PickerRowKind::SectionHeader { .. } => None,
+        }
+    }
+
+    /// Move list selection to the first item matching `predicate`, if any.
+    pub fn select_matching_item(&mut self, predicate: impl Fn(&T) -> bool) {
+        let target = self.rows.iter().position(|row| {
+            if let PickerRowKind::Item { section, item } = row.kind {
+                self.sections
+                    .get(section)
+                    .and_then(|s| s.items.get(item))
+                    .is_some_and(&predicate)
+            } else {
+                false
+            }
+        });
+        if let Some(index) = target {
+            self.list.select(Some(index));
+            self.scroll_selection_into_view();
+            self.bump();
+        }
     }
 
     fn rebuild_rows(&mut self) {
