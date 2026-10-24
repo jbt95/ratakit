@@ -10,6 +10,7 @@ authors.workspace = true
 
 [features]
 default = []
+diff = ["ratakit-text/diff"]
 fuzzy = ["ratakit-core/fuzzy"]
 markdown = ["ratakit-text/markdown"]
 highlight-syntect = ["ratakit-text/highlight-syntect"]
@@ -32,8 +33,13 @@ ratakit-testing.workspace = true
 ratatui.workspace = true
 insta.workspace = true
 proptest.workspace = true
-ratakit-text = { workspace = true, features = ["highlight-syntect", "markdown"] }
+ratakit-text = { workspace = true, features = ["highlight-syntect", "markdown", "diff"] }
 tokio = { workspace = true, features = ["macros", "rt", "test-util", "time"] }
+
+[[test]]
+name = "diff_view_snapshots"
+path = "tests/diff_view_snapshots.rs"
+required-features = ["diff", "highlight-syntect"]
 
 [[test]]
 name = "markdown_snapshots"

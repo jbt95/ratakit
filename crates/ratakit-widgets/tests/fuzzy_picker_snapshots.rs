@@ -1,7 +1,7 @@
 #![cfg(feature = "fuzzy")]
 
 use ratakit_core::{Component, PickerItem, PickerSecondaryAxis, PickerSection, PickerState, Theme};
-use ratakit_testing::assert_stateful_widget_snapshot;
+use ratakit_testing::render_stateful;
 use ratakit_widgets::FuzzyPicker;
 
 #[derive(Clone)]
@@ -48,26 +48,67 @@ fn open_picker() -> PickerState<FileItem> {
     state
 }
 
-#[test]
-fn fuzzy_picker_fullscreen_80x20_dark() {
-    let theme = Theme::dark();
-    let widget = FuzzyPicker::new("Open file", &theme);
-    let mut state = open_picker();
-    assert_stateful_widget_snapshot!(
-        "fuzzy_picker_fullscreen_80x20_dark",
-        widget,
-        &mut state,
-        80,
-        20
-    );
+/// Plain-text grid plus non-default styles (skip panel fill and default fg-on-panel).
+fn compact_picker_snapshot(rendered: String) -> String {
+    let Some((text, styles)) = rendered.split_once("--- styles ---\n") else {
+        return rendered;
+    };
+    let compact_styles = styles
+        .lines()
+        .filter(|line| !line.is_empty())
+        .filter(|line| interesting_picker_style_line(line))
+        .collect::<Vec<_>>()
+        .join("\n");
+    format!("{text}--- styles ---\n{compact_styles}\n")
+}
+
+fn interesting_picker_style_line(line: &str) -> bool {
+    let Some(style) = line.split(": ").nth(1) else {
+        return false;
+    };
+    if style.contains("italic") || style.contains("underline") {
+        return true;
+    }
+    // Accent (prompt, fuzzy match, selection cursor).
+    if style.contains("fg=rgb(137,180,250)") || style.contains("bg=rgb(137,180,250)") {
+        return true;
+    }
+    if style.contains("fg=rgb(30,102,245)") || style.contains("bg=rgb(30,102,245)") {
+        return true;
+    }
+    // Muted section headers and secondary-axis chips (bold only).
+    if style.contains("bold")
+        && (style.contains("fg=rgb(108,112,134)") || style.contains("fg=rgb(108,111,133)"))
+    {
+        return true;
+    }
+    false
+}
+
+fn assert_picker_snapshot<W: ratatui::widgets::StatefulWidget>(
+    name: &str,
+    widget: W,
+    state: &mut W::State,
+    width: u16,
+    height: u16,
+) {
+    let rendered = render_stateful(widget, width, height, state);
+    insta::assert_snapshot!(name, compact_picker_snapshot(rendered));
 }
 
 #[test]
-fn fuzzy_picker_query_highlight_80x20_dark() {
+fn fuzzy_picker_fill_56x14_dark() {
     let theme = Theme::dark();
     let widget = FuzzyPicker::new("Open file", &theme);
     let mut state = open_picker();
-    state.list_state_mut().select(Some(2)); // first item row after typing handled via filter
+    assert_picker_snapshot("fuzzy_picker_fill_56x14_dark", widget, &mut state, 56, 14);
+}
+
+#[test]
+fn fuzzy_picker_query_highlight_56x14_dark() {
+    let theme = Theme::dark();
+    let widget = FuzzyPicker::new("Open file", &theme);
+    let mut state = open_picker();
     for ch in "lib".chars() {
         let _ = state.handle(
             &ratakit_core::Event::Key(ratakit_core::KeyEvent {
@@ -78,31 +119,31 @@ fn fuzzy_picker_query_highlight_80x20_dark() {
             &ratakit_core::Keymap::empty(),
         );
     }
-    assert_stateful_widget_snapshot!(
-        "fuzzy_picker_query_lib_80x20_dark",
+    assert_picker_snapshot(
+        "fuzzy_picker_query_lib_56x14_dark",
         widget,
         &mut state,
-        80,
-        20
+        56,
+        14,
     );
 }
 
 #[test]
-fn fuzzy_picker_preview_100x20_dark() {
+fn fuzzy_picker_preview_72x14_dark() {
     let theme = Theme::dark();
     let widget = FuzzyPicker::new("Open file", &theme).preview(true);
     let mut state = open_picker();
-    assert_stateful_widget_snapshot!(
-        "fuzzy_picker_preview_100x20_dark",
+    assert_picker_snapshot(
+        "fuzzy_picker_preview_72x14_dark",
         widget,
         &mut state,
-        100,
-        20
+        72,
+        14,
     );
 }
 
 #[test]
-fn fuzzy_picker_secondary_80x20_light() {
+fn fuzzy_picker_secondary_56x14_light() {
     let theme = Theme::light();
     #[derive(Clone)]
     struct Model {
@@ -137,11 +178,11 @@ fn fuzzy_picker_secondary_80x20_light() {
     }));
     state.open();
     let widget = FuzzyPicker::new("Choose model", &theme);
-    assert_stateful_widget_snapshot!(
-        "fuzzy_picker_secondary_80x20_light",
+    assert_picker_snapshot(
+        "fuzzy_picker_secondary_56x14_light",
         widget,
         &mut state,
-        80,
-        20
+        56,
+        14,
     );
 }

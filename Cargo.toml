@@ -37,6 +37,7 @@ proptest = "1.9.0"
 syntect = { version = "5.3.0", default-features = false, features = ["default-fancy"] }
 two-face = { version = "0.5.2", default-features = false, features = ["syntect-default-fancy"] }
 thiserror = "2.0.21"
+similar = { version = "3.2.1", features = ["unicode", "inline"] }
 
 ratatui-core = "0.1.2"
 ratatui-widgets = "0.3.2"

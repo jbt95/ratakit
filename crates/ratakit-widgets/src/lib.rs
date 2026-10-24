@@ -11,6 +11,8 @@ mod completion_menu;
 #[cfg(feature = "crossterm")]
 mod crossterm;
 mod dialog;
+#[cfg(feature = "diff")]
+mod diff_view;
 #[cfg(feature = "fuzzy")]
 mod fuzzy_picker;
 mod key_hints;
@@ -43,6 +45,8 @@ pub use code_block::{CodeBlock, CodeBlockState};
 #[cfg(feature = "fuzzy")]
 pub use completion_menu::{CompletionMenu, CompletionMenuLayout, CompletionMenuState};
 pub use dialog::{ConfirmDialog, Dialog, DialogButton, Modal};
+#[cfg(feature = "diff")]
+pub use diff_view::{DiffMode, DiffView, DiffViewState};
 #[cfg(feature = "fuzzy")]
 pub use fuzzy_picker::FuzzyPicker;
 pub use key_hints::KeyHints;

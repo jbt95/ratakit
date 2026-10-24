@@ -13,12 +13,12 @@ use ratakit::core::{
     PickerSection, TableState, TabsState, Theme, Toast, ToastLevel, ToastQueue,
     key_hints_from_keymap,
 };
-use ratakit::text::{LangId, MarkdownOptions, SyntectHighlighter};
+use ratakit::text::{DiffModel, LangId, MarkdownOptions, SyntectHighlighter};
 use ratakit::widgets::{
-    CodeBlock, CodeBlockState, ConfirmDialog, DialogState, FrameScheduler, FuzzyPicker, KeyHints,
-    Markdown, MarkdownState, PickerItem, PickerState, RowRenderer, Spinner, StatusBar,
-    StatusSegment, TabItem as WidgetTabItem, Table, TableColumn, Tabs, TextArea, TextAreaState,
-    Toasts, Tree, VirtualList, enter_terminal, event_stream,
+    CodeBlock, CodeBlockState, ConfirmDialog, DialogState, DiffView, DiffViewState, FrameScheduler,
+    FuzzyPicker, KeyHints, Markdown, MarkdownState, PickerItem, PickerState, RowRenderer, Spinner,
+    StatusBar, StatusSegment, TabItem as WidgetTabItem, Table, TableColumn, Tabs, TextArea,
+    TextAreaState, Toasts, Tree, VirtualList, enter_terminal, event_stream,
 };
 use ratakit::widgets::{TreeSource, TreeState};
 use ratakit_testing::render_stateful;
@@ -27,8 +27,8 @@ use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::widgets::StatefulWidget;
 use ratatui_crossterm::CrosstermBackend;
 
-const GALLERY_TABS: [&str; 8] = [
-    "Input", "List", "Tree", "Code", "Markdown", "Chrome", "Data", "Picker",
+const GALLERY_TABS: [&str; 9] = [
+    "Input", "List", "Tree", "Code", "Diff", "Markdown", "Chrome", "Data", "Picker",
 ];
 
 fn gallery_markdown_sample() -> String {
@@ -174,6 +174,8 @@ struct App {
     file_tree: GalleryFileTree,
     tree_state: TreeState<GalleryNode>,
     code: CodeBlockState,
+    diff_model: DiffModel,
+    diff_state: DiffViewState,
     markdown: MarkdownState,
     motion: Motion,
     toasts: ToastQueue,
@@ -205,6 +207,12 @@ impl App {
         let mut code = CodeBlockState::new();
         code.set_source("fn main() {\n    println!(\"hello\");\n}\n");
         code.set_language(LangId("Rust".to_string()));
+
+        let diff_model = DiffModel::from_texts(
+            "greet.rs",
+            "fn greet() {\n    println!(\"hi\");\n}\n",
+            "fn greet() {\n    println!(\"hello\");\n}\n",
+        );
 
         let mut markdown = MarkdownState::new(MarkdownOptions::default());
         markdown.push_delta(&gallery_markdown_sample());
@@ -246,6 +254,8 @@ impl App {
                 tree
             },
             code,
+            diff_model,
+            diff_state: DiffViewState::new(),
             markdown,
             motion: Motion::new(),
             toasts,
@@ -322,7 +332,7 @@ impl App {
                     .tree_state
                     .handle_with_source(ev, &self.keys, &self.file_tree);
             }
-            7 => {
+            8 => {
                 let _ = self.picker.handle(ev, &self.keys);
             }
             _ => {}
@@ -398,10 +408,14 @@ impl App {
                 widget.render(chunks[1], frame.buffer_mut(), &mut self.code);
             }
             4 => {
+                let widget = DiffView::new(&self.diff_model, &self.theme, &self.highlighter);
+                widget.render(chunks[1], frame.buffer_mut(), &mut self.diff_state);
+            }
+            5 => {
                 let widget = Markdown::new(&self.theme, &self.highlighter);
                 widget.render(chunks[1], frame.buffer_mut(), &mut self.markdown);
             }
-            5 => {
+            6 => {
                 let inner = Layout::default()
                     .direction(Direction::Vertical)
                     .constraints([
@@ -434,7 +448,7 @@ impl App {
                 );
                 Toasts::new(&self.theme).render(inner[3], frame.buffer_mut(), &mut self.toasts);
             }
-            6 => {
+            7 => {
                 let inner = Layout::default()
                     .direction(Direction::Vertical)
                     .constraints([Constraint::Length(3), Constraint::Min(3)])
@@ -470,7 +484,7 @@ impl App {
                     &mut self.table,
                 );
             }
-            7 => {
+            8 => {
                 let widget = FuzzyPicker::new("Open file", &self.theme).preview(true);
                 widget.render(chunks[1], frame.buffer_mut(), &mut self.picker);
             }
@@ -478,7 +492,7 @@ impl App {
         }
 
         let footer = format!(
-            "Tab/1-8: sections · m: modal · q: quit · motion: {}",
+            "Tab/1-9: sections · m: modal · q: quit · motion: {}",
             match self.theme.motion {
                 MotionMode::Full => "full",
                 MotionMode::Reduced => "reduced",
@@ -508,9 +522,10 @@ fn run_headless() {
         .collect();
     let tabs = Tabs::new(&theme, &tab_items);
     let mut tabs_state = app.gallery_tab.clone();
-    let snapshot = render_stateful(tabs, 80, 3, &mut tabs_state);
+    let snapshot = render_stateful(tabs, 120, 3, &mut tabs_state);
     assert!(snapshot.contains("Input"));
     assert!(snapshot.contains("Tree"));
+    assert!(snapshot.contains("Diff"));
     assert!(snapshot.contains("Markdown"));
     assert!(snapshot.contains("Picker"));
 
