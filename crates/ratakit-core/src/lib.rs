@@ -47,5 +47,5 @@ pub use scroll::ScrollState;
 pub use table::{SortDirection, TableState};
 pub use tabs::TabsState;
 pub use text::{Atom, AtomKind, PasteBurst, Position, TextBuffer};
-pub use theme::{GlyphSet, MotionMode, Palette, SemanticColor, SyntaxThemeId, Theme};
+pub use theme::{GlyphSet, MotionMode, Palette, Rgb, SemanticColor, SyntaxThemeId, Theme};
 pub use toast::{Toast, ToastLevel, ToastQueue};

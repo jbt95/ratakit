@@ -1,7 +1,25 @@
-//! Text processing for ratakit (markdown streaming, highlighting, diffs).
+//! Text processing for ratakit: styled lines, wrapping, and syntax highlighting.
 //!
-//! Milestone 0: crate layout only; implementation lands in milestone 1.
+//! This crate deliberately has **no** ratatui dependency; widgets in `ratakit-widgets`
+//! convert [`StyledLine`] values into ratatui types at render time.
 
-#![allow(missing_docs)]
+#![allow(clippy::must_use_candidate, clippy::return_self_not_must_use)]
 
-pub const STUB: &str = "ratakit-text is not implemented yet";
+mod highlight;
+mod styled;
+mod wrap;
+
+#[cfg(feature = "highlight-syntect")]
+mod highlight_syntect;
+
+pub use highlight::{Highlighter, HlState, LangId, PlainHighlighter};
+pub use styled::{StyledLine, StyledSpan, TextModifier, TextStyle};
+pub use wrap::{
+    PerLineWrapCache, WrapCache, WrappedLine, cursor_wrapped_position, wrap_lines,
+    wrap_styled_line, wrap_styled_lines,
+};
+
+#[cfg(feature = "highlight-syntect")]
+pub use highlight::SyntectHighlighter;
+#[cfg(feature = "highlight-syntect")]
+pub use highlight_syntect::{SyntectHlState, language_from_shebang};

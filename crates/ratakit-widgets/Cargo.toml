@@ -10,6 +10,7 @@ authors.workspace = true
 
 [features]
 default = []
+highlight-syntect = ["ratakit-text/highlight-syntect"]
 crossterm = []
 tokio = []
 
@@ -24,6 +25,7 @@ unicode-width.workspace = true
 ratakit-testing.workspace = true
 ratatui.workspace = true
 insta.workspace = true
+ratakit-text = { workspace = true, features = ["highlight-syntect"] }
 
 [[example]]
 name = "textarea_headless"

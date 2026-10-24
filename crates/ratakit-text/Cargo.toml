@@ -1,6 +1,6 @@
 [package]
 name = "ratakit-text"
-description = "Markdown streaming, highlighting, and diff models for ratakit (stub — milestone 1+)"
+description = "Styled text, wrapping, and syntax highlighting for ratakit (no ratatui)"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -10,9 +10,9 @@ authors.workspace = true
 
 [features]
 default = []
-markdown = []
-highlight-syntect = []
-highlight-syntect-onig = []
+markdown = ["dep:textwrap"]
+highlight-syntect = ["dep:syntect", "dep:two-face"]
+highlight-syntect-onig = ["highlight-syntect", "syntect/onig"]
 highlight-treesitter = []
 diff = []
 fuzzy = []
@@ -21,3 +21,14 @@ serde = []
 
 [dependencies]
 ratakit-core.workspace = true
+unicode-width.workspace = true
+unicode-segmentation.workspace = true
+textwrap = { workspace = true, optional = true }
+syntect = { workspace = true, optional = true, features = ["default-fancy"] }
+two-face = { workspace = true, optional = true, features = ["syntect-default-fancy"] }
+
+[dev-dependencies]
+ratakit-core.workspace = true
+
+[lints]
+workspace = true
