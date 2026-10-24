@@ -14,6 +14,7 @@ widgets = [
     "dep:ratakit-widgets",
     "dep:ratatui-core",
     "dep:ratatui-widgets",
+    "dep:unicode-width",
     "ratakit-core/fuzzy",
     "ratakit-text/highlight-syntect",
     "ratakit-widgets/diff",
@@ -28,12 +29,13 @@ ratakit-text = { workspace = true, features = ["markdown", "diff", "highlight-sy
 ratakit-widgets = { workspace = true, optional = true, features = ["fuzzy"] }
 ratatui-core = { workspace = true, optional = true }
 ratatui-widgets = { workspace = true, optional = true }
+unicode-width = { workspace = true, optional = true }
 serde = { version = "1.0.229", optional = true, features = ["derive"] }
 
 [dev-dependencies]
 ratakit-core = { workspace = true, features = ["fuzzy"] }
 ratakit-testing.workspace = true
-ratakit-widgets = { workspace = true, features = ["fuzzy"] }
+ratakit-widgets = { workspace = true, features = ["diff", "highlight-syntect", "fuzzy"] }
 ratatui.workspace = true
 insta.workspace = true
 proptest.workspace = true
@@ -64,6 +66,11 @@ required-features = ["widgets"]
 [[test]]
 name = "permission_prompt_snapshots"
 path = "tests/permission_prompt_snapshots.rs"
+required-features = ["widgets"]
+
+[[test]]
+name = "tool_call_card_snapshots"
+path = "tests/tool_call_card_snapshots.rs"
 required-features = ["widgets"]
 
 [[test]]
