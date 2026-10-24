@@ -1,6 +1,6 @@
 #![cfg(feature = "widgets")]
 
-use ratakit_agent::model::{Effort, ModelCatalogEntry, ModelChoice};
+use ratakit_agent::state::{Effort, ModelCatalogEntry, ModelChoice};
 use ratakit_agent::widgets::{ModelPicker, ModelPickerIntent, ModelPickerState};
 use ratakit_core::{
     Component, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, Keymap, Outcome, Theme,

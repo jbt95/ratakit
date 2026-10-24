@@ -1,26 +1,25 @@
-//! Model catalog types for agent configuration pickers.
-//!
-//! A1 (`agent::state`) should re-export or alias these types instead of duplicating them.
+//! Model and reasoning effort selection.
 
-use std::fmt;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
-/// Reasoning effort level exposed by an agent backend.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+/// Reasoning effort level for a model (when exposed by the agent).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Effort {
     Low,
     Medium,
     High,
-    /// Provider-specific labels (for example `xhigh`).
-    Other(String),
+    ExtraHigh,
 }
 
 impl Effort {
-    pub fn as_str(&self) -> &str {
+    pub fn as_str(self) -> &'static str {
         match self {
             Self::Low => "low",
             Self::Medium => "medium",
             Self::High => "high",
-            Self::Other(label) => label,
+            Self::ExtraHigh => "xhigh",
         }
     }
 
@@ -29,18 +28,17 @@ impl Effort {
             "low" => Some(Self::Low),
             "medium" => Some(Self::Medium),
             "high" => Some(Self::High),
-            other if !other.is_empty() => Some(Self::Other(other.to_string())),
+            "xhigh" | "extra_high" | "extrahigh" => Some(Self::ExtraHigh),
             _ => None,
         }
     }
 
-    /// Stable ordering for secondary-axis chips (known levels first, then lexicographic).
-    pub fn sort_key(&self) -> (u8, String) {
+    fn sort_key(self) -> u8 {
         match self {
-            Self::Low => (0, String::new()),
-            Self::Medium => (1, String::new()),
-            Self::High => (2, String::new()),
-            Self::Other(label) => (3, label.clone()),
+            Self::Low => 0,
+            Self::Medium => 1,
+            Self::High => 2,
+            Self::ExtraHigh => 3,
         }
     }
 }
@@ -57,27 +55,14 @@ impl Ord for Effort {
     }
 }
 
-impl fmt::Display for Effort {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(self.as_str())
-    }
-}
-
-/// Active model configuration (provider + model id + optional reasoning effort).
+/// One row in a model catalog (provider, model id, optional detail, allowed efforts).
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ModelChoice {
-    pub provider: String,
-    pub model: String,
-    pub effort: Option<Effort>,
-}
-
-/// One row in the model catalog shown by [`ModelPicker`](crate::widgets::ModelPicker).
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ModelCatalogEntry {
     pub provider: String,
     pub model: String,
     pub detail: Option<String>,
-    /// Allowed reasoning efforts for this model. Empty means effort does not apply.
+    /// Allowed reasoning efforts. Empty means effort does not apply to this model.
     pub efforts: Vec<Effort>,
 }
 
@@ -102,4 +87,13 @@ impl ModelCatalogEntry {
         self.efforts = efforts;
         self
     }
+}
+
+/// A selectable model entry for the model picker.
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct ModelChoice {
+    pub provider: String,
+    pub model: String,
+    pub effort: Option<Effort>,
 }

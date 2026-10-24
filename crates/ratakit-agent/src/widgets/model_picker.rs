@@ -12,7 +12,7 @@ use ratatui_core::buffer::Buffer;
 use ratatui_core::layout::Rect;
 use ratatui_core::widgets::StatefulWidget;
 
-use crate::model::{Effort, ModelCatalogEntry, ModelChoice};
+use crate::state::{Effort, ModelCatalogEntry, ModelChoice};
 
 /// Result of confirming or dismissing the model picker.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -295,7 +295,7 @@ fn secondary_axis_for_catalog(catalog: &[ModelCatalogEntry]) -> Option<PickerSec
         return None;
     }
     let mut sorted: Vec<Effort> = efforts.into_iter().collect();
-    sorted.sort_by_key(Effort::sort_key);
+    sorted.sort();
     let options = sorted
         .into_iter()
         .map(|effort| effort.as_str().to_string())

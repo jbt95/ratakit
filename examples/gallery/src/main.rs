@@ -8,7 +8,7 @@ use std::io::stdout;
 use std::time::{Duration, Instant};
 
 use futures_util::StreamExt;
-use ratakit::agent::model::{Effort, ModelCatalogEntry, ModelChoice};
+use ratakit::agent::state::{Effort, ModelCatalogEntry, ModelChoice};
 use ratakit::agent::widgets::{ModelPicker, ModelPickerState};
 use ratakit::core::{
     ActionLabels, Component, Event, KeyCode, Keymap, KeymapPreset, ListState, Motion, MotionMode,
