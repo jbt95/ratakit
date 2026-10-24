@@ -7,7 +7,12 @@
 pub mod state;
 
 #[cfg(feature = "widgets")]
-pub mod widgets {
-    //! Agent widgets (transcript, composer, …) — milestone 3+.
-    pub const STUB: &str = "agent widgets land in milestone 3";
-}
+pub mod widgets;
+
+#[cfg(feature = "widgets")]
+pub use widgets::{Composer, ComposerModelItem, ComposerWidgetState};
+
+pub use state::{
+    AgentEvent, Attachment, Cell, ComposerIntent, ComposerState, FileIndex, QueuedMessage,
+    QueuedPayload, SlashCommand, TranscriptState,
+};
