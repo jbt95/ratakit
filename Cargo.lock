@@ -1376,9 +1376,11 @@ dependencies = [
 name = "ratakit-agent"
 version = "0.0.0"
 dependencies = [
+ "proptest",
  "ratakit-core",
  "ratakit-text",
  "ratakit-widgets",
+ "serde",
 ]
 
 [[package]]
