@@ -10,4 +10,12 @@ pub mod state;
 pub mod widgets;
 
 #[cfg(feature = "widgets")]
-pub use widgets::{PermissionPrompt, PermissionPromptModal, PermissionPromptState};
+pub use widgets::{
+    Composer, ComposerModelItem, ComposerWidgetState, PermissionPrompt, PermissionPromptModal,
+    PermissionPromptState,
+};
+
+pub use state::{
+    AgentEvent, Attachment, Cell, ComposerIntent, ComposerState, FileIndex, QueuedMessage,
+    QueuedPayload, SlashCommand, TranscriptState,
+};
