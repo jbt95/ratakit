@@ -10,6 +10,7 @@ authors.workspace = true
 
 [features]
 default = []
+fuzzy = ["ratakit-core/fuzzy"]
 highlight-syntect = ["ratakit-text/highlight-syntect"]
 crossterm = []
 tokio = []
@@ -22,6 +23,7 @@ ratatui-widgets.workspace = true
 unicode-width.workspace = true
 
 [dev-dependencies]
+ratakit-core = { workspace = true, features = ["fuzzy"] }
 ratakit-testing.workspace = true
 ratatui.workspace = true
 insta.workspace = true

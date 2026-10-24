@@ -6,6 +6,8 @@
 //! Text editing state lives in [`TextBuffer`] ([`Atom`]s, undo/redo, large-paste collapsing) and
 //! [`PasteBurst`] for terminals without bracketed paste.
 
+#[cfg(feature = "fuzzy")]
+mod completion;
 mod component;
 mod dialog;
 mod event;
@@ -25,6 +27,11 @@ mod text;
 mod theme;
 mod toast;
 
+#[cfg(feature = "fuzzy")]
+pub use completion::{
+    CompletionInsert, CompletionIntent, CompletionItem, CompletionMenuWidth, CompletionPlacement,
+    CompletionSession, CompletionState, CompletionTrigger, CompletionTriggers,
+};
 pub use component::Component;
 pub use dialog::{DialogIntent, DialogState};
 pub use event::{

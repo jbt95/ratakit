@@ -6,6 +6,8 @@
 #![allow(clippy::must_use_candidate, clippy::return_self_not_must_use)]
 
 mod code_block;
+#[cfg(feature = "fuzzy")]
+mod completion_menu;
 mod dialog;
 mod key_hints;
 mod spinner;
@@ -21,6 +23,8 @@ mod virtual_list;
 mod wrap;
 
 pub use code_block::{CodeBlock, CodeBlockState};
+#[cfg(feature = "fuzzy")]
+pub use completion_menu::{CompletionMenu, CompletionMenuLayout, CompletionMenuState};
 pub use dialog::{ConfirmDialog, Dialog, DialogButton, Modal};
 pub use key_hints::KeyHints;
 pub use ratakit_core::{DialogIntent, DialogState, SortDirection, TableState, TabsState};
@@ -32,6 +36,6 @@ pub use styled_convert::{
 };
 pub use table::{Table, TableColumn};
 pub use tabs::{TabItem, Tabs};
-pub use textarea::{TextArea, TextAreaState, TextIntent};
+pub use textarea::{TextArea, TextAreaCursorLayout, TextAreaState, TextIntent};
 pub use toasts::Toasts;
 pub use virtual_list::{RowRenderer, VirtualList};
