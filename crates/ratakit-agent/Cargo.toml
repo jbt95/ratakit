@@ -15,16 +15,17 @@ widgets = [
     "dep:ratatui-core",
     "dep:ratatui-widgets",
     "dep:unicode-width",
-    "ratakit-widgets/diff",
-    "ratakit-widgets/highlight-syntect",
-    "ratakit-widgets/fuzzy",
     "ratakit-core/fuzzy",
+    "ratakit-text/highlight-syntect",
+    "ratakit-widgets/diff",
+    "ratakit-widgets/fuzzy",
+    "ratakit-widgets/highlight-syntect",
 ]
 serde = ["dep:serde", "ratakit-core/serde"]
 
 [dependencies]
 ratakit-core = { workspace = true, features = ["fuzzy"] }
-ratakit-text = { workspace = true, features = ["markdown", "diff"] }
+ratakit-text = { workspace = true, features = ["markdown", "diff", "highlight-syntect"] }
 ratakit-widgets = { workspace = true, optional = true, features = ["fuzzy"] }
 ratatui-core = { workspace = true, optional = true }
 ratatui-widgets = { workspace = true, optional = true }
@@ -38,6 +39,9 @@ ratakit-widgets = { workspace = true, features = ["diff", "highlight-syntect", "
 ratatui.workspace = true
 insta.workspace = true
 proptest.workspace = true
+
+[lints]
+workspace = true
 
 [[test]]
 name = "composer_snapshots"
@@ -55,9 +59,16 @@ path = "tests/model_picker_snapshots.rs"
 required-features = ["widgets"]
 
 [[test]]
+name = "permission_prompt_state"
+path = "tests/permission_prompt_state.rs"
+required-features = ["widgets"]
+
+[[test]]
+name = "permission_prompt_snapshots"
+path = "tests/permission_prompt_snapshots.rs"
+required-features = ["widgets"]
+
+[[test]]
 name = "tool_call_card_snapshots"
 path = "tests/tool_call_card_snapshots.rs"
 required-features = ["widgets"]
-
-[lints]
-workspace = true

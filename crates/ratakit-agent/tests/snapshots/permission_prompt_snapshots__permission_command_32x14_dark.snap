@@ -1,0 +1,47 @@
+---
+source: crates/ratakit-agent/tests/permission_prompt_snapshots.rs
+expression: compact_permission_snapshot(rendered)
+---
+╭Run shell command─────────────╮
+│1 cargo test -p ratakit-agent │
+│                              │
+│                              │
+│                              │
+│                              │
+│                              │
+│                              │
+│                              │
+│                              │
+│                              │
+│                              │
+│[1] Allow once  [2] Allow alwa│
+╰──────────────────────────────╯
+--- styles ---
+(1,12): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(2,12): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(3,12): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(4,12): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(5,12): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(6,12): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(7,12): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(8,12): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(9,12): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(10,12): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(11,12): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(12,12): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(13,12): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(14,12): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(17,12): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(18,12): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(19,12): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(20,12): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(21,12): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(22,12): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(23,12): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(24,12): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(25,12): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(26,12): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(27,12): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(28,12): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(29,12): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(30,12): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
