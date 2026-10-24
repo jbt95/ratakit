@@ -1081,10 +1081,14 @@ dependencies = [
 name = "ratakit-widgets"
 version = "0.0.0"
 dependencies = [
+ "insta",
  "ratakit-core",
+ "ratakit-testing",
  "ratakit-text",
+ "ratatui",
  "ratatui-core",
  "ratatui-widgets",
+ "unicode-width",
 ]
 
 [[package]]

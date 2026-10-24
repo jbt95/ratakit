@@ -1,7 +1,15 @@
-//! Generic widgets built on ratatui-core.
+//! Generic ratatui widgets for [ratakit](https://github.com/jbt95/ratakit).
 //!
-//! Milestone 0: compiles against ratatui-core; widgets arrive in milestone 1.
+//! Widgets are thin [`StatefulWidget`](ratatui_core::widgets::StatefulWidget) views over state in
+//! [`ratakit_core`].
 
-#![allow(missing_docs)]
+mod key_hints;
+mod spinner;
+mod status_bar;
+mod theme_util;
+mod toasts;
 
-pub const STUB: &str = "ratakit-widgets is not implemented yet";
+pub use key_hints::KeyHints;
+pub use spinner::Spinner;
+pub use status_bar::{StatusBar, StatusSegment, StatusZone};
+pub use toasts::Toasts;

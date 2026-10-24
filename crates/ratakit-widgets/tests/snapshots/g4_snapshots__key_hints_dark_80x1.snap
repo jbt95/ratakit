@@ -1,0 +1,32 @@
+---
+source: crates/ratakit-widgets/tests/g4_snapshots.rs
+expression: rendered
+---
+[tab] next  [shift+tab] prev                                                    
+--- styles ---
+(0,0): fg=rgb(137,180,250) bg=Reset
+(1,0): fg=rgb(137,180,250) bg=Reset
+(2,0): fg=rgb(137,180,250) bg=Reset
+(3,0): fg=rgb(137,180,250) bg=Reset
+(4,0): fg=rgb(137,180,250) bg=Reset
+(6,0): fg=rgb(108,112,134) bg=Reset
+(7,0): fg=rgb(108,112,134) bg=Reset
+(8,0): fg=rgb(108,112,134) bg=Reset
+(9,0): fg=rgb(108,112,134) bg=Reset
+(10,0): fg=rgb(108,112,134) bg=Reset
+(11,0): fg=rgb(108,112,134) bg=Reset
+(12,0): fg=rgb(137,180,250) bg=Reset
+(13,0): fg=rgb(137,180,250) bg=Reset
+(14,0): fg=rgb(137,180,250) bg=Reset
+(15,0): fg=rgb(137,180,250) bg=Reset
+(16,0): fg=rgb(137,180,250) bg=Reset
+(17,0): fg=rgb(137,180,250) bg=Reset
+(18,0): fg=rgb(137,180,250) bg=Reset
+(19,0): fg=rgb(137,180,250) bg=Reset
+(20,0): fg=rgb(137,180,250) bg=Reset
+(21,0): fg=rgb(137,180,250) bg=Reset
+(22,0): fg=rgb(137,180,250) bg=Reset
+(24,0): fg=rgb(108,112,134) bg=Reset
+(25,0): fg=rgb(108,112,134) bg=Reset
+(26,0): fg=rgb(108,112,134) bg=Reset
+(27,0): fg=rgb(108,112,134) bg=Reset
