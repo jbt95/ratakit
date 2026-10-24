@@ -2,13 +2,13 @@
 source: crates/ratakit-widgets/tests/code_block_snapshots.rs
 expression: rendered
 ---
-                                                                                
- 1 fn main() {                                                                  
- 2     println!("hi");                                                          
- 3 }                                                                            
- 4                                                                              
-                                                                                
-                                                                                
+┌main.rs───────────────────────────────────────────────────────────────────────┐
+│1 fn main() {                                                                 │
+│2     println!("hi");                                                         │
+│3 }                                                                           │
+│4                                                                             │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
 --- styles ---
 (1,1): fg=rgb(108,112,134) bg=Reset
 (2,1): fg=rgb(108,112,134) bg=Reset

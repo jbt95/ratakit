@@ -244,10 +244,7 @@ impl StatefulWidget for CodeBlock<'_> {
 }
 
 fn gutter_width(line_count: usize) -> u16 {
-    let digits = line_count
-        .checked_ilog10()
-        .map_or(0, |d| d as usize)
-        + 1;
+    let digits = line_count.checked_ilog10().map_or(0, |d| d as usize) + 1;
     let digits = if line_count == 0 { 1 } else { digits };
     u16::try_from(digits + 1).unwrap_or(4)
 }

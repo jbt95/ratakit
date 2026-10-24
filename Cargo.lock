@@ -1233,8 +1233,10 @@ dependencies = [
  "ratakit-core",
  "ratakit-testing",
  "ratakit-text",
+ "ratatui",
  "ratatui-core",
  "ratatui-widgets",
+ "unicode-width",
 ]
 
 [[package]]

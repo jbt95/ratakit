@@ -27,6 +27,14 @@ pub enum Scope {
     Modal,
 }
 
+/// A single keymap entry with its scope.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct KeyBinding {
+    pub scope: Scope,
+    pub chord: KeyChord,
+    pub action: ActionId,
+}
+
 /// Key combination used in a keymap layer.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct KeyChord {
@@ -103,6 +111,22 @@ impl Keymap {
 
     pub fn resolve_default(&self, key: &KeyEvent) -> Option<&ActionId> {
         self.resolve(&[Scope::Modal, Scope::Focused, Scope::Global], key)
+    }
+
+    /// All bindings in a single scope layer.
+    pub fn bindings_in_scope(&self, scope: Scope) -> Vec<KeyBinding> {
+        let layer = self.layer(scope);
+        let mut bindings: Vec<KeyBinding> = layer
+            .bindings
+            .iter()
+            .map(|(chord, action)| KeyBinding {
+                scope,
+                chord: *chord,
+                action: action.clone(),
+            })
+            .collect();
+        bindings.sort_by(|a, b| a.action.0.cmp(&b.action.0));
+        bindings
     }
 
     fn layer(&self, scope: Scope) -> &Layer {

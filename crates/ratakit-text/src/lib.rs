@@ -14,7 +14,10 @@ mod highlight_syntect;
 
 pub use highlight::{Highlighter, HlState, LangId, PlainHighlighter};
 pub use styled::{StyledLine, StyledSpan, TextModifier, TextStyle};
-pub use wrap::{PerLineWrapCache, WrapCache, wrap_styled_line, wrap_styled_lines};
+pub use wrap::{
+    PerLineWrapCache, WrapCache, WrappedLine, cursor_wrapped_position, wrap_lines,
+    wrap_styled_line, wrap_styled_lines,
+};
 
 #[cfg(feature = "highlight-syntect")]
 pub use highlight::SyntectHighlighter;

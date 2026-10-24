@@ -1,12 +1,35 @@
-//! Generic widgets built on ratatui-core and ratakit-text.
+//! Generic ratatui widgets for [ratakit](https://github.com/jbt95/ratakit).
+//!
+//! Widgets are thin [`StatefulWidget`](ratatui_core::widgets::StatefulWidget) views over state in
+//! [`ratakit_core`].
 
 #![allow(clippy::must_use_candidate, clippy::return_self_not_must_use)]
 
 mod code_block;
+mod dialog;
+mod key_hints;
+mod spinner;
+mod status_bar;
+mod style;
 mod styled_convert;
+mod table;
+mod tabs;
+mod textarea;
+mod theme_util;
+mod toasts;
+mod wrap;
 
 pub use code_block::{CodeBlock, CodeBlockState};
+pub use dialog::{ConfirmDialog, Dialog, DialogButton, Modal};
+pub use key_hints::KeyHints;
+pub use ratakit_core::{DialogIntent, DialogState, SortDirection, TableState, TabsState};
+pub use spinner::Spinner;
+pub use status_bar::{StatusBar, StatusSegment, StatusZone};
 pub use styled_convert::{
     semantic_to_color, styled_line_to_ratatui, styled_lines_to_ratatui, styled_span_to_ratatui,
     text_style_to_ratatui,
 };
+pub use table::{Table, TableColumn};
+pub use tabs::{TabItem, Tabs};
+pub use textarea::{TextArea, TextAreaState, TextIntent};
+pub use toasts::Toasts;

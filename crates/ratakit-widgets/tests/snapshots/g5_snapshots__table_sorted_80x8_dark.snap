@@ -1,0 +1,187 @@
+---
+source: crates/ratakit-widgets/tests/g5_snapshots.rs
+expression: rendered
+---
+Name ▲   Size                                                                   
+alpha    1                                                                      
+beta     22                                                                     
+gamma    333                                                                    
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+--- styles ---
+(0,0): fg=rgb(137,180,250) bg=Reset bold
+(1,0): fg=rgb(137,180,250) bg=Reset bold
+(2,0): fg=rgb(137,180,250) bg=Reset bold
+(3,0): fg=rgb(137,180,250) bg=Reset bold
+(4,0): fg=rgb(137,180,250) bg=Reset bold
+(5,0): fg=rgb(137,180,250) bg=Reset bold
+(6,0): fg=rgb(205,214,244) bg=Reset bold
+(7,0): fg=rgb(205,214,244) bg=Reset bold
+(8,0): fg=rgb(205,214,244) bg=Reset bold
+(9,0): fg=rgb(205,214,244) bg=Reset bold
+(10,0): fg=rgb(205,214,244) bg=Reset bold
+(11,0): fg=rgb(205,214,244) bg=Reset bold
+(12,0): fg=rgb(205,214,244) bg=Reset bold
+(13,0): fg=rgb(205,214,244) bg=Reset bold
+(14,0): fg=rgb(205,214,244) bg=Reset bold
+(15,0): fg=rgb(205,214,244) bg=Reset bold
+(16,0): fg=rgb(205,214,244) bg=Reset bold
+(17,0): fg=rgb(205,214,244) bg=Reset bold
+(18,0): fg=rgb(205,214,244) bg=Reset bold
+(19,0): fg=rgb(205,214,244) bg=Reset bold
+(20,0): fg=rgb(205,214,244) bg=Reset bold
+(21,0): fg=rgb(205,214,244) bg=Reset bold
+(22,0): fg=rgb(205,214,244) bg=Reset bold
+(23,0): fg=rgb(205,214,244) bg=Reset bold
+(24,0): fg=rgb(205,214,244) bg=Reset bold
+(25,0): fg=rgb(205,214,244) bg=Reset bold
+(26,0): fg=rgb(205,214,244) bg=Reset bold
+(27,0): fg=rgb(205,214,244) bg=Reset bold
+(28,0): fg=rgb(205,214,244) bg=Reset bold
+(29,0): fg=rgb(205,214,244) bg=Reset bold
+(30,0): fg=rgb(205,214,244) bg=Reset bold
+(31,0): fg=rgb(205,214,244) bg=Reset bold
+(32,0): fg=rgb(205,214,244) bg=Reset bold
+(33,0): fg=rgb(205,214,244) bg=Reset bold
+(34,0): fg=rgb(205,214,244) bg=Reset bold
+(35,0): fg=rgb(205,214,244) bg=Reset bold
+(36,0): fg=rgb(205,214,244) bg=Reset bold
+(37,0): fg=rgb(205,214,244) bg=Reset bold
+(38,0): fg=rgb(205,214,244) bg=Reset bold
+(39,0): fg=rgb(205,214,244) bg=Reset bold
+(40,0): fg=rgb(205,214,244) bg=Reset bold
+(41,0): fg=rgb(205,214,244) bg=Reset bold
+(42,0): fg=rgb(205,214,244) bg=Reset bold
+(43,0): fg=rgb(205,214,244) bg=Reset bold
+(44,0): fg=rgb(205,214,244) bg=Reset bold
+(45,0): fg=rgb(205,214,244) bg=Reset bold
+(46,0): fg=rgb(205,214,244) bg=Reset bold
+(47,0): fg=rgb(205,214,244) bg=Reset bold
+(48,0): fg=rgb(205,214,244) bg=Reset bold
+(49,0): fg=rgb(205,214,244) bg=Reset bold
+(50,0): fg=rgb(205,214,244) bg=Reset bold
+(51,0): fg=rgb(205,214,244) bg=Reset bold
+(52,0): fg=rgb(205,214,244) bg=Reset bold
+(53,0): fg=rgb(205,214,244) bg=Reset bold
+(54,0): fg=rgb(205,214,244) bg=Reset bold
+(55,0): fg=rgb(205,214,244) bg=Reset bold
+(56,0): fg=rgb(205,214,244) bg=Reset bold
+(57,0): fg=rgb(205,214,244) bg=Reset bold
+(58,0): fg=rgb(205,214,244) bg=Reset bold
+(59,0): fg=rgb(205,214,244) bg=Reset bold
+(60,0): fg=rgb(205,214,244) bg=Reset bold
+(61,0): fg=rgb(205,214,244) bg=Reset bold
+(62,0): fg=rgb(205,214,244) bg=Reset bold
+(63,0): fg=rgb(205,214,244) bg=Reset bold
+(64,0): fg=rgb(205,214,244) bg=Reset bold
+(65,0): fg=rgb(205,214,244) bg=Reset bold
+(66,0): fg=rgb(205,214,244) bg=Reset bold
+(67,0): fg=rgb(205,214,244) bg=Reset bold
+(68,0): fg=rgb(205,214,244) bg=Reset bold
+(69,0): fg=rgb(205,214,244) bg=Reset bold
+(70,0): fg=rgb(205,214,244) bg=Reset bold
+(71,0): fg=rgb(205,214,244) bg=Reset bold
+(72,0): fg=rgb(205,214,244) bg=Reset bold
+(73,0): fg=rgb(205,214,244) bg=Reset bold
+(74,0): fg=rgb(205,214,244) bg=Reset bold
+(75,0): fg=rgb(205,214,244) bg=Reset bold
+(76,0): fg=rgb(205,214,244) bg=Reset bold
+(77,0): fg=rgb(205,214,244) bg=Reset bold
+(78,0): fg=rgb(205,214,244) bg=Reset bold
+(79,0): fg=rgb(205,214,244) bg=Reset bold
+(0,1): fg=rgb(205,214,244) bg=Reset
+(1,1): fg=rgb(205,214,244) bg=Reset
+(2,1): fg=rgb(205,214,244) bg=Reset
+(3,1): fg=rgb(205,214,244) bg=Reset
+(4,1): fg=rgb(205,214,244) bg=Reset
+(9,1): fg=rgb(205,214,244) bg=Reset
+(0,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(1,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(2,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(3,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(4,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(5,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(6,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(7,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(8,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(9,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(10,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(11,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(12,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(13,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(14,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(15,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(16,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(17,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(18,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(19,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(20,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(21,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(22,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(23,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(24,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(25,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(26,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(27,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(28,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(29,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(30,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(31,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(32,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(33,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(34,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(35,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(36,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(37,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(38,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(39,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(40,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(41,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(42,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(43,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(44,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(45,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(46,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(47,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(48,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(49,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(50,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(51,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(52,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(53,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(54,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(55,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(56,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(57,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(58,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(59,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(60,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(61,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(62,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(63,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(64,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(65,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(66,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(67,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(68,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(69,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(70,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(71,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(72,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(73,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(74,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(75,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(76,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(77,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(78,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(79,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(0,3): fg=rgb(205,214,244) bg=Reset
+(1,3): fg=rgb(205,214,244) bg=Reset
+(2,3): fg=rgb(205,214,244) bg=Reset
+(3,3): fg=rgb(205,214,244) bg=Reset
+(4,3): fg=rgb(205,214,244) bg=Reset
+(9,3): fg=rgb(205,214,244) bg=Reset
+(10,3): fg=rgb(205,214,244) bg=Reset
+(11,3): fg=rgb(205,214,244) bg=Reset
