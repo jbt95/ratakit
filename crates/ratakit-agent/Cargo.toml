@@ -10,17 +10,36 @@ authors.workspace = true
 
 [features]
 default = ["widgets"]
-widgets = ["dep:ratakit-widgets"]
+widgets = [
+    "dep:ratakit-widgets",
+    "dep:ratatui-core",
+    "dep:ratatui-widgets",
+    "dep:unicode-width",
+    "ratakit-widgets/diff",
+    "ratakit-widgets/highlight-syntect",
+]
 serde = ["dep:serde", "ratakit-core/serde"]
 
 [dependencies]
 ratakit-core.workspace = true
 ratakit-text = { workspace = true, features = ["markdown", "diff"] }
 ratakit-widgets = { workspace = true, optional = true }
+ratatui-core = { workspace = true, optional = true }
+ratatui-widgets = { workspace = true, optional = true }
+unicode-width = { workspace = true, optional = true }
 serde = { version = "1.0.229", optional = true, features = ["derive"] }
 
 [dev-dependencies]
+ratakit-testing.workspace = true
+ratakit-widgets = { workspace = true, features = ["diff", "highlight-syntect"] }
+ratatui.workspace = true
+insta.workspace = true
 proptest.workspace = true
+
+[[test]]
+name = "tool_call_card_snapshots"
+path = "tests/tool_call_card_snapshots.rs"
+required-features = ["widgets"]
 
 [lints]
 workspace = true
