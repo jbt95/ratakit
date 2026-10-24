@@ -1,7 +1,15 @@
-//! Agent Client Protocol adapter (optional).
+//! Optional adapter between ACP agents and ratakit's protocol-neutral agent state.
 //!
-//! Milestone 0: crate layout only.
+//! This crate deliberately has no ratatui dependency. Applications receive
+//! [`BridgeEvent`] values and forward [`AgentEvent`](ratakit_agent::state::AgentEvent)
+//! values to their chosen interface.
 
-#![allow(missing_docs)]
+mod bridge;
+mod mapping;
 
-pub const STUB: &str = "ratakit-acp lands in milestone 4";
+pub use bridge::{
+    AcpBridge, AcpBridgeHandle, AcpError, AgentCommand, BridgeEvent, PermissionRequestId, SessionId,
+};
+
+#[cfg(test)]
+mod tests;

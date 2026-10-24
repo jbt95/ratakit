@@ -1,71 +1,72 @@
-# Handoff de ratakit
+# ratakit Handoff
 
-Estado del proyecto a 24 de octubre de 2026 y lo que queda hasta la 0.1.0. El diseño completo y el roadmap están en [`docs/DISENO.md`](docs/DISENO.md); la API del módulo de agente está en su §7.4 y el roadmap en su §14.
+Project status as of October 24, 2026, and the remaining work toward 0.1.0. The full design and roadmap are in [`docs/DISENO.md`](docs/DISENO.md); the agent module API is in §7.4 and the roadmap is in §14.
 
-## Estado actual
+## Current status
 
-Los hitos 0 a 3 están terminados y mergeados en `main`. El CI está verde.
+Milestones 0–3 are complete and merged into `main`. CI is green.
 
-| Hito | Contenido | PRs |
+| Milestone | Scope | PRs |
 |---|---|---|
 | 0 | Workspace, CI, `ratakit-core`, `ratakit-testing` | #1 |
 | 1 | G1–G6: `TextArea`, `VirtualList`, `Highlighter`/`CodeBlock`, `Spinner`/`StatusBar`/`KeyHints`/`Toasts`, `Modal`/`Tabs`/`Table`, `FuzzyFilter` | #2–#7 |
-| 2 | G7–G12: `Markdown`, `DiffView`, `FuzzyPicker`, `CompletionMenu`, `Tree`/`ScrollView`, `FrameScheduler`/`event_stream`/`enter_terminal` + ejemplo `gallery` | #8–#13 |
-| 3 | A1–A8: `agent::state`, `Transcript`, `ToolCallCard`, `Composer`, `PermissionPrompt`, `ModelPicker`, `UsageBar`/`PlanView`, `AgentLayout` + ejemplo `mock-agent` | #14–#21 |
+| 2 | G7–G12: `Markdown`, `DiffView`, `FuzzyPicker`, `CompletionMenu`, `Tree`/`ScrollView`, `FrameScheduler`/`event_stream`/`enter_terminal` + `gallery` example | #8–#13 |
+| 3 | A1–A8: `agent::state`, `Transcript`, `ToolCallCard`, `Composer`, `PermissionPrompt`, `ModelPicker`, `UsageBar`/`PlanView`, `AgentLayout` + `mock-agent` example | #14–#21 |
 
-`crates/ratakit-acp` sigue siendo un esqueleto vacío (solo una constante `STUB`).
+`ratakit-acp` now contains the ACP bridge implemented for C1. The remaining milestone-4 and milestone-5 tasks are listed below.
 
-### Cómo probarlo
+### Running the examples
 
 ```sh
-cargo run -p gallery       # todos los componentes genéricos, por pestañas
-cargo run -p mock-agent    # el layout de agente reproduciendo guiones .jsonl
-RATAKIT_INLINE=1 cargo run -p mock-agent   # modo inline (opt-in)
+cargo run -p gallery       # Generic components, organized into tabs
+cargo run -p mock-agent    # The agent layout replaying .jsonl scripts
+RATAKIT_INLINE=1 cargo run -p mock-agent   # Opt-in inline mode
 ```
 
-## Tareas pendientes
+## Remaining tasks
 
-Cada fila es un PR. Lo que no depende entre sí puede ir en paralelo.
+Each row represents one PR. Independent work may proceed in parallel.
 
-### Hito 4: ACP y ejemplos reales
+### Milestone 4: ACP and real-agent examples
 
-- [ ] **C1. `ratakit-acp`: `AcpBridge`.** Depende de A1 y A5 (ya mergeados).
-  - Traducir `SessionUpdate` del Agent Client Protocol a `AgentEvent` (mensajes, thinking, tool calls con su estado y diff, plan, uso).
-  - Gestionar las peticiones de permiso: `PermissionRequest` hacia la UI y la decisión del usuario de vuelta al agente.
-  - Enviar prompts, cancelaciones y cambios de modelo desde `AgentLayoutIntent`.
-  - Tests con un agente ACP falso (proceso o transporte en memoria), sin red.
-  - Mantener el crate sin dependencia de ratatui, para que lo pueda reutilizar el cliente de review (revu).
-- [ ] **C2. `examples/claude-acp` y `examples/opencode-acp`.** Depende de C1 y A8.
-  - Una app común de unas 100 líneas que lance el agente por stdio y lo pinte con `AgentLayout`; cada ejemplo solo cambia el comando que lanza.
-  - En CI no se pueden ejecutar los agentes reales; basta con que compilen.
-- [ ] **C3. Guiones grabados y benchmarks.** Depende de C2.
-  - Grabar sesiones reales a `.jsonl`, convertirlas en snapshots y reproducirlas en `mock-agent`.
-  - Benchmarks con `criterion` (render del transcript largo, streaming de markdown, diff grande).
+- [x] **C1. `ratakit-acp`: `AcpBridge`.** Depends on A1 and A5 (complete).
+  - Map ACP `SessionUpdate` values to `AgentEvent` values (messages, thinking, tool calls and diffs, plans, and usage).
+  - Forward permission requests to the UI and send the user's decision back to the agent.
+  - Send prompts, cancellations, and model or mode changes.
+  - Test against a fake ACP agent over an in-memory transport, without network access.
+  - Keep the crate free of ratatui dependencies so a review client such as revu can reuse it.
+- [ ] **C2. `examples/claude-acp` and `examples/opencode-acp`.** Depends on C1 and A8.
+  - Build a shared app of about 100 lines that launches an agent over stdio and renders it with `AgentLayout`; each example changes only the launch command.
+  - CI must compile the examples but must not launch the real agents.
+- [ ] **C3. Recorded scripts and benchmarks.** Depends on C2.
+  - Record real sessions as `.jsonl`, convert them to snapshots, and replay them in `mock-agent`.
+  - Add Criterion benchmarks for long transcript rendering, streaming Markdown, and large diffs.
 
-### Hito 5: pulido y 0.1
+### Milestone 5: polish and 0.1
 
-- [ ] **R1. Accesibilidad.** Modo lector de pantalla, alto contraste y auditoría de `MotionMode` (sin animaciones cuando esté desactivado). Depende de A8.
-- [ ] **R2. Modo inline completo.** Enviar el historial al scrollback de la terminal (idea de `insert_history.rs` de Codex). Ahora el modo inline existe como opt-in en `enter_terminal`, pero el transcript no vuelca al scrollback. Depende de A2.
-- [ ] **R3. Documentación.** Guía de uso, ejemplos en `docs.rs`, README y tabla de compatibilidad con versiones de ratatui. Depende de todo lo anterior.
-- [ ] **R4. Release 0.1.0 en crates.io.** Reservar los nombres de los crates y publicar. **Solo con la aprobación de Jordi.** Depende de R1–R3.
+- [ ] **R1. Accessibility.** Screen-reader mode, high contrast, and an audit of `MotionMode` (no animation when disabled). Depends on A8.
+- [ ] **R2. Complete inline mode.** Send transcript history to terminal scrollback (inspired by Codex's `insert_history.rs`). Inline mode is currently opt-in, but the transcript is not yet written to scrollback. Depends on A2.
+- [ ] **R3. Documentation.** User guide, docs.rs examples, README, and a ratatui compatibility table. Depends on all preceding work.
+- [ ] **R4. crates.io 0.1.0 release.** Reserve crate names and publish. **Requires Jordi's approval.** Depends on R1–R3.
 
-## Decisiones tomadas
+## Decisions
 
-- Pantalla alternativa (fullscreen) por defecto; inline es opt-in.
-- Solo syntect para el resaltado en la v1; nada de tree-sitter.
-- "Fullscreen" se refiere solo al viewport de la terminal (`TerminalViewport`, `enter_terminal()`). Ningún enum de widget debe tener una variante `Fullscreen`; se usan nombres como `Fill` o `SingleLine`.
+- Alternate-screen mode is the default; inline mode is opt-in.
+- Syntect is the only syntax highlighter in v1; tree-sitter is out of scope.
+- “Fullscreen” refers only to the terminal viewport (`TerminalViewport`, `enter_terminal()`). Widget enums must not have a `Fullscreen` variant; use names such as `Fill` or `SingleLine` instead.
+- The ACP bridge does not advertise filesystem or terminal capabilities. Revisit this only after 0.1.
+- New and revised project text should be written in English.
 
-## Preguntas abiertas
+## Open questions
 
-1. ¿El adaptador ACP expone las capacidades `fs` y `terminal` del cliente (por ejemplo, para revisar diffs antes de escribir)? Propuesta: después de la 0.1. Hay que decidirlo antes o durante C1.
-2. ¿Integración con revu? `ratakit-agent` sin la feature `widgets` y `ratakit-acp` no dependen de ratatui y se podrían compartir. Si hace falta, `agent::state` puede salir a su propio crate (`ratakit-agent-state`).
+1. Should ratakit be integrated with the review client revu? `ratakit-agent` without the `widgets` feature and `ratakit-acp` do not depend on ratatui and could be shared. If needed, `agent::state` could move into its own `ratakit-agent-state` crate.
 
-## Convenciones y lecciones
+## Conventions and lessons
 
-- **CI (9 checks):** `fmt`, `clippy` (con `-D warnings`), `test`, `msrv` (1.88), `deny`, `docs`, `hello-headless`, `gallery-headless`, `mock-agent-headless`. No renombrar los existentes; añadir jobs nuevos está bien.
-- **Merge:** squash-merge cuando el CI esté verde y la rama no vaya por detrás de `main`.
-- **PRs en paralelo:** se pisan en `widgets/mod.rs`, `lib.rs`, `state/mod.rs` y `Cargo.toml`. Después de cada merge, las ramas abiertas deben hacer merge de `main` y conservar todos los módulos y exports existentes. Si un PR tiene conflictos, GitHub no ejecuta el CI de `pull_request`; la solución es hacer merge de `main`, no pedir aprobación.
-- **Módulos que se enchufan entre sí:** cada componente expone funciones de render o traits desde su propio módulo (por ejemplo `render_tool_call_card`, `render_plan_cell`), para que otros PRs los usen sin editar sus ficheros.
-- **Snapshots:** compactos (unas 40 líneas, terminales pequeñas). Los snapshots de miles de líneas no se aceptan.
-- **Modo headless:** cada ejemplo tiene una variable (`RATAKIT_GALLERY_HEADLESS=1`, `RATAKIT_MOCK_HEADLESS=1`) que pinta unos frames en un `TestBackend` y sale con código 0; los ejemplos nuevos deben seguir el mismo patrón.
-- **Capas:** `ratakit-core` y `ratakit-agent::state` no dependen de ratatui; los widgets de agente van detrás de la feature `widgets`.
+- **CI (9 checks):** `fmt`, `clippy` (with `-D warnings`), `test`, `msrv` (1.88), `deny`, `docs`, `hello-headless`, `gallery-headless`, and `mock-agent-headless`. Do not rename existing checks; new jobs are fine.
+- **Merge:** squash-merge when CI is green and the branch is up to date with `main`.
+- **Parallel PRs:** changes often overlap in `widgets/mod.rs`, `lib.rs`, `state/mod.rs`, and `Cargo.toml`. After each merge, branches must merge `main` and preserve existing modules and exports. Resolve conflicts by merging `main`, not by requesting approval.
+- **Composable modules:** each component should expose render functions or traits from its own module (for example, `render_tool_call_card` and `render_plan_cell`) so other work can use it without editing its files.
+- **Snapshots:** keep them compact (about 40 lines for small terminals). Do not add snapshots thousands of lines long.
+- **Headless mode:** each example has a variable such as `RATAKIT_GALLERY_HEADLESS=1` or `RATAKIT_MOCK_HEADLESS=1` that renders a few frames in a `TestBackend` and exits with status 0. New examples should follow this pattern.
+- **Layers:** `ratakit-core` and `ratakit-agent::state` do not depend on ratatui; agent widgets are gated behind the `widgets` feature.
