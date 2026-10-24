@@ -1,6 +1,6 @@
 [package]
 name = "ratakit-agent"
-description = "Agentic coding TUI state and widgets for ratakit (stub — milestone 3+)"
+description = "Agentic coding TUI state and widgets for ratakit"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -11,9 +11,16 @@ authors.workspace = true
 [features]
 default = ["widgets"]
 widgets = ["dep:ratakit-widgets"]
-serde = []
+serde = ["dep:serde", "ratakit-core/serde"]
 
 [dependencies]
 ratakit-core.workspace = true
-ratakit-text.workspace = true
+ratakit-text = { workspace = true, features = ["markdown", "diff"] }
 ratakit-widgets = { workspace = true, optional = true }
+serde = { version = "1.0.229", optional = true, features = ["derive"] }
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true

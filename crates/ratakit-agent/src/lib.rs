@@ -1,14 +1,13 @@
 //! Agent transcript, composer, and related widgets.
 //!
-//! Milestone 0: crate layout only.
+//! The [`state`] module is ratatui-free and can be used from other UIs (for example GPUI).
 
-#![allow(missing_docs)]
+#![allow(clippy::must_use_candidate, clippy::return_self_not_must_use)]
 
-pub mod state {
-    pub const STUB: &str = "agent state lands in milestone 3";
-}
+pub mod state;
 
 #[cfg(feature = "widgets")]
 pub mod widgets {
+    //! Agent widgets (transcript, composer, …) — milestone 3+.
     pub const STUB: &str = "agent widgets land in milestone 3";
 }
