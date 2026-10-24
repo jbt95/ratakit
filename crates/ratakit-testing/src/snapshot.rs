@@ -24,39 +24,39 @@ pub fn render_to_string<W: Widget>(widget: W, width: u16, height: u16) -> String
     render_widget(widget, width, height)
 }
 
-/// Assert an insta snapshot for a widget at the given size.
-pub fn assert_widget_snapshot<W: Widget>(name: &str, widget: W, width: u16, height: u16) {
-    let rendered = render_widget(widget, width, height);
-    insta::assert_snapshot!(name, rendered);
-}
-
-/// Render a [`StatefulWidget`] into a string snapshot (content + style appendix).
-pub fn render_stateful_widget<W: StatefulWidget>(
+/// Render a [`StatefulWidget`] into a string snapshot.
+pub fn render_stateful<W: StatefulWidget>(
     widget: W,
-    state: &mut W::State,
     width: u16,
     height: u16,
+    state: &mut W::State,
 ) -> String {
     let backend = TestBackend::new(width, height);
     let mut terminal = Terminal::new(backend).expect("terminal");
     terminal
         .draw(|frame| {
             let area = Rect::new(0, 0, width, height);
-            frame.render_stateful_widget(widget, area, state);
+            widget.render(area, frame.buffer_mut(), state);
         })
         .expect("draw");
     let buffer = terminal.backend().buffer();
     buffer_to_string(buffer)
 }
 
-/// Assert an insta snapshot for a stateful widget at the given size.
+/// Assert an insta snapshot for a widget at the given size.
+pub fn assert_widget_snapshot<W: Widget>(name: &str, widget: W, width: u16, height: u16) {
+    let rendered = render_widget(widget, width, height);
+    insta::assert_snapshot!(name, rendered);
+}
+
+/// Assert an insta snapshot for a [`StatefulWidget`].
 pub fn assert_stateful_widget_snapshot<W: StatefulWidget>(
     name: &str,
     widget: W,
-    state: &mut W::State,
     width: u16,
     height: u16,
+    state: &mut W::State,
 ) {
-    let rendered = render_stateful_widget(widget, state, width, height);
+    let rendered = render_stateful(widget, width, height, state);
     insta::assert_snapshot!(name, rendered);
 }

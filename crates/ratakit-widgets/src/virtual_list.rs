@@ -6,7 +6,7 @@ use ratatui_core::layout::{Margin, Rect};
 use ratatui_core::widgets::StatefulWidget;
 use ratatui_widgets::scrollbar::{Scrollbar, ScrollbarOrientation, ScrollbarState};
 
-use crate::style::{fg_style, selected_row_style};
+use crate::style::{fg, selected_row_style};
 
 /// Renders one logical row into the buffer. `skip_top` skips leading rows when the row is
 /// partially scrolled out of the viewport.
@@ -67,7 +67,7 @@ impl<'a, R: RowRenderer> StatefulWidget for VirtualList<'a, R> {
 
         let mut y = area.y;
         let mut remaining = area.height;
-        let base_style = fg_style(self.theme);
+        let base_style = fg(self.theme);
 
         for index in visible.first_index..=visible.last_index {
             if remaining == 0 {

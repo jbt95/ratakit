@@ -18,8 +18,14 @@ ratakit-core.workspace = true
 ratakit-text.workspace = true
 ratatui-core.workspace = true
 ratatui-widgets.workspace = true
+unicode-width.workspace = true
 
 [dev-dependencies]
 ratakit-testing.workspace = true
 ratatui.workspace = true
 insta.workspace = true
+
+[[example]]
+name = "textarea_headless"
+path = "examples/textarea_headless.rs"
+test = true
