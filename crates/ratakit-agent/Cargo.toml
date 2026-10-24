@@ -10,17 +10,22 @@ authors.workspace = true
 
 [features]
 default = ["widgets"]
-widgets = ["dep:ratakit-widgets"]
+widgets = ["dep:ratakit-widgets", "dep:ratatui-core", "dep:ratatui-widgets"]
 serde = ["dep:serde", "ratakit-core/serde"]
 
 [dependencies]
 ratakit-core.workspace = true
 ratakit-text = { workspace = true, features = ["markdown", "diff"] }
 ratakit-widgets = { workspace = true, optional = true }
+ratatui-core = { workspace = true, optional = true }
+ratatui-widgets = { workspace = true, optional = true }
 serde = { version = "1.0.229", optional = true, features = ["derive"] }
 
 [dev-dependencies]
 proptest.workspace = true
+ratakit-testing.workspace = true
+ratatui.workspace = true
+insta.workspace = true
 
 [lints]
 workspace = true
