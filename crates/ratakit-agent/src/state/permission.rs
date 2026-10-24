@@ -1,6 +1,8 @@
 //! Permission prompts (ACP-shaped, but protocol-neutral).
 
-use super::tool::ToolCall;
+use ratakit_text::DiffModel;
+
+use super::tool::{ToolCall, ToolContent};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -39,4 +41,41 @@ pub struct PermissionOption {
 pub struct PermissionRequest {
     pub tool_call: ToolCall,
     pub options: Vec<PermissionOption>,
+}
+
+/// Body content shown above permission action buttons.
+#[derive(Debug, Clone, PartialEq)]
+pub enum PermissionPreview {
+    /// Shell command or similar text payload.
+    Command { text: String },
+    /// File change the user is approving.
+    Diff(DiffModel),
+}
+
+impl PermissionRequest {
+    /// Picks the most relevant preview for the permission UI (diff preferred over text).
+    pub fn preview(&self) -> PermissionPreview {
+        for chunk in &self.tool_call.content {
+            if let ToolContent::Diff { model, .. } = chunk {
+                return PermissionPreview::Diff(model.clone());
+            }
+        }
+        let lines: Vec<&str> = self
+            .tool_call
+            .content
+            .iter()
+            .filter_map(|chunk| match chunk {
+                ToolContent::Text(text) => Some(text.as_str()),
+                ToolContent::Diff { .. } => None,
+            })
+            .collect();
+        if !lines.is_empty() {
+            return PermissionPreview::Command {
+                text: lines.join("\n"),
+            };
+        }
+        PermissionPreview::Command {
+            text: self.tool_call.title.clone(),
+        }
+    }
 }

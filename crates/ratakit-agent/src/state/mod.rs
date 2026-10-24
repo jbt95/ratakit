@@ -18,7 +18,9 @@ pub use cell::{AssistantCell, Cell, ErrorCell, NoticeCell, ThinkingCell, ToolCal
 pub use event::AgentEvent;
 pub use ids::{CellId, MessageId, ToolCallId};
 pub use model::{Effort, ModelChoice};
-pub use permission::{PermissionIntent, PermissionOption, PermissionOptionId, PermissionRequest};
+pub use permission::{
+    PermissionIntent, PermissionOption, PermissionOptionId, PermissionPreview, PermissionRequest,
+};
 pub use plan::{Plan, PlanEntry, PlanEntryId, PlanEntryStatus};
 pub use tool::{ToolCall, ToolCallPatch, ToolContent, ToolKind, ToolStatus};
 pub use transcript::TranscriptState;

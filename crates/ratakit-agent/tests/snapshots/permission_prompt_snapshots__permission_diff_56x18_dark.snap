@@ -1,0 +1,64 @@
+---
+source: crates/ratakit-agent/tests/permission_prompt_snapshots.rs
+expression: compact_permission_snapshot(rendered)
+---
+╭Apply patch───────────────────────────────────────────╮
+│src/main.rs                                          ▲│
+│@@ -1,3 +1,3 @@                                      █│
+│ 1  1   fn main() {                                  █│
+│ 2    -     println!("hi");                          █│
+│    2 +     println!("hello");                       █│
+│ 3  3   }                                            █│
+│                                                     █│
+│                                                     █│
+│                                                     █│
+│                                                     █│
+│                                                     █│
+│                                                     ║│
+│                                                     ║│
+│                                                     ║│
+│                                                     ▼│
+│[1] Allow once  [2] Allow always  [3] Reject once  [4]│
+╰──────────────────────────────────────────────────────╯
+--- styles ---
+(1,1): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(2,1): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(3,1): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(4,1): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(5,1): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(6,1): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(7,1): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(8,1): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(9,1): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(10,1): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(11,1): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(1,16): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(2,16): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(3,16): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(4,16): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(5,16): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(6,16): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(7,16): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(8,16): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(9,16): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(10,16): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(11,16): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(12,16): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(13,16): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(14,16): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(17,16): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(18,16): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(19,16): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(20,16): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(21,16): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(22,16): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(23,16): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(24,16): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(25,16): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(26,16): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(27,16): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(28,16): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(29,16): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(30,16): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(31,16): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
+(32,16): fg=rgb(137,180,250) bg=rgb(30,30,46) bold
