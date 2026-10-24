@@ -1,0 +1,12 @@
+[package]
+name = "ratakit-acp"
+description = "Optional ACP adapter for ratakit (stub — milestone 4+)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+ratakit-agent = { path = "../ratakit-agent", default-features = false }

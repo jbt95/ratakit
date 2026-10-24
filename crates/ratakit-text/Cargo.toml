@@ -1,0 +1,23 @@
+[package]
+name = "ratakit-text"
+description = "Markdown streaming, highlighting, and diff models for ratakit (stub — milestone 1+)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[features]
+default = []
+markdown = []
+highlight-syntect = []
+highlight-syntect-onig = []
+highlight-treesitter = []
+diff = []
+fuzzy = []
+fuzzy-async = []
+serde = []
+
+[dependencies]
+ratakit-core.workspace = true
