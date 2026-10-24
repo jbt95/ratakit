@@ -146,7 +146,7 @@ fn tree_row_height_for<Id>(
     label: &str,
     width: u16,
 ) -> u16 {
-    if sizing == TreeRowSizing::Fullscreen {
+    if sizing == TreeRowSizing::SingleLine {
         return 1;
     }
     let indent = ratakit_core::tree_indent_cols(row.depth) + 2;

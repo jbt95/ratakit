@@ -11,9 +11,9 @@ use crate::style::fg;
 /// How [`ScrollView`] maps content height to the viewport.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum ScrollViewMode {
-    /// The viewport always occupies the full widget area (default).
+    /// Content height is at least the viewport height so the area is filled (default).
     #[default]
-    Fullscreen,
+    Fill,
     /// When content is shorter than the area, only the content height scrolls.
     Fit,
 }
@@ -75,7 +75,7 @@ impl<C: ScrollViewContent> StatefulWidget for ScrollView<'_, C> {
 
         let measured = self.content.content_height(content_width);
         let content_height = match self.mode {
-            ScrollViewMode::Fullscreen => measured.max(area.height as usize),
+            ScrollViewMode::Fill => measured.max(area.height as usize),
             ScrollViewMode::Fit => measured,
         };
 

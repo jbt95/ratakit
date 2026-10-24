@@ -13,7 +13,7 @@ pub type TreePath<Id> = Vec<Id>;
 pub enum TreeRowSizing {
     /// One terminal row per node (default).
     #[default]
-    Fullscreen,
+    SingleLine,
     /// Row height follows wrapped label text at the current width.
     Content,
 }
@@ -83,7 +83,7 @@ impl<Id> Default for TreeState<Id> {
 }
 
 impl<Id> TreeState<Id> {
-    /// New tree with follow-tail scrolling and fullscreen row sizing.
+    /// New tree with follow-tail scrolling and single-line row sizing.
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -604,7 +604,7 @@ pub fn tree_row_height<Id: Clone + PartialEq + Eq + Hash>(
     label: &str,
     width: u16,
 ) -> u16 {
-    if state.row_sizing() == TreeRowSizing::Fullscreen {
+    if state.row_sizing() == TreeRowSizing::SingleLine {
         return 1;
     }
     let indent = tree_indent_cols(row.depth) + 2;

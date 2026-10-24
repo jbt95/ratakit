@@ -10,7 +10,7 @@ authors.workspace = true
 
 [features]
 default = []
-markdown = ["dep:textwrap"]
+markdown = ["dep:pulldown-cmark"]
 highlight-syntect = ["dep:syntect", "dep:two-face"]
 highlight-syntect-onig = ["highlight-syntect", "syntect/onig"]
 highlight-treesitter = []
@@ -23,12 +23,17 @@ serde = []
 ratakit-core.workspace = true
 unicode-width.workspace = true
 unicode-segmentation.workspace = true
-textwrap = { workspace = true, optional = true }
+pulldown-cmark = { workspace = true, optional = true }
 syntect = { workspace = true, optional = true, features = ["default-fancy"] }
 two-face = { workspace = true, optional = true, features = ["syntect-default-fancy"] }
 
 [dev-dependencies]
 ratakit-core.workspace = true
+proptest.workspace = true
+
+[[test]]
+name = "markdown_stream_proptest"
+required-features = ["markdown"]
 
 [lints]
 workspace = true
