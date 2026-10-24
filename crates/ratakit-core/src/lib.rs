@@ -19,4 +19,4 @@ pub use focus::{FocusId, FocusRing};
 pub use keymap::{ActionId, KeyChord, Keymap, KeymapPreset, Scope};
 pub use outcome::Outcome;
 pub use revision::Revisioned;
-pub use theme::{GlyphSet, MotionMode, Palette, SemanticColor, SyntaxThemeId, Theme};
+pub use theme::{GlyphSet, MotionMode, Palette, Rgb, SemanticColor, SyntaxThemeId, Theme};

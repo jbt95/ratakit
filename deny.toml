@@ -1,6 +1,7 @@
 [advisories]
 version = 2
-ignore = []
+# Transitive via syntect / two-face (highlight-syntect); no fixed releases upstream yet.
+ignore = ["RUSTSEC-2025-0141", "RUSTSEC-2024-0320"]
 
 [licenses]
 version = 2
