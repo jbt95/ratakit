@@ -1,4 +1,4 @@
-//! Full-screen (default) fuzzy picker with grouped rows and optional preview pane.
+//! Fuzzy picker that fills its render area by default, with grouped rows and optional preview.
 
 use std::marker::PhantomData;
 
@@ -69,14 +69,14 @@ impl<'a, T: PickerItem> StatefulWidget for FuzzyPicker<'a, T> {
         }
 
         let panel = match self.mode {
-            PickerDisplayMode::Fullscreen => area,
+            PickerDisplayMode::Fill => area,
             PickerDisplayMode::Centered {
                 max_width,
                 max_height,
             } => centered_rect(max_width, max_height, area),
         };
 
-        if !matches!(self.mode, PickerDisplayMode::Fullscreen) {
+        if !matches!(self.mode, PickerDisplayMode::Fill) {
             dim_backdrop(area, buf);
             Clear.render(panel, buf);
         }

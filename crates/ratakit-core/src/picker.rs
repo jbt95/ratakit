@@ -97,15 +97,15 @@ pub enum PickerIntent<T> {
 /// How much terminal space the picker widget should occupy.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PickerDisplayMode {
-    /// Fill the render area (default).
-    Fullscreen,
+    /// Fill the widget's render area (default).
+    Fill,
     /// Centered panel with maximum size (modal-style).
     Centered { max_width: u16, max_height: u16 },
 }
 
 impl Default for PickerDisplayMode {
     fn default() -> Self {
-        Self::Fullscreen
+        Self::Fill
     }
 }
 

@@ -11,7 +11,12 @@ authors.workspace = true
 [features]
 default = ["widgets", "markdown", "highlight-syntect", "diff", "fuzzy", "crossterm"]
 widgets = ["dep:ratakit-widgets"]
-markdown = ["dep:ratakit-text", "ratakit-text/markdown"]
+markdown = [
+    "dep:ratakit-text",
+    "ratakit-text/markdown",
+    "widgets",
+    "ratakit-widgets/markdown",
+]
 highlight-syntect = ["dep:ratakit-text", "ratakit-text/highlight-syntect"]
 highlight-syntect-onig = ["dep:ratakit-text", "ratakit-text/highlight-syntect-onig"]
 highlight-treesitter = ["dep:ratakit-text", "ratakit-text/highlight-treesitter"]
@@ -19,9 +24,9 @@ diff = ["dep:ratakit-text", "ratakit-text/diff"]
 fuzzy = [
     "ratakit-core/fuzzy",
     "widgets",
-    "ratakit-widgets/fuzzy",
     "dep:ratakit-text",
     "ratakit-text/fuzzy",
+    "ratakit-widgets/fuzzy",
 ]
 fuzzy-async = ["fuzzy", "ratakit-text/fuzzy-async"]
 crossterm = ["widgets", "ratakit-widgets/crossterm"]

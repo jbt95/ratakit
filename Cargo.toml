@@ -9,6 +9,7 @@ members = [
     "crates/ratakit-testing",
     "crates/ratakit",
     "examples/hello-headless",
+    "examples/gallery",
 ]
 default-members = ["crates/ratakit"]
 
@@ -31,6 +32,8 @@ ratakit-testing = { path = "crates/ratakit-testing", version = "0.0.0" }
 unicode-width = "0.2.2"
 unicode-segmentation = "1.13.3"
 textwrap = { version = "0.16.4", default-features = false }
+pulldown-cmark = "0.13.0"
+proptest = "1.9.0"
 syntect = { version = "5.3.0", default-features = false, features = ["default-fancy"] }
 two-face = { version = "0.5.2", default-features = false, features = ["syntect-default-fancy"] }
 thiserror = "2.0.21"
@@ -38,6 +41,10 @@ thiserror = "2.0.21"
 ratatui-core = "0.1.2"
 ratatui-widgets = "0.3.2"
 ratatui = "0.30.2"
+ratatui-crossterm = "0.1.2"
+crossterm = { version = "0.29.0", default-features = false, features = ["events", "event-stream"] }
+tokio = { version = "1.48.0", default-features = false, features = ["macros", "rt", "sync", "time"] }
+futures-util = { version = "0.3.31", default-features = false, features = ["std"] }
 
 insta = { version = "1.49.0", features = ["redactions"] }
 

@@ -15,3 +15,11 @@ pub use ratakit_agent as agent;
 
 #[cfg(feature = "acp")]
 pub use ratakit_acp as acp;
+
+#[cfg(feature = "crossterm")]
+pub use ratakit_widgets::{
+    TerminalSession, TerminalViewport, enter_terminal, enter_terminal_with, from_crossterm_event,
+};
+
+#[cfg(feature = "tokio")]
+pub use ratakit_widgets::{FrameScheduler, event_stream};

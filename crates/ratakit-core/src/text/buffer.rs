@@ -148,6 +148,29 @@ impl TextBuffer {
         self.bump_revision();
     }
 
+    /// Replaces `range` with plain text and/or an [`Atom`] (only one of the two should be set).
+    ///
+    /// The cursor is placed after the inserted content.
+    pub fn replace_range(&mut self, range: Range<Position>, text: &str, atom: Option<Atom>) {
+        if range.start >= range.end && text.is_empty() && atom.is_none() {
+            return;
+        }
+        self.save_undo();
+        self.delete_range(range.start, range.end);
+        self.cursor = range.start;
+        if !text.is_empty() {
+            self.insert_str_at(range.start, text);
+            self.cursor = range.start + text.len();
+        }
+        if let Some(atom) = atom {
+            let len = atom.display().len();
+            self.insert_piece_at(self.cursor, Piece::Atom(atom));
+            self.cursor += len;
+        }
+        self.selection_anchor = None;
+        self.bump_revision();
+    }
+
     pub fn insert_paste(&mut self, text: &str) {
         let line_count = text.lines().count().max(1) as u32;
         if line_count >= self.paste_line_threshold {
