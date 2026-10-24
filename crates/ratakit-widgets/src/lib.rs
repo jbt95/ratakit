@@ -11,6 +11,8 @@ mod completion_menu;
 #[cfg(feature = "crossterm")]
 mod crossterm;
 mod dialog;
+#[cfg(feature = "diff")]
+mod diff_view;
 mod key_hints;
 #[cfg(feature = "markdown")]
 mod markdown;
@@ -41,6 +43,8 @@ pub use code_block::{CodeBlock, CodeBlockState};
 #[cfg(feature = "fuzzy")]
 pub use completion_menu::{CompletionMenu, CompletionMenuLayout, CompletionMenuState};
 pub use dialog::{ConfirmDialog, Dialog, DialogButton, Modal};
+#[cfg(feature = "diff")]
+pub use diff_view::{DiffMode, DiffView, DiffViewState};
 pub use key_hints::KeyHints;
 #[cfg(feature = "markdown")]
 pub use markdown::{Markdown, MarkdownState};

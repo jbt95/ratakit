@@ -14,7 +14,7 @@ markdown = ["dep:pulldown-cmark"]
 highlight-syntect = ["dep:syntect", "dep:two-face"]
 highlight-syntect-onig = ["highlight-syntect", "syntect/onig"]
 highlight-treesitter = []
-diff = []
+diff = ["dep:similar"]
 fuzzy = []
 fuzzy-async = []
 serde = []
@@ -26,6 +26,7 @@ unicode-segmentation.workspace = true
 pulldown-cmark = { workspace = true, optional = true }
 syntect = { workspace = true, optional = true, features = ["default-fancy"] }
 two-face = { workspace = true, optional = true, features = ["syntect-default-fancy"] }
+similar = { workspace = true, optional = true }
 
 [dev-dependencies]
 ratakit-core.workspace = true
@@ -34,6 +35,11 @@ proptest.workspace = true
 [[test]]
 name = "markdown_stream_proptest"
 required-features = ["markdown"]
+
+[[test]]
+name = "diff_model"
+path = "tests/diff_model.rs"
+required-features = ["diff"]
 
 [lints]
 workspace = true

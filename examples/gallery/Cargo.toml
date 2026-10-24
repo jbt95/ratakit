@@ -11,6 +11,7 @@ ratakit = { path = "../../crates/ratakit", features = [
     "widgets",
     "markdown",
     "highlight-syntect",
+    "diff",
     "fuzzy",
     "crossterm",
     "tokio",
