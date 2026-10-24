@@ -72,15 +72,14 @@ fn cell_from_call(call: ToolCall, folded: bool) -> ToolCallCell {
     let mut transcript = TranscriptState::new();
     transcript.apply(AgentEvent::ToolCallStarted(call));
     let idx = transcript.cells().len() - 1;
-    let cell = match &transcript.cells()[idx] {
-        ratakit_agent::state::Cell::ToolCall(c) => c,
-        _ => panic!("expected tool call cell"),
+    let ratakit_agent::state::Cell::ToolCall(tool_cell) = &transcript.cells()[idx] else {
+        panic!("expected tool call cell");
     };
     ToolCallCell {
-        call: cell.call.clone(),
-        input: cell.input.clone(),
-        output: cell.output.clone(),
-        diff: cell.diff.clone(),
+        call: tool_cell.call.clone(),
+        input: tool_cell.input.clone(),
+        output: tool_cell.output.clone(),
+        diff: tool_cell.diff.clone(),
         output_folded: folded,
     }
 }
@@ -100,8 +99,8 @@ fn render_card(cell: &ToolCallCell, theme: &Theme, width: u16, height: u16) -> S
     render_stateful(widget, width, height, &mut aux)
 }
 
-fn assert_compact(name: &str, cell: ToolCallCell, theme: Theme, w: u16, h: u16) {
-    let rendered = render_card(&cell, &theme, w, h);
+fn assert_compact(name: &str, cell: &ToolCallCell, theme: &Theme, w: u16, h: u16) {
+    let rendered = render_card(cell, theme, w, h);
     insta::assert_snapshot!(name, compact_snapshot(rendered));
 }
 
@@ -109,14 +108,14 @@ fn assert_compact(name: &str, cell: ToolCallCell, theme: Theme, w: u16, h: u16) 
 fn tool_call_status_pending() {
     let theme = Theme::dark();
     let cell = sample_cell(ToolStatus::Pending, ToolKind::Read, "", false, false);
-    assert_compact("tool_call_pending_56x10_dark", cell, theme, 56, 10);
+    assert_compact("tool_call_pending_56x10_dark", &cell, &theme, 56, 10);
 }
 
 #[test]
 fn tool_call_status_in_progress_spinner() {
     let theme = Theme::dark();
     let cell = sample_cell(ToolStatus::InProgress, ToolKind::Execute, "", false, false);
-    assert_compact("tool_call_in_progress_56x10_dark", cell, theme, 56, 10);
+    assert_compact("tool_call_in_progress_56x10_dark", &cell, &theme, 56, 10);
 }
 
 #[test]
@@ -129,7 +128,7 @@ fn tool_call_status_completed() {
         false,
         false,
     );
-    assert_compact("tool_call_completed_56x12_dark", cell, theme, 56, 12);
+    assert_compact("tool_call_completed_56x12_dark", &cell, &theme, 56, 12);
 }
 
 #[test]
@@ -137,14 +136,14 @@ fn tool_call_status_failed() {
     let mut theme = Theme::light();
     theme.with_glyphs(ratakit_core::GlyphSet::Ascii);
     let cell = sample_cell(ToolStatus::Failed, ToolKind::Fetch, "timeout", false, false);
-    assert_compact("tool_call_failed_56x10_light_ascii", cell, theme, 56, 10);
+    assert_compact("tool_call_failed_56x10_light_ascii", &cell, &theme, 56, 10);
 }
 
 #[test]
 fn tool_call_status_cancelled() {
     let theme = Theme::dark();
     let cell = sample_cell(ToolStatus::Cancelled, ToolKind::Search, "", false, false);
-    assert_compact("tool_call_cancelled_56x8_dark", cell, theme, 56, 8);
+    assert_compact("tool_call_cancelled_56x8_dark", &cell, &theme, 56, 8);
 }
 
 #[test]
@@ -161,8 +160,8 @@ fn tool_call_kinds() {
         let cell = sample_cell(ToolStatus::Completed, kind, "done", false, false);
         assert_compact(
             &format!("tool_call_kind_{name}_56x8_dark"),
-            cell,
-            theme.clone(),
+            &cell,
+            &theme,
             56,
             8,
         );
@@ -179,7 +178,13 @@ fn tool_call_truncated_output() {
         false,
         false,
     );
-    assert_compact("tool_call_truncated_output_56x14_dark", cell, theme, 56, 14);
+    assert_compact(
+        "tool_call_truncated_output_56x14_dark",
+        &cell,
+        &theme,
+        56,
+        14,
+    );
 }
 
 #[test]
@@ -192,7 +197,7 @@ fn tool_call_output_folded() {
         true,
         false,
     );
-    assert_compact("tool_call_output_folded_56x10_dark", cell, theme, 56, 10);
+    assert_compact("tool_call_output_folded_56x10_dark", &cell, &theme, 56, 10);
 }
 
 #[test]
@@ -205,14 +210,20 @@ fn tool_call_output_unfolded() {
         false,
         false,
     );
-    assert_compact("tool_call_output_unfolded_56x14_dark", cell, theme, 56, 14);
+    assert_compact(
+        "tool_call_output_unfolded_56x14_dark",
+        &cell,
+        &theme,
+        56,
+        14,
+    );
 }
 
 #[test]
 fn tool_call_with_diff() {
     let theme = Theme::dark();
     let cell = sample_cell(ToolStatus::Completed, ToolKind::Edit, "", false, true);
-    assert_compact("tool_call_with_diff_56x16_dark", cell, theme, 56, 16);
+    assert_compact("tool_call_with_diff_56x16_dark", &cell, &theme, 56, 16);
 }
 
 #[test]
@@ -220,5 +231,5 @@ fn tool_call_spinner_reduced_motion() {
     let mut theme = Theme::dark();
     theme.with_motion(MotionMode::Reduced);
     let cell = sample_cell(ToolStatus::InProgress, ToolKind::Read, "", false, false);
-    assert_compact("tool_call_reduced_motion_56x8_dark", cell, theme, 56, 8);
+    assert_compact("tool_call_reduced_motion_56x8_dark", &cell, &theme, 56, 8);
 }

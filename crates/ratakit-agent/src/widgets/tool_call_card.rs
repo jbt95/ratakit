@@ -1,5 +1,7 @@
 //! Tool invocation card for transcript rows (see design §6.2 / §7.4).
 
+use std::fmt::Write;
+
 use ratakit_core::{GlyphSet, Motion, MotionMode, Revisioned, SemanticColor, Theme};
 use ratakit_text::{DiffModel, Highlighter, wrap_lines};
 use ratakit_widgets::{CodeBlock, CodeBlockState, DiffMode, DiffView, DiffViewState, Spinner};
@@ -28,6 +30,14 @@ impl OutputTruncation {
     fn new(head: usize, tail: usize) -> Self {
         Self { head, tail }
     }
+}
+
+struct RowPaintCtx<'a> {
+    theme: &'a Theme,
+    highlighter: &'a dyn Highlighter,
+    aux: &'a mut ToolCallCardAux,
+    skip_top: u16,
+    truncation: OutputTruncation,
 }
 
 /// Per-transcript auxiliary state for tool-call rows (spinner motion, nested widgets).
@@ -77,13 +87,13 @@ impl<'a> ToolCallCard<'a> {
             self.theme,
             self.highlighter,
             aux,
-            OutputTruncation::new(self.head_lines, self.tail_lines),
+            self.head_lines,
+            self.tail_lines,
         )
     }
 
     /// Paint the card into `area`, skipping the first `skip_top` visual rows.
     pub fn paint(&self, area: Rect, buf: &mut Buffer, aux: &mut ToolCallCardAux, skip_top: u16) {
-        let trunc = OutputTruncation::new(self.head_lines, self.tail_lines);
         render_tool_call_card(
             self.cell,
             area,
@@ -92,7 +102,8 @@ impl<'a> ToolCallCard<'a> {
             self.highlighter,
             aux,
             skip_top,
-            trunc,
+            self.head_lines,
+            self.tail_lines,
         );
     }
 }
@@ -101,7 +112,6 @@ impl StatefulWidget for ToolCallCard<'_> {
     type State = ToolCallCardAux;
 
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        let trunc = OutputTruncation::new(self.head_lines, self.tail_lines);
         render_tool_call_card(
             self.cell,
             area,
@@ -110,7 +120,8 @@ impl StatefulWidget for ToolCallCard<'_> {
             self.highlighter,
             state,
             0,
-            trunc,
+            self.head_lines,
+            self.tail_lines,
         );
     }
 }
@@ -122,8 +133,10 @@ pub fn measure_tool_call_card(
     theme: &Theme,
     highlighter: &dyn Highlighter,
     aux: &mut ToolCallCardAux,
-    truncation: OutputTruncation,
+    head_lines: usize,
+    tail_lines: usize,
 ) -> u16 {
+    let truncation = OutputTruncation::new(head_lines, tail_lines);
     let rev = cell_revision(cell, aux);
     if aux.cached_width == width && aux.cached_revision == rev && aux.cached_height > 0 {
         return aux.cached_height;
@@ -136,7 +149,8 @@ pub fn measure_tool_call_card(
     height
 }
 
-/// Paint a tool-call cell (see [`ToolCallCard::render`]).
+/// Paint a tool-call cell (see [`ToolCallCard::paint`]).
+#[allow(clippy::too_many_arguments)]
 pub fn render_tool_call_card(
     cell: &ToolCallCell,
     area: Rect,
@@ -145,11 +159,13 @@ pub fn render_tool_call_card(
     highlighter: &dyn Highlighter,
     aux: &mut ToolCallCardAux,
     skip_top: u16,
-    truncation: OutputTruncation,
+    head_lines: usize,
+    tail_lines: usize,
 ) {
     if area.is_empty() {
         return;
     }
+    let truncation = OutputTruncation::new(head_lines, tail_lines);
     let rows = build_layout(cell, area.width, theme, highlighter, aux, truncation);
     let mut y = area.y;
     let mut remaining = area.height;
@@ -172,16 +188,14 @@ pub fn render_tool_call_card(
             width: area.width,
             height: h,
         };
-        row.draw(
-            cell,
-            row_area,
-            buf,
+        let mut ctx = RowPaintCtx {
             theme,
             highlighter,
             aux,
-            row_skip,
+            skip_top: row_skip,
             truncation,
-        );
+        };
+        row.draw(cell, row_area, buf, &mut ctx);
         y += h;
         remaining -= h;
     }
@@ -205,7 +219,8 @@ impl<'a> ToolCallTranscriptRenderer<'a> {
             self.theme,
             self.highlighter,
             aux,
-            OutputTruncation::new(TOOL_OUTPUT_HEAD_LINES, TOOL_OUTPUT_TAIL_LINES),
+            TOOL_OUTPUT_HEAD_LINES,
+            TOOL_OUTPUT_TAIL_LINES,
         )
     }
 
@@ -225,7 +240,8 @@ impl<'a> ToolCallTranscriptRenderer<'a> {
             self.highlighter,
             aux,
             skip_top,
-            OutputTruncation::new(TOOL_OUTPUT_HEAD_LINES, TOOL_OUTPUT_TAIL_LINES),
+            TOOL_OUTPUT_HEAD_LINES,
+            TOOL_OUTPUT_TAIL_LINES,
         );
     }
 }
@@ -256,49 +272,45 @@ struct LayoutRow {
 }
 
 impl LayoutRow {
-    fn draw(
-        &self,
-        cell: &ToolCallCell,
-        area: Rect,
-        buf: &mut Buffer,
-        theme: &Theme,
-        highlighter: &dyn Highlighter,
-        aux: &mut ToolCallCardAux,
-        skip_top: u16,
-        truncation: OutputTruncation,
-    ) {
+    fn draw(&self, cell: &ToolCallCell, area: Rect, buf: &mut Buffer, ctx: &mut RowPaintCtx<'_>) {
         match self.kind {
-            LayoutRowKind::Header => draw_header(cell, area, buf, theme, aux),
+            LayoutRowKind::Header => draw_header(cell, area, buf, ctx.theme, ctx.aux),
             LayoutRowKind::Title => {
-                draw_wrapped_text(cell.title(), area, buf, theme, fg_style(theme), skip_top);
+                draw_wrapped_text(
+                    cell.title(),
+                    area,
+                    buf,
+                    ctx.theme,
+                    fg_style(ctx.theme),
+                    ctx.skip_top,
+                );
             }
-            LayoutRowKind::Locations => draw_locations(cell, area, buf, theme),
-            LayoutRowKind::InputHeader => draw_label("input", area, buf, theme),
+            LayoutRowKind::Locations => draw_locations(cell, area, buf, ctx.theme),
+            LayoutRowKind::InputHeader => draw_label("input", area, buf, ctx.theme),
             LayoutRowKind::InputBody => {
                 draw_wrapped_text(
                     cell.input_text(),
                     area,
                     buf,
-                    theme,
-                    muted_style(theme),
-                    skip_top,
+                    ctx.theme,
+                    muted_style(ctx.theme),
+                    ctx.skip_top,
                 );
             }
-            LayoutRowKind::OutputHeader => draw_label("output", area, buf, theme),
-            LayoutRowKind::OutputFolded => draw_output_folded(cell, area, buf, theme),
-            LayoutRowKind::OutputCode => {
-                draw_output_code(
+            LayoutRowKind::OutputHeader => draw_label("output", area, buf, ctx.theme),
+            LayoutRowKind::OutputFolded => draw_output_folded(cell, area, buf, ctx.theme),
+            LayoutRowKind::OutputCode => draw_output_code(cell, area, buf, ctx),
+            LayoutRowKind::Diff => {
+                draw_diff(
                     cell,
                     area,
                     buf,
-                    theme,
-                    highlighter,
-                    aux,
-                    skip_top,
-                    truncation,
+                    ctx.theme,
+                    ctx.highlighter,
+                    ctx.aux,
+                    ctx.skip_top,
                 );
             }
-            LayoutRowKind::Diff => draw_diff(cell, area, buf, theme, highlighter, aux, skip_top),
         }
     }
 }
@@ -530,8 +542,7 @@ fn output_display_text(cell: &ToolCallCell, truncation: OutputTruncation) -> Str
         out.push_str(line);
         out.push('\n');
     }
-    use std::fmt::Write;
-    let _ = write!(out, "… {omitted} more lines\n");
+    let _ = writeln!(out, "… {omitted} more lines");
     for line in lines.iter().skip(lines.len() - tail) {
         out.push_str(line);
         out.push('\n');
@@ -567,22 +578,15 @@ fn output_code_height(aux: &ToolCallCardAux, width: u16, _highlighter: &dyn High
     total.max(1)
 }
 
-fn draw_output_code(
-    cell: &ToolCallCell,
-    area: Rect,
-    buf: &mut Buffer,
-    theme: &Theme,
-    highlighter: &dyn Highlighter,
-    aux: &mut ToolCallCardAux,
-    skip_top: u16,
-    truncation: OutputTruncation,
-) {
-    let display = output_display_text(cell, truncation);
-    sync_output_code(aux, &display, highlighter, cell);
-    aux.output_code.set_scroll_row(usize::from(skip_top));
-    CodeBlock::new(theme, highlighter)
+fn draw_output_code(cell: &ToolCallCell, area: Rect, buf: &mut Buffer, ctx: &mut RowPaintCtx<'_>) {
+    let display = output_display_text(cell, ctx.truncation);
+    sync_output_code(ctx.aux, &display, ctx.highlighter, cell);
+    ctx.aux
+        .output_code
+        .set_scroll_row(usize::from(ctx.skip_top));
+    CodeBlock::new(ctx.theme, ctx.highlighter)
         .line_numbers(false)
-        .render(area, buf, &mut aux.output_code);
+        .render(area, buf, &mut ctx.aux.output_code);
 }
 
 fn diff_block_height(model: &DiffModel) -> u16 {

@@ -4,6 +4,7 @@
 //! `codex-rs/tui/src/history_cell/` (Apache-2.0). See `NOTICE` and `THIRD_PARTY.md`.
 
 mod cell;
+pub mod composer;
 mod event;
 mod ids;
 mod model;
@@ -15,9 +16,12 @@ mod types;
 mod usage;
 
 pub use cell::{AssistantCell, Cell, ErrorCell, NoticeCell, ThinkingCell, ToolCallCell, UserCell};
+pub use composer::{
+    Attachment, ComposerIntent, ComposerState, FileIndex, QueuedMessage, QueuedPayload,
+};
 pub use event::AgentEvent;
 pub use ids::{CellId, MessageId, ToolCallId};
-pub use model::{Effort, ModelChoice};
+pub use model::{Effort, ModelCatalogEntry, ModelChoice};
 pub use permission::{PermissionIntent, PermissionOption, PermissionOptionId, PermissionRequest};
 pub use plan::{Plan, PlanEntry, PlanEntryId, PlanEntryStatus};
 pub use tool::{ToolCall, ToolCallPatch, ToolContent, ToolKind, ToolStatus};

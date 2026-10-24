@@ -15,6 +15,7 @@ ratakit = { path = "../../crates/ratakit", features = [
     "fuzzy",
     "crossterm",
     "tokio",
+    "agent",
 ] }
 ratakit-testing = { path = "../../crates/ratakit-testing" }
 ratatui.workspace = true
