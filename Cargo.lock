@@ -2118,6 +2118,7 @@ dependencies = [
  "ratakit-testing",
  "ratakit-text",
  "ratakit-widgets",
+ "ratatui",
 ]
 
 [[package]]

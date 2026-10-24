@@ -15,11 +15,12 @@ a terminal; widgets are thin renderers per frame.
 
 ## Status
 
-**Pre-alpha (milestone 4 in progress).** The generic widgets, agent UI, ACP bridge,
-and Claude Code/OpenCode example clients are implemented. Recorded-session tooling
-and release polish remain. **Not published to crates.io yet.**
+**Pre-alpha.** The generic widgets, agent UI, ACP bridge, accessibility profiles,
+inline transcript scrollback, and user documentation are implemented. The project
+is **not published to crates.io**; a 0.1.0 release is pending Jordi's approval.
 
-Design (Spanish): [`docs/DISENO.md`](docs/DISENO.md).
+Start with the [English user guide](docs/USER_GUIDE.md). The design and roadmap
+(Spanish) are in [`docs/DISENO.md`](docs/DISENO.md).
 
 ## Workspace crates
 
@@ -39,6 +40,10 @@ Design (Spanish): [`docs/DISENO.md`](docs/DISENO.md).
 cargo test --workspace
 cargo run -p hello-headless
 ```
+
+The crates are not published yet. For a consumer app in this repository, add a
+path dependency on `crates/ratakit`; the guide explains feature selection and
+shows a widget-rendering example.
 
 ## Accessibility profiles
 
@@ -82,6 +87,20 @@ cargo bench -p ratakit-text --bench text_processing --features "markdown diff hi
 ```
 
 MSRV: **Rust 1.88** (required by ratatui 0.30).
+
+## Compatibility
+
+Versions below are the workspace's declared lower bounds and locked CI-tested
+versions. They are not a claim that every future patch release has been tested.
+
+| Integration | Declared | Locked and tested |
+|---|---:|---:|
+| Rust | 1.88.0 | 1.88.0 (MSRV job) |
+| ratatui | 0.30.2 | 0.30.2 |
+| ratatui-core | 0.1.2 | 0.1.2 |
+| ratatui-widgets | 0.3.2 | 0.3.2 |
+| ratatui-crossterm | 0.1.2 | 0.1.2 |
+| crossterm | 0.29.0 | 0.29.0 |
 
 ## License
 

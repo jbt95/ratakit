@@ -1,6 +1,24 @@
 //! Agent transcript, composer, and related widgets.
 //!
 //! The [`state`] module is ratatui-free and can be used from other UIs (for example GPUI).
+//!
+//! # Apply protocol-neutral events
+//!
+//! ```
+//! use ratakit_agent::state::{AgentEvent, MessageId, StopReason, TranscriptState};
+//!
+//! let mut transcript = TranscriptState::new();
+//! let id = MessageId::new("assistant-1");
+//! transcript.apply(AgentEvent::AssistantDelta {
+//!     id: id.clone(),
+//!     text: "Hello from the agent.".into(),
+//! });
+//! transcript.apply(AgentEvent::MessageDone { id });
+//! transcript.apply(AgentEvent::TurnEnded {
+//!     reason: StopReason::EndTurn,
+//! });
+//! assert_eq!(transcript.cells().len(), 1);
+//! ```
 
 #![allow(clippy::must_use_candidate, clippy::return_self_not_must_use)]
 

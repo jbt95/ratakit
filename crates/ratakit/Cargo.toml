@@ -8,6 +8,9 @@ rust-version.workspace = true
 repository.workspace = true
 authors.workspace = true
 
+[package.metadata.docs.rs]
+all-features = true
+
 [features]
 default = ["widgets", "markdown", "highlight-syntect", "diff", "fuzzy", "crossterm"]
 widgets = ["dep:ratakit-widgets"]
@@ -57,3 +60,4 @@ ratakit-acp = { workspace = true, optional = true }
 
 [dev-dependencies]
 ratakit-testing.workspace = true
+ratatui.workspace = true

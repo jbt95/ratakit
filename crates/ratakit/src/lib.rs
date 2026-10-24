@@ -1,6 +1,46 @@
 //! **ratakit** — reusable ratatui components plus an optional agentic-coding UI layer.
 //!
 //! See the [repository README](https://github.com/jbt95/ratakit) for status and roadmap.
+//! The [user guide](https://github.com/jbt95/ratakit/blob/main/docs/USER_GUIDE.md) covers feature
+//! selection, terminal setup, accessibility, and examples.
+//!
+//! # Render a stateful widget
+//!
+//! Keep state in the application and render a borrowed widget into each frame:
+//!
+//! ```
+//! use ratakit::core::Theme;
+//! use ratakit::widgets::{TextArea, TextAreaState};
+//! use ratatui::backend::TestBackend;
+//! use ratatui::Terminal;
+//!
+//! let theme = Theme::dark();
+//! let mut input = TextAreaState::new();
+//! let mut terminal = Terminal::new(TestBackend::new(40, 6))?;
+//! terminal.draw(|frame| {
+//!     frame.render_stateful_widget(
+//!         TextArea::new(&theme).placeholder("Write a message…"),
+//!         frame.area(),
+//!         &mut input,
+//!     );
+//! })?;
+//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! ```
+//!
+//! # Inline terminal viewport
+//!
+//! Entering the main buffer is not enough by itself; configure Ratatui's
+//! drawing viewport to match the terminal session:
+//!
+//! ```
+//! use ratakit::widgets::TerminalViewport;
+//! use ratatui::TerminalOptions;
+//!
+//! let options = TerminalOptions {
+//!     viewport: TerminalViewport::Inline.ratatui_viewport(12),
+//! };
+//! assert_eq!(options.viewport, ratatui::Viewport::Inline(12));
+//! ```
 
 pub use ratakit_core as core;
 
