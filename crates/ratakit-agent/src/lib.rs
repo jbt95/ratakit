@@ -12,8 +12,10 @@ pub mod widgets;
 #[cfg(feature = "widgets")]
 pub use widgets::{
     Composer, ComposerModelItem, ComposerWidgetState, ModelPicker, ModelPickerIntent,
-    ModelPickerState, PermissionPrompt, PermissionPromptModal, PermissionPromptState, ToolCallCard,
-    ToolCallCardAux, ToolCallTranscriptRenderer, measure_tool_call_card, render_tool_call_card,
+    ModelPickerState, PermissionPrompt, PermissionPromptModal, PermissionPromptState, PlanRows,
+    PlanView, ToolCallCard, ToolCallCardAux, ToolCallTranscriptRenderer, UsageBar,
+    measure_tool_call_card, plan_cell_height, render_plan_cell, render_tool_call_card,
+    usage_segments,
 };
 
 pub use state::{

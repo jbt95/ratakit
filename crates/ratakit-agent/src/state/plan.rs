@@ -38,3 +38,32 @@ pub struct PlanEntry {
 pub struct Plan {
     pub entries: Vec<PlanEntry>,
 }
+
+impl Plan {
+    /// Content revision for virtual-list height caches.
+    pub fn layout_revision(&self) -> u64 {
+        let mut h = self.entries.len() as u64;
+        for entry in &self.entries {
+            h = hash_mix(h, entry.title.len() as u64);
+            h = hash_mix(h, status_tag(entry.status));
+            h = hash_mix(h, entry.id.0.len() as u64);
+        }
+        h
+    }
+}
+
+fn status_tag(status: PlanEntryStatus) -> u64 {
+    match status {
+        PlanEntryStatus::Pending => 0,
+        PlanEntryStatus::InProgress => 1,
+        PlanEntryStatus::Completed => 2,
+    }
+}
+
+fn hash_mix(seed: u64, value: u64) -> u64 {
+    let mut h = seed;
+    h = h.wrapping_add(value);
+    h = h.wrapping_add(h << 6);
+    h = h.wrapping_add(h >> 2);
+    h.wrapping_add(0x9e37_79b9_7f4a_7c15)
+}

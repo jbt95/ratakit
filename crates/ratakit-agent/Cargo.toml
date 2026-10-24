@@ -72,3 +72,8 @@ required-features = ["widgets"]
 name = "tool_call_card_snapshots"
 path = "tests/tool_call_card_snapshots.rs"
 required-features = ["widgets"]
+
+[[test]]
+name = "usage_plan_snapshots"
+path = "tests/usage_plan_snapshots.rs"
+required-features = ["widgets"]
