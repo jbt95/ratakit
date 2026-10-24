@@ -15,6 +15,9 @@ use super::types::SlashCommand;
 use super::usage::{ModeId, Usage};
 use ratakit_core::ListState;
 
+#[cfg(feature = "widgets")]
+use crate::tool_call_aux::ToolCallCardAux;
+
 /// Transcript model: ordered cells plus session metadata updated via [`TranscriptState::apply`].
 #[derive(Debug)]
 pub struct TranscriptState {
@@ -30,6 +33,8 @@ pub struct TranscriptState {
     open_thinking: HashMap<MessageId, usize>,
     open_tools: HashMap<ToolCallId, usize>,
     plan_cell: Option<usize>,
+    #[cfg(feature = "widgets")]
+    tool_call_aux: Vec<ToolCallCardAux>,
 }
 
 impl TranscriptState {
@@ -48,6 +53,8 @@ impl TranscriptState {
             open_thinking: HashMap::new(),
             open_tools: HashMap::new(),
             plan_cell: None,
+            #[cfg(feature = "widgets")]
+            tool_call_aux: Vec::new(),
         }
     }
 
@@ -101,9 +108,30 @@ impl TranscriptState {
         &mut self.list
     }
 
-    /// Split borrow for the transcript widget (cells + list scroll).
-    pub(crate) fn cells_and_list_mut(&mut self) -> (&mut [Cell], &mut ListState) {
-        (&mut self.cells, &mut self.list)
+    /// Resize per-cell tool card aux state to match [`cells`](Self::cells).
+    #[cfg(feature = "widgets")]
+    pub fn sync_tool_call_aux(&mut self) {
+        while self.tool_call_aux.len() < self.cells.len() {
+            self.tool_call_aux.push(ToolCallCardAux::default());
+        }
+        if self.tool_call_aux.len() > self.cells.len() {
+            self.tool_call_aux.truncate(self.cells.len());
+        }
+    }
+
+    /// Mutable aux state for a tool-call row at `index` (after [`Self::sync_tool_call_aux`]).
+    #[cfg(feature = "widgets")]
+    pub fn tool_call_aux_mut(&mut self, index: usize) -> Option<&mut ToolCallCardAux> {
+        self.tool_call_aux.get_mut(index)
+    }
+
+    /// Cells, list scroll, and tool aux for one transcript frame.
+    #[cfg(feature = "widgets")]
+    pub(crate) fn layout_borrow_mut(
+        &mut self,
+    ) -> (&mut [Cell], &mut ListState, &mut [ToolCallCardAux]) {
+        self.sync_tool_call_aux();
+        (&mut self.cells, &mut self.list, &mut self.tool_call_aux)
     }
 
     /// Toggle fold state on thinking or tool-call cells.

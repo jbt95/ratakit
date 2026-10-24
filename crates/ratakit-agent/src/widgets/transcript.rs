@@ -1,39 +1,36 @@
 //! Transcript [`StatefulWidget`] over [`VirtualList`].
 
-use ratakit_core::{Component, Event, ItemHeights, Keymap, Outcome, Theme};
+use ratakit_core::{
+    Component, Event, ItemHeights, Keymap, ListState, Outcome, Theme, VisibleRows, visible_rows,
+};
 use ratakit_text::Highlighter;
-use ratakit_widgets::{RowRenderer, VirtualList};
-use ratatui_core::buffer::Buffer;
-use ratatui_core::layout::Rect;
-use ratatui_core::widgets::StatefulWidget;
+use ratatui_core::style::Modifier;
 
-use crate::state::TranscriptState;
+use crate::widgets::style::fg;
+use ratatui_core::buffer::Buffer;
+use ratatui_core::layout::{Margin, Rect};
+use ratatui_core::widgets::StatefulWidget;
+use ratatui_widgets::scrollbar::{Scrollbar, ScrollbarOrientation, ScrollbarState};
+
+use crate::state::{Cell, TranscriptState};
+use crate::tool_call_aux::ToolCallCardAux;
 use crate::widgets::cells::{measure_cell, render_cell, warm_markdown_layout};
-use crate::widgets::extras::TranscriptExtras;
 
 /// Agent transcript: virtualized cells with follow-tail scrolling.
 pub struct Transcript<'a> {
     theme: &'a Theme,
     highlighter: &'a dyn Highlighter,
-    extras: TranscriptExtras<'a>,
     show_scrollbar: bool,
 }
 
 impl<'a> Transcript<'a> {
-    /// Create a transcript view with default placeholder tool/plan cells.
+    /// Create a transcript view (tool rows use `ToolCallCard`, plan rows use `PlanView` helpers).
     pub fn new(theme: &'a Theme, highlighter: &'a dyn Highlighter) -> Self {
         Self {
             theme,
             highlighter,
-            extras: TranscriptExtras::default(),
             show_scrollbar: true,
         }
-    }
-
-    /// Optional renderers for tool-call and plan cells (A3 / A7).
-    pub fn extras(mut self, extras: TranscriptExtras<'a>) -> Self {
-        self.extras = extras;
-        self
     }
 
     /// Show a vertical scrollbar (default: on).
@@ -58,25 +55,37 @@ impl StatefulWidget for Transcript<'_> {
         };
 
         let layout_key = layout_revision(state.revision(), content_width, self.theme);
-        let (cells, list) = state.cells_and_list_mut();
+        let (cells, list, tool_aux) = state.layout_borrow_mut();
 
         warm_markdown_layout(cells, content_width, self.theme, self.highlighter);
 
         let heights: Vec<u16> = cells
             .iter()
-            .map(|cell| measure_cell(cell, content_width, self.theme, self.extras))
+            .enumerate()
+            .map(|(index, cell)| {
+                let aux = tool_aux_mut(cell, tool_aux, index);
+                measure_cell(cell, content_width, self.theme, self.highlighter, aux)
+            })
             .collect();
-        let rows = TranscriptRows {
-            cells: &*cells,
+
+        let measured = MeasuredHeights {
             heights: &heights,
-            theme: self.theme,
-            extras: self.extras,
+            len: cells.len(),
             layout_key,
         };
 
-        list.prepare_layout(&rows, content_width, area.height);
-        let list_widget = VirtualList::new(&rows, self.theme).scrollbar(self.show_scrollbar);
-        list_widget.render(area, buf, list);
+        list.prepare_layout(&measured, content_width, area.height);
+        paint_viewport(
+            cells,
+            list,
+            area,
+            buf,
+            content_width,
+            self.theme,
+            self.highlighter,
+            tool_aux,
+            self.show_scrollbar,
+        );
     }
 }
 
@@ -84,17 +93,15 @@ fn layout_revision(transcript_revision: u64, width: u16, theme: &Theme) -> u64 {
     transcript_revision ^ (u64::from(width) << 32) ^ theme.theme_revision()
 }
 
-struct TranscriptRows<'a> {
-    cells: &'a [crate::state::Cell],
+struct MeasuredHeights<'a> {
     heights: &'a [u16],
-    theme: &'a Theme,
-    extras: TranscriptExtras<'a>,
+    len: usize,
     layout_key: u64,
 }
 
-impl ItemHeights for TranscriptRows<'_> {
+impl ItemHeights for MeasuredHeights<'_> {
     fn len(&self) -> usize {
-        self.cells.len()
+        self.len
     }
 
     fn height(&self, index: usize, _width: u16) -> u16 {
@@ -106,12 +113,92 @@ impl ItemHeights for TranscriptRows<'_> {
     }
 }
 
-impl RowRenderer for TranscriptRows<'_> {
-    fn render_row(&self, index: usize, area: Rect, buf: &mut Buffer, skip_top: u16) {
-        let cell = self.cells.get(index);
-        if let Some(cell) = cell {
-            render_cell(cell, area, buf, skip_top, self.theme, self.extras);
+fn tool_aux_mut<'a>(
+    cell: &Cell,
+    tool_aux: &'a mut [ToolCallCardAux],
+    index: usize,
+) -> Option<&'a mut ToolCallCardAux> {
+    match cell {
+        Cell::ToolCall(_) => tool_aux.get_mut(index),
+        _ => None,
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn paint_viewport(
+    cells: &[Cell],
+    list: &mut ListState,
+    area: Rect,
+    buf: &mut Buffer,
+    content_width: u16,
+    theme: &Theme,
+    highlighter: &dyn Highlighter,
+    tool_aux: &mut [ToolCallCardAux],
+    show_scrollbar: bool,
+) {
+    let content_height = list.layout().content_height;
+    let scroll_offset = list.scroll().offset();
+    let cache = list.height_cache();
+    let visible: VisibleRows = visible_rows(cache, scroll_offset, area.height);
+
+    let mut y = area.y;
+    let mut remaining = area.height;
+    let base_style = fg(theme);
+
+    for index in visible.first_index..=visible.last_index {
+        if remaining == 0 {
+            break;
         }
+        let item_h = cache.item_height(index);
+        let skip = if index == visible.first_index {
+            visible.skip_top
+        } else {
+            0
+        };
+        let drawable = (item_h - skip).min(remaining);
+        if drawable == 0 {
+            continue;
+        }
+        let row_area = Rect {
+            x: area.x,
+            y,
+            width: content_width,
+            height: drawable,
+        };
+        if list.selected() == Some(index) {
+            buf.set_style(row_area, fg(theme).add_modifier(Modifier::REVERSED));
+        } else {
+            buf.set_style(row_area, base_style);
+        }
+        let cell = cells.get(index);
+        if let Some(cell) = cell {
+            let aux = tool_aux_mut(cell, tool_aux, index);
+            render_cell(cell, row_area, buf, skip, theme, highlighter, aux);
+        }
+        y += drawable;
+        remaining -= drawable;
+    }
+
+    if show_scrollbar && area.width > 0 {
+        let track = Rect {
+            x: area.x + content_width,
+            y: area.y,
+            width: 1,
+            height: area.height,
+        };
+        let mut scrollbar_state = ScrollbarState::new(content_height.max(1))
+            .position(scroll_offset)
+            .viewport_content_length(area.height as usize);
+        let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight);
+        StatefulWidget::render(
+            scrollbar,
+            track.inner(Margin {
+                vertical: 0,
+                horizontal: 0,
+            }),
+            buf,
+            &mut scrollbar_state,
+        );
     }
 }
 

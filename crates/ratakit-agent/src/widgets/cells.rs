@@ -3,11 +3,14 @@
 use crate::state::{
     AssistantCell, Cell, ErrorCell, Level, NoticeCell, Plan, ThinkingCell, ToolCallCell, UserCell,
 };
+use crate::tool_call_aux::ToolCallCardAux;
 use crate::widgets::extras::{
-    PlaceholderToolCallRenderer, ToolCallCellRenderer, TranscriptExtras, label_line,
-    render_wrapped_lines, thinking_summary, user_plain_text, wrapped_line_count,
+    label_line, render_wrapped_lines, thinking_summary, user_plain_text, wrapped_line_count,
 };
 use crate::widgets::plan_view::{plan_cell_height, render_plan_cell};
+use crate::widgets::tool_call_card::{
+    TOOL_OUTPUT_HEAD_LINES, TOOL_OUTPUT_TAIL_LINES, measure_tool_call_card, render_tool_call_card,
+};
 use ratakit_core::Theme;
 use ratakit_text::Highlighter;
 use ratakit_widgets::semantic_to_color;
@@ -48,14 +51,15 @@ pub(crate) fn measure_cell(
     cell: &Cell,
     width: u16,
     theme: &Theme,
-    extras: TranscriptExtras<'_>,
+    highlighter: &dyn Highlighter,
+    tool_aux: Option<&mut ToolCallCardAux>,
 ) -> u16 {
     match cell {
         Cell::User(u) => measure_user(u, width, theme),
         Cell::Assistant(a) => measure_assistant(a, width, theme),
         Cell::Thinking(t) => measure_thinking(t, width, theme),
-        Cell::ToolCall(tc) => measure_tool_call(tc, width, extras),
-        Cell::Plan(p) => measure_plan(p, width, theme, extras),
+        Cell::ToolCall(tc) => measure_tool_call(tc, width, theme, highlighter, tool_aux),
+        Cell::Plan(p) => measure_plan(p, width, theme),
         Cell::Notice(n) => measure_notice(n, width),
         Cell::Error(e) => measure_error(e, width),
     }
@@ -67,7 +71,8 @@ pub(crate) fn render_cell(
     buf: &mut Buffer,
     skip_top: u16,
     theme: &Theme,
-    extras: TranscriptExtras<'_>,
+    highlighter: &dyn Highlighter,
+    tool_aux: Option<&mut ToolCallCardAux>,
 ) {
     if area.height == 0 {
         return;
@@ -76,8 +81,10 @@ pub(crate) fn render_cell(
         Cell::User(u) => render_user(u, area, buf, skip_top, theme),
         Cell::Assistant(a) => render_assistant(a, area, buf, skip_top, theme),
         Cell::Thinking(t) => render_thinking(t, area, buf, skip_top, theme),
-        Cell::ToolCall(tc) => render_tool_call(tc, area, buf, skip_top, extras),
-        Cell::Plan(p) => render_plan(p, area, buf, skip_top, theme, extras),
+        Cell::ToolCall(tc) => {
+            render_tool_call(tc, area, buf, skip_top, theme, highlighter, tool_aux);
+        }
+        Cell::Plan(p) => render_plan(p, area, buf, skip_top, theme),
         Cell::Notice(n) => render_notice(n, area, buf, skip_top, theme),
         Cell::Error(e) => render_error(e, area, buf, skip_top, theme),
     }
@@ -161,12 +168,23 @@ fn render_thinking(
     render_line_stack(rows, area, buf, skip_top);
 }
 
-fn measure_tool_call(cell: &ToolCallCell, width: u16, extras: TranscriptExtras<'_>) -> u16 {
-    if let Some(r) = extras.tool_call {
-        r.height(cell, width)
-    } else {
-        PlaceholderToolCallRenderer.height(cell, width)
-    }
+fn measure_tool_call(
+    cell: &ToolCallCell,
+    width: u16,
+    theme: &Theme,
+    highlighter: &dyn Highlighter,
+    tool_aux: Option<&mut ToolCallCardAux>,
+) -> u16 {
+    let aux = tool_aux.expect("tool-call aux required for measure");
+    measure_tool_call_card(
+        cell,
+        width,
+        theme,
+        highlighter,
+        aux,
+        TOOL_OUTPUT_HEAD_LINES,
+        TOOL_OUTPUT_TAIL_LINES,
+    )
 }
 
 fn render_tool_call(
@@ -174,36 +192,30 @@ fn render_tool_call(
     area: Rect,
     buf: &mut Buffer,
     skip_top: u16,
-    extras: TranscriptExtras<'_>,
-) {
-    if let Some(r) = extras.tool_call {
-        r.render(cell, area, buf, skip_top);
-    } else {
-        PlaceholderToolCallRenderer.render(cell, area, buf, skip_top);
-    }
-}
-
-fn measure_plan(plan: &Plan, width: u16, theme: &Theme, extras: TranscriptExtras<'_>) -> u16 {
-    if let Some(r) = extras.plan {
-        r.height(plan, width)
-    } else {
-        plan_cell_height(plan, width, theme.glyphs)
-    }
-}
-
-fn render_plan(
-    plan: &Plan,
-    area: Rect,
-    buf: &mut Buffer,
-    skip_top: u16,
     theme: &Theme,
-    extras: TranscriptExtras<'_>,
+    highlighter: &dyn Highlighter,
+    tool_aux: Option<&mut ToolCallCardAux>,
 ) {
-    if let Some(r) = extras.plan {
-        r.render(plan, area, buf, skip_top);
-    } else {
-        render_plan_cell(plan, theme, area, buf, skip_top);
-    }
+    let aux = tool_aux.expect("tool-call aux required for render");
+    render_tool_call_card(
+        cell,
+        area,
+        buf,
+        theme,
+        highlighter,
+        aux,
+        skip_top,
+        TOOL_OUTPUT_HEAD_LINES,
+        TOOL_OUTPUT_TAIL_LINES,
+    );
+}
+
+fn measure_plan(plan: &Plan, width: u16, theme: &Theme) -> u16 {
+    plan_cell_height(plan, width, theme.glyphs)
+}
+
+fn render_plan(plan: &Plan, area: Rect, buf: &mut Buffer, skip_top: u16, theme: &Theme) {
+    render_plan_cell(plan, theme, area, buf, skip_top);
 }
 
 fn measure_notice(notice: &NoticeCell, width: u16) -> u16 {
@@ -231,10 +243,6 @@ fn render_error(err: &ErrorCell, area: Rect, buf: &mut Buffer, skip_top: u16, th
     render_wrapped_lines(&[&line], area, buf, skip_top, fg(theme.palette.error));
 }
 
-fn fg(color: ratakit_core::SemanticColor) -> Style {
-    Style::default().fg(semantic_to_color(color))
-}
-
 fn render_line_stack(lines: Vec<Line<'static>>, area: Rect, buf: &mut Buffer, skip_top: u16) {
     if area.height == 0 {
         return;
@@ -243,4 +251,8 @@ fn render_line_stack(lines: Vec<Line<'static>>, area: Rect, buf: &mut Buffer, sk
     let start = skip_top.min(line_cap) as usize;
     let visible = lines.into_iter().skip(start).take(area.height as usize);
     Paragraph::new(visible.collect::<Vec<_>>()).render(area, buf);
+}
+
+fn fg(color: ratakit_core::SemanticColor) -> Style {
+    Style::default().fg(semantic_to_color(color))
 }

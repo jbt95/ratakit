@@ -36,7 +36,7 @@ serde = { version = "1.0.229", optional = true, features = ["derive"] }
 [dev-dependencies]
 ratakit-core = { workspace = true, features = ["fuzzy"] }
 ratakit-testing.workspace = true
-ratakit-widgets = { workspace = true, features = ["fuzzy"] }
+ratakit-widgets = { workspace = true, features = ["diff", "highlight-syntect", "fuzzy"] }
 ratatui.workspace = true
 insta.workspace = true
 proptest.workspace = true
@@ -68,6 +68,11 @@ required-features = ["widgets"]
 [[test]]
 name = "permission_prompt_snapshots"
 path = "tests/permission_prompt_snapshots.rs"
+required-features = ["widgets"]
+
+[[test]]
+name = "tool_call_card_snapshots"
+path = "tests/tool_call_card_snapshots.rs"
 required-features = ["widgets"]
 
 [[test]]

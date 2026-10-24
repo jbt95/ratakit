@@ -1,75 +1,12 @@
-//! Pluggable renderers for transcript cells built in parallel milestones (A3, A7).
+//! Shared text helpers for transcript cells.
 
-use crate::state::{Plan, ToolCallCell};
-use ratatui_core::buffer::Buffer;
-use ratatui_core::layout::Rect;
 use ratatui_core::style::Style;
 use ratatui_core::text::Line;
 use ratatui_core::widgets::Widget;
 use ratatui_widgets::paragraph::Paragraph;
 use unicode_width::UnicodeWidthStr;
 
-use crate::state::ToolStatus;
 use ratakit_core::Theme;
-
-/// Renders a [`ToolCallCell`] inside the transcript (see milestone A3).
-pub trait ToolCallCellRenderer {
-    /// Height in terminal rows at `width`.
-    fn height(&self, cell: &ToolCallCell, width: u16) -> u16;
-
-    /// Draw the cell, skipping the first `skip_top` rows of content.
-    fn render(&self, cell: &ToolCallCell, area: Rect, buf: &mut Buffer, skip_top: u16);
-}
-
-/// Overrides default plan transcript rendering ([`super::plan_view::render_plan_cell`]).
-pub trait PlanCellRenderer {
-    fn height(&self, plan: &Plan, width: u16) -> u16;
-    fn render(&self, plan: &Plan, area: Rect, buf: &mut Buffer, skip_top: u16);
-}
-
-/// Optional overrides for tool-call and plan rows.
-#[derive(Clone, Copy, Default)]
-pub struct TranscriptExtras<'a> {
-    pub tool_call: Option<&'a dyn ToolCallCellRenderer>,
-    pub plan: Option<&'a dyn PlanCellRenderer>,
-}
-
-/// Simple placeholder until `ToolCallCard` lands (A3).
-#[derive(Debug, Clone, Copy, Default)]
-pub struct PlaceholderToolCallRenderer;
-
-impl ToolCallCellRenderer for PlaceholderToolCallRenderer {
-    fn height(&self, cell: &ToolCallCell, width: u16) -> u16 {
-        wrapped_line_count(&placeholder_tool_line(cell), width)
-    }
-
-    fn render(&self, cell: &ToolCallCell, area: Rect, buf: &mut Buffer, skip_top: u16) {
-        let line = placeholder_tool_line(cell);
-        render_wrapped_lines(&[line.as_str()], area, buf, skip_top, Style::default());
-    }
-}
-
-fn placeholder_tool_line(cell: &ToolCallCell) -> String {
-    let title = if cell.call.title.is_empty() {
-        "(tool)"
-    } else {
-        cell.call.title.as_str()
-    };
-    format!(
-        "[tool {title} · {status}]",
-        status = tool_status_label(cell.call.status)
-    )
-}
-
-fn tool_status_label(status: ToolStatus) -> &'static str {
-    match status {
-        ToolStatus::Pending => "pending",
-        ToolStatus::InProgress => "running",
-        ToolStatus::Completed => "done",
-        ToolStatus::Failed => "failed",
-        ToolStatus::Cancelled => "cancelled",
-    }
-}
 
 pub(crate) fn wrapped_line_count(text: &str, width: u16) -> u16 {
     if text.is_empty() {
@@ -86,8 +23,8 @@ pub(crate) fn wrapped_line_count(text: &str, width: u16) -> u16 {
 
 pub(crate) fn render_wrapped_lines(
     lines: &[&str],
-    area: Rect,
-    buf: &mut Buffer,
+    area: ratatui_core::layout::Rect,
+    buf: &mut ratatui_core::buffer::Buffer,
     skip_top: u16,
     style: Style,
 ) {
