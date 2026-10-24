@@ -7,8 +7,10 @@ mod component;
 mod event;
 mod focus;
 mod keymap;
+mod list;
 mod outcome;
 mod revision;
+mod scroll;
 mod theme;
 
 pub use component::Component;
@@ -17,6 +19,8 @@ pub use event::{
 };
 pub use focus::{FocusId, FocusRing};
 pub use keymap::{ActionId, KeyChord, Keymap, KeymapPreset, Scope};
+pub use list::{HeightCache, ItemHeights, ListLayoutHint, ListState, VisibleRows, visible_rows};
 pub use outcome::Outcome;
 pub use revision::Revisioned;
+pub use scroll::ScrollState;
 pub use theme::{GlyphSet, MotionMode, Palette, SemanticColor, SyntaxThemeId, Theme};

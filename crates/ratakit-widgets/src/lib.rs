@@ -1,7 +1,7 @@
-//! Generic widgets built on ratatui-core.
-//!
-//! Milestone 0: compiles against ratatui-core; widgets arrive in milestone 1.
+//! Generic widgets built on ratatui-core and [`ratakit_core`] state types.
 
-#![allow(missing_docs)]
+mod style;
+mod virtual_list;
 
-pub const STUB: &str = "ratakit-widgets is not implemented yet";
+pub use style::{fg_style, muted_style, selected_row_style, semantic_color};
+pub use virtual_list::{RowRenderer, VirtualList};

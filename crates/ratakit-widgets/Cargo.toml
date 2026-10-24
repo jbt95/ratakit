@@ -1,6 +1,6 @@
 [package]
 name = "ratakit-widgets"
-description = "Generic ratatui widgets for ratakit (stub — milestone 1+)"
+description = "Generic ratatui widgets for ratakit"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -18,3 +18,8 @@ ratakit-core.workspace = true
 ratakit-text.workspace = true
 ratatui-core.workspace = true
 ratatui-widgets.workspace = true
+
+[dev-dependencies]
+ratakit-testing.workspace = true
+ratatui.workspace = true
+insta.workspace = true
