@@ -88,6 +88,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo build -p mock-agent --quiet
       - run: RATAKIT_MOCK_HEADLESS=1 cargo run -p mock-agent --quiet
+      - run: RATAKIT_MOCK_HEADLESS=1 RATAKIT_INLINE=1 cargo run -p mock-agent --quiet
       - run: cargo run -p mock-agent -- --snapshots examples/mock-agent/scripts/simple_chat.jsonl target/mock-agent-snapshots
       - run: test -s target/mock-agent-snapshots/phase-01.snap
 
@@ -99,5 +100,6 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo build -p claude-acp -p opencode-acp --quiet
       - run: RATAKIT_ACP_HEADLESS=1 cargo run -p claude-acp --quiet
+      - run: RATAKIT_ACP_HEADLESS=1 RATAKIT_INLINE=1 cargo run -p claude-acp --quiet
       - run: RATAKIT_ACP_HEADLESS=1 RATAKIT_SCREEN_READER=1 cargo run -p claude-acp --quiet
       - run: RATAKIT_ACP_HEADLESS=1 cargo run -p opencode-acp --quiet

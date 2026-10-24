@@ -13,17 +13,22 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
 use futures_util::StreamExt;
-use ratakit::agent::state::{AgentEvent, ContentPart, MessageId};
-use ratakit::agent::widgets::{AgentLayout, AgentLayoutIntent, AgentLayoutState};
+use ratakit::agent::state::{AgentEvent, Cell, ContentPart, MessageId};
+use ratakit::agent::widgets::{
+    AgentLayout, AgentLayoutIntent, AgentLayoutState, TranscriptHistory,
+};
 use ratakit::core::{Event, Keymap, KeymapPreset, Outcome};
 use ratakit::text::SyntectHighlighter;
 use ratakit::widgets::{FrameScheduler, TerminalViewport, enter_terminal_with, event_stream};
 use ratakit_testing::render_stateful;
-use ratatui::Terminal;
 use ratatui::layout::Rect;
+use ratatui::widgets::Widget;
+use ratatui::{Terminal, TerminalOptions};
 use ratatui_crossterm::CrosstermBackend;
 
 use script::{ReplayScript, ScriptDriver, load_script};
+
+const INLINE_VIEWPORT_HEIGHT: u16 = 12;
 
 struct MockFiles;
 
@@ -39,12 +44,17 @@ struct App {
     layout_state: AgentLayoutState,
     driver: ScriptDriver,
     files: MockFiles,
+    inline: bool,
+    pending_history: Vec<Cell>,
     should_quit: bool,
 }
 
 impl App {
-    fn new(script: ReplayScript) -> Self {
-        let theme = ratakit::core::Theme::dark();
+    fn new(script: ReplayScript, inline: bool) -> Self {
+        let mut theme = ratakit::core::Theme::dark();
+        if env::var_os("RATAKIT_SCREEN_READER").is_some() || inline {
+            theme.enable_screen_reader();
+        }
         SyntectHighlighter::apply_theme(&theme);
         Self {
             theme,
@@ -52,8 +62,54 @@ impl App {
             layout_state: AgentLayoutState::new(),
             driver: ScriptDriver::new(script),
             files: MockFiles,
+            inline,
+            pending_history: Vec::new(),
             should_quit: false,
         }
+    }
+
+    fn apply_agent_event(&mut self, event: AgentEvent) {
+        let turn_ended = matches!(&event, AgentEvent::TurnEnded { .. });
+        self.layout_state.apply_agent_event(event);
+        if self.inline && turn_ended {
+            if let Some(mut cells) = self.layout_state.transcript.take_completed_cells() {
+                self.pending_history.append(&mut cells);
+            }
+        }
+    }
+
+    fn flush_inline_history(
+        &mut self,
+        terminal: &mut Terminal<CrosstermBackend<std::io::Stdout>>,
+    ) -> std::io::Result<()> {
+        if !self.inline || self.pending_history.is_empty() {
+            return Ok(());
+        }
+
+        let mut cells = std::mem::take(&mut self.pending_history);
+        let mut history = TranscriptHistory::new(&mut cells, &self.theme, &SyntectHighlighter);
+        let height = history.height(terminal.size()?.width);
+        if height > 0 {
+            terminal.insert_before(height, |buffer| history.render(buffer.area, buffer))?;
+        }
+        Ok(())
+    }
+
+    fn finish_inline_history(
+        &mut self,
+        terminal: &mut Terminal<CrosstermBackend<std::io::Stdout>>,
+    ) -> std::io::Result<()> {
+        if self.inline && self.layout_state.transcript.is_busy() {
+            self.apply_agent_event(AgentEvent::TurnEnded {
+                reason: ratakit::agent::state::StopReason::Cancelled,
+            });
+        }
+        if self.inline
+            && let Some(mut cells) = self.layout_state.transcript.take_completed_cells()
+        {
+            self.pending_history.append(&mut cells);
+        }
+        self.flush_inline_history(terminal)
     }
 
     fn apply_step(&mut self) {
@@ -61,7 +117,7 @@ impl App {
             return;
         };
         match step {
-            script::ReplayStep::Event(ev) => self.layout_state.apply_agent_event(ev),
+            script::ReplayStep::Event(ev) => self.apply_agent_event(ev),
             script::ReplayStep::Permission(req) => self.layout_state.present_permission(req),
             script::ReplayStep::AwaitSubmit => {}
         }
@@ -97,7 +153,7 @@ impl App {
                 }
             }
             AgentLayoutIntent::Cancel => {
-                self.layout_state.apply_agent_event(AgentEvent::TurnEnded {
+                self.apply_agent_event(AgentEvent::TurnEnded {
                     reason: ratakit::agent::state::StopReason::Cancelled,
                 });
             }
@@ -113,8 +169,13 @@ impl App {
 
     fn draw(&mut self, frame: &mut ratatui::Frame) {
         let highlighter = SyntectHighlighter;
+        let placeholder = if self.theme.screen_reader {
+            "Message input. Tab changes focus; Ctrl+M opens model selection."
+        } else {
+            "Message mock agent…"
+        };
         let widget = AgentLayout::new(&self.theme, &highlighter, &self.files)
-            .composer_placeholder("Message mock agent…");
+            .composer_placeholder(placeholder);
         frame.render_stateful_widget(widget, frame.area(), &mut self.layout_state);
     }
 }
@@ -133,7 +194,8 @@ fn resolve_script_path() -> PathBuf {
 
 fn run_headless(script_path: &Path) {
     let script = load_script(script_path).expect("load script");
-    let mut app = App::new(script);
+    let inline = env::var_os("RATAKIT_INLINE").is_some();
+    let mut app = App::new(script, inline);
 
     const FRAMES: u32 = 24;
     for frame in 0..FRAMES {
@@ -157,6 +219,13 @@ fn run_headless(script_path: &Path) {
             "frame {frame} missing composer chrome"
         );
     }
+    if inline {
+        assert!(app.theme.screen_reader);
+        assert!(
+            !app.pending_history.is_empty(),
+            "completed turns should be queued for terminal scrollback"
+        );
+    }
     println!("ok: mock-agent headless {FRAMES} frames");
 }
 
@@ -167,7 +236,7 @@ fn write_phase_snapshots(input: &Path, output: &Path) -> std::io::Result<usize> 
         script.phases.len() > 1 && script.phases.first().is_some_and(Vec::is_empty);
     let first_phase = usize::from(starts_with_wait);
     let phase_count = script.phases.len().saturating_sub(first_phase);
-    let mut app = App::new(script);
+    let mut app = App::new(script, false);
 
     for phase in 0..phase_count {
         if first_phase + phase > 0 {
@@ -222,16 +291,22 @@ async fn main() -> std::io::Result<()> {
     }
 
     let script = load_script(&script_path).map_err(std::io::Error::other)?;
-    let viewport = if env::var("RATAKIT_INLINE").is_ok() {
+    let viewport = if env::var_os("RATAKIT_INLINE").is_some() {
         TerminalViewport::Inline
     } else {
         TerminalViewport::AlternateScreen
     };
     let _session = enter_terminal_with(viewport)?;
-    let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
+    let mut terminal = Terminal::with_options(
+        CrosstermBackend::new(stdout()),
+        TerminalOptions {
+            viewport: viewport.ratatui_viewport(INLINE_VIEWPORT_HEIGHT),
+        },
+    )?;
     terminal.clear()?;
 
-    let mut app = App::new(script);
+    let inline = env::var_os("RATAKIT_INLINE").is_some();
+    let mut app = App::new(script, inline);
     let mut scheduler = FrameScheduler::with_motion(app.theme.motion);
     scheduler.request();
 
@@ -254,6 +329,7 @@ async fn main() -> std::io::Result<()> {
                             app.should_quit = true;
                         }
                         app.handle(&ev);
+                        app.flush_inline_history(&mut terminal)?;
                         scheduler.request();
                     }
                     Some(Err(err)) => return Err(err),
@@ -270,11 +346,13 @@ async fn main() -> std::io::Result<()> {
             _ = replay.tick() => {
                 if app.driver.has_pending() {
                     app.apply_step();
+                    app.flush_inline_history(&mut terminal)?;
                     scheduler.request();
                 }
             }
         }
     }
 
+    app.finish_inline_history(&mut terminal)?;
     Ok(())
 }

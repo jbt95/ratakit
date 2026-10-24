@@ -4,7 +4,7 @@ Project status as of October 25, 2026, and the remaining work toward 0.1.0. The 
 
 ## Current status
 
-Milestones 0–3 are complete. C1–C3 and R1 are implemented on the current branch;
+Milestones 0–3 are complete. C1–C3, R1, and R2 are implemented on the current branch;
 the ACP example build, headless smoke paths, recorder round trip, replay snapshot
 conversion, and accessibility checks pass locally. No real-agent recording is
 bundled; live recording is opt-in and no live agent was launched for this work.
@@ -56,7 +56,7 @@ Each row represents one PR. Independent work may proceed in parallel.
 ### Milestone 5: polish and 0.1
 
 - [x] **R1. Accessibility.** Screen-reader profile, high-contrast palettes, and a `MotionMode` audit (static indicators when reduced or screen-reader mode is enabled). Depends on A8. Transcript scrollback integration is completed by R2.
-- [ ] **R2. Complete inline mode.** Send transcript history to terminal scrollback (inspired by Codex's `insert_history.rs`). Inline mode is currently opt-in, but the transcript is not yet written to scrollback. Depends on A2.
+- [x] **R2. Complete inline mode.** Use Ratatui's inline viewport and insert each completed transcript turn once into terminal scrollback, leaving the current turn and composer live. Depends on A2.
 - [ ] **R3. Documentation.** User guide, docs.rs examples, README, and a ratatui compatibility table. Depends on all preceding work.
 - [ ] **R4. crates.io 0.1.0 release.** Reserve crate names and publish. **Requires Jordi's approval.** Depends on R1–R3.
 

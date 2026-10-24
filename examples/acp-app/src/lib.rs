@@ -2,22 +2,27 @@
 
 use std::env;
 use std::fs::{File, OpenOptions};
-use std::io::{self, BufWriter, Write, stdout};
+use std::io::{self, BufWriter, Stdout, Write, stdout};
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
 use futures_util::StreamExt;
 use ratakit::acp::{AcpBridge, AcpBridgeHandle, AgentCommand, BridgeEvent, PermissionRequestId};
-use ratakit::agent::state::{AgentEvent, FileIndex, Level, MessageId, PermissionRequest};
-use ratakit::agent::widgets::{AgentLayout, AgentLayoutIntent, AgentLayoutState};
+use ratakit::agent::state::{AgentEvent, Cell, FileIndex, Level, MessageId, PermissionRequest};
+use ratakit::agent::widgets::{
+    AgentLayout, AgentLayoutIntent, AgentLayoutState, TranscriptHistory,
+};
 use ratakit::core::{Event, KeyCode, Keymap, KeymapPreset, Outcome, Theme};
 use ratakit::text::SyntectHighlighter;
 use ratakit::widgets::{FrameScheduler, TerminalViewport, enter_terminal_with, event_stream};
 use ratakit_testing::render_stateful;
-use ratatui::Terminal;
 use ratatui::layout::Rect;
+use ratatui::widgets::Widget;
+use ratatui::{Terminal, TerminalOptions};
 use ratatui_crossterm::CrosstermBackend;
 use tokio::task::JoinSet;
+
+const INLINE_VIEWPORT_HEIGHT: u16 = 12;
 
 struct NoFiles;
 
@@ -75,15 +80,17 @@ struct App {
     layout: AgentLayoutState,
     files: NoFiles,
     recorder: Option<Recorder>,
+    inline: bool,
+    pending_history: Vec<Cell>,
     permission_id: Option<PermissionRequestId>,
     prompt_in_flight: bool,
     should_quit: bool,
 }
 
 impl App {
-    fn new(recorder: Option<Recorder>) -> Self {
+    fn new(recorder: Option<Recorder>, inline: bool) -> Self {
         let mut theme = Theme::dark();
-        if env::var_os("RATAKIT_SCREEN_READER").is_some() {
+        if env::var_os("RATAKIT_SCREEN_READER").is_some() || inline {
             theme.enable_screen_reader();
         }
         SyntectHighlighter::apply_theme(&theme);
@@ -94,6 +101,8 @@ impl App {
             layout: AgentLayoutState::new(),
             files: NoFiles,
             recorder,
+            inline,
+            pending_history: Vec::new(),
             permission_id: None,
             prompt_in_flight: false,
             should_quit: false,
@@ -106,7 +115,7 @@ impl App {
                 if let Some(recorder) = &mut self.recorder {
                     recorder.event(&event)?;
                 }
-                self.layout.apply_agent_event(event);
+                self.apply_agent_event(event);
             }
             BridgeEvent::Permission(id, request) => {
                 if let Some(recorder) = &mut self.recorder {
@@ -123,6 +132,50 @@ impl App {
             }
         }
         Ok(())
+    }
+
+    fn apply_agent_event(&mut self, event: AgentEvent) {
+        let turn_ended = matches!(&event, AgentEvent::TurnEnded { .. });
+        self.layout.apply_agent_event(event);
+        if self.inline && turn_ended {
+            if let Some(mut cells) = self.layout.transcript.take_completed_cells() {
+                self.pending_history.append(&mut cells);
+            }
+        }
+    }
+
+    fn flush_inline_history(
+        &mut self,
+        terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    ) -> io::Result<()> {
+        if !self.inline || self.pending_history.is_empty() {
+            return Ok(());
+        }
+
+        let mut cells = std::mem::take(&mut self.pending_history);
+        let mut history = TranscriptHistory::new(&mut cells, &self.theme, &self.highlighter);
+        let height = history.height(terminal.size()?.width);
+        if height > 0 {
+            terminal.insert_before(height, |buffer| history.render(buffer.area, buffer))?;
+        }
+        Ok(())
+    }
+
+    fn finish_inline_history(
+        &mut self,
+        terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    ) -> io::Result<()> {
+        if self.inline && self.layout.transcript.is_busy() {
+            self.apply_agent_event(AgentEvent::TurnEnded {
+                reason: ratakit::agent::state::StopReason::Cancelled,
+            });
+        }
+        if self.inline
+            && let Some(mut cells) = self.layout.transcript.take_completed_cells()
+        {
+            self.pending_history.append(&mut cells);
+        }
+        self.flush_inline_history(terminal)
     }
 
     fn handle_input(
@@ -270,10 +323,15 @@ pub async fn run(command: AgentCommand, agent_name: &str) -> io::Result<()> {
         TerminalViewport::AlternateScreen
     };
     let _session = enter_terminal_with(viewport)?;
-    let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
+    let mut terminal = Terminal::with_options(
+        CrosstermBackend::new(stdout()),
+        TerminalOptions {
+            viewport: viewport.ratatui_viewport(INLINE_VIEWPORT_HEIGHT),
+        },
+    )?;
     terminal.clear()?;
 
-    let mut app = App::new(recorder);
+    let mut app = App::new(recorder, viewport == TerminalViewport::Inline);
     let handle = bridge.handle();
     let mut scheduler = FrameScheduler::with_motion(app.theme.motion);
     scheduler.request();
@@ -302,6 +360,7 @@ pub async fn run(command: AgentCommand, agent_name: &str) -> io::Result<()> {
                     Some(event) => app.apply_bridge_event(event)?,
                     None => app.should_quit = true,
                 }
+                app.flush_inline_history(&mut terminal)?;
                 scheduler.request();
             }
             _ = scheduler.next_frame() => {
@@ -319,33 +378,49 @@ pub async fn run(command: AgentCommand, agent_name: &str) -> io::Result<()> {
                         }
                     }
                     Some(Ok((is_prompt, Err(error)))) => {
+                        app.layout.apply_agent_event(AgentEvent::Error(error));
                         if is_prompt {
                             app.prompt_in_flight = false;
+                            app.apply_agent_event(AgentEvent::TurnEnded {
+                                reason: ratakit::agent::state::StopReason::Error,
+                            });
                         }
-                        app.layout.apply_agent_event(AgentEvent::Error(error));
                     }
                     Some(Err(error)) => {
-                        app.prompt_in_flight = false;
-                        app.layout.apply_agent_event(AgentEvent::Error(error.to_string()));
+                        let was_prompt = app.prompt_in_flight;
+                        app.layout
+                            .apply_agent_event(AgentEvent::Error(error.to_string()));
+                        if was_prompt {
+                            app.prompt_in_flight = false;
+                            app.apply_agent_event(AgentEvent::TurnEnded {
+                                reason: ratakit::agent::state::StopReason::Error,
+                            });
+                        }
                     }
                     None => {}
                 }
+                app.flush_inline_history(&mut terminal)?;
                 scheduler.request();
             }
         }
     }
 
+    app.finish_inline_history(&mut terminal)?;
     Ok(())
 }
 
 fn run_headless(agent_name: &str) -> io::Result<()> {
-    let mut app = App::new(None);
-    app.layout.apply_agent_event(AgentEvent::AssistantDelta {
+    let inline = env::var_os("RATAKIT_INLINE").is_some();
+    let mut app = App::new(None, inline);
+    app.apply_agent_event(AgentEvent::AssistantDelta {
         id: MessageId::new("headless-preview"),
         text: format!("{agent_name} ACP example is ready."),
     });
-    app.layout.apply_agent_event(AgentEvent::MessageDone {
+    app.apply_agent_event(AgentEvent::MessageDone {
         id: MessageId::new("headless-preview"),
+    });
+    app.apply_agent_event(AgentEvent::TurnEnded {
+        reason: ratakit::agent::state::StopReason::EndTurn,
     });
     let placeholder = if app.theme.screen_reader {
         "Message the ACP agent. Tab changes focus; Ctrl+M opens model selection."
@@ -356,11 +431,19 @@ fn run_headless(agent_name: &str) -> io::Result<()> {
         .composer_placeholder(placeholder);
     let snapshot = render_stateful(widget, 80, 20, &mut app.layout);
     assert!(snapshot.contains("Message the ACP agent"));
-    assert!(snapshot.contains(agent_name));
+    if !inline {
+        assert!(snapshot.contains(agent_name));
+    }
     if app.theme.screen_reader {
         assert!(snapshot.contains("composer:"));
         assert!(!snapshot.contains('╭'));
         assert!(!snapshot.contains('╰'));
+    }
+    if inline {
+        assert!(!snapshot.contains("ACP example is ready."));
+        assert!(app.pending_history.iter().any(|cell| {
+            matches!(cell, Cell::Assistant(assistant) if assistant.stream.source().contains("ACP example is ready."))
+        }));
     }
     println!("ok: {agent_name} ACP example headless render");
     Ok(())

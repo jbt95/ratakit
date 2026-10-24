@@ -108,6 +108,27 @@ impl TranscriptState {
         &mut self.cells
     }
 
+    /// Take the finished transcript cells, leaving session metadata intact.
+    ///
+    /// Returns `None` while the agent turn is still active. This is useful when a terminal
+    /// renderer moves completed turns into scrollback instead of keeping them in its live view.
+    pub fn take_completed_cells(&mut self) -> Option<Vec<Cell>> {
+        if self.busy {
+            return None;
+        }
+
+        self.open_assistant.clear();
+        self.open_thinking.clear();
+        self.open_tools.clear();
+        self.plan_cell = None;
+        self.list = ListState::new();
+        #[cfg(feature = "widgets")]
+        self.tool_call_aux.clear();
+        self.bump();
+
+        Some(std::mem::take(&mut self.cells))
+    }
+
     /// Virtual list scroll state (follow-tail, offset, scrollbar layout).
     pub fn list(&self) -> &ListState {
         &self.list

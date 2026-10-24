@@ -2,6 +2,7 @@
 
 use std::io::{self, Write};
 use std::sync::OnceLock;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use crossterm::ExecutableCommand;
 use crossterm::event::{DisableBracketedPaste, EnableBracketedPaste};
@@ -10,7 +11,13 @@ use crossterm::terminal::{
     disable_raw_mode, enable_raw_mode,
 };
 
-/// Where the TUI draws: fullscreen alternate buffer (default) or inline scrollback.
+static ALTERNATE_SCREEN_ACTIVE: AtomicBool = AtomicBool::new(false);
+
+/// Where the TUI draws: fullscreen alternate buffer (default) or an inline region.
+///
+/// For inline rendering, pair this with [`TerminalViewport::ratatui_viewport`] when creating the
+/// Ratatui [`Terminal`](ratatui_core::terminal::Terminal); entering the main terminal buffer alone
+/// does not configure Ratatui's inline viewport.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum TerminalViewport {
     /// Full-screen alternate buffer (Codex-style default for ratakit).
@@ -18,6 +25,16 @@ pub enum TerminalViewport {
     AlternateScreen,
     /// Draw in the main buffer; history stays in terminal scrollback.
     Inline,
+}
+
+impl TerminalViewport {
+    /// Matching Ratatui drawing viewport; use with `Terminal::with_options`.
+    pub fn ratatui_viewport(self, inline_height: u16) -> ratatui_core::terminal::Viewport {
+        match self {
+            Self::AlternateScreen => ratatui_core::terminal::Viewport::Fullscreen,
+            Self::Inline => ratatui_core::terminal::Viewport::Inline(inline_height),
+        }
+    }
 }
 
 /// RAII guard that restores the terminal on drop and on panic.
@@ -51,6 +68,10 @@ pub fn enter_terminal_with(viewport: TerminalViewport) -> io::Result<TerminalSes
         stdout.execute(Clear(ClearType::All))?;
     }
     stdout.flush()?;
+    ALTERNATE_SCREEN_ACTIVE.store(
+        viewport == TerminalViewport::AlternateScreen,
+        Ordering::Relaxed,
+    );
     Ok(TerminalSession {
         viewport,
         active: true,
@@ -61,6 +82,7 @@ impl Drop for TerminalSession {
     fn drop(&mut self) {
         if self.active {
             let _ = restore_terminal(self.viewport);
+            ALTERNATE_SCREEN_ACTIVE.store(false, Ordering::Relaxed);
             self.active = false;
         }
     }
@@ -85,7 +107,9 @@ fn install_panic_hook() {
         std::panic::set_hook(Box::new(move |info| {
             let _ = disable_raw_mode();
             let mut stdout = io::stdout();
-            let _ = stdout.execute(LeaveAlternateScreen);
+            if ALTERNATE_SCREEN_ACTIVE.load(Ordering::Relaxed) {
+                let _ = stdout.execute(LeaveAlternateScreen);
+            }
             let _ = stdout.execute(EnableLineWrap);
             let _ = stdout.execute(DisableBracketedPaste);
             let _ = stdout.flush();

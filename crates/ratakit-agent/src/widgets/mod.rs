@@ -25,5 +25,5 @@ pub use tool_call_card::{
     ToolCallCard, ToolCallCardAux, ToolCallTranscriptRenderer, measure_tool_call_card,
     render_tool_call_card,
 };
-pub use transcript::Transcript;
+pub use transcript::{Transcript, TranscriptHistory};
 pub use usage_bar::{UsageBar, usage_segments, usage_segments_compact};

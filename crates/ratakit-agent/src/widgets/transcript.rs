@@ -9,7 +9,7 @@ use ratatui_core::style::Modifier;
 use crate::widgets::style::fg;
 use ratatui_core::buffer::Buffer;
 use ratatui_core::layout::{Margin, Rect};
-use ratatui_core::widgets::StatefulWidget;
+use ratatui_core::widgets::{StatefulWidget, Widget};
 use ratatui_widgets::scrollbar::{Scrollbar, ScrollbarOrientation, ScrollbarState};
 
 use crate::state::{Cell, TranscriptState};
@@ -21,6 +21,72 @@ pub struct Transcript<'a> {
     theme: &'a Theme,
     highlighter: &'a dyn Highlighter,
     show_scrollbar: bool,
+}
+
+/// Non-virtualized transcript renderer for writing completed history to terminal scrollback.
+pub struct TranscriptHistory<'a> {
+    cells: &'a mut [Cell],
+    theme: &'a Theme,
+    highlighter: &'a dyn Highlighter,
+}
+
+impl<'a> TranscriptHistory<'a> {
+    /// Render all cells in order; `cells` should represent a completed turn.
+    pub fn new(cells: &'a mut [Cell], theme: &'a Theme, highlighter: &'a dyn Highlighter) -> Self {
+        Self {
+            cells,
+            theme,
+            highlighter,
+        }
+    }
+
+    /// Exact number of rows required to render at `width`.
+    pub fn height(&mut self, width: u16) -> u16 {
+        let width = width.max(1);
+        warm_markdown_layout(self.cells, width, self.theme, self.highlighter);
+        let mut tool_aux = tool_aux_for(self.cells.len());
+        self.cells
+            .iter()
+            .enumerate()
+            .fold(0u16, |height, (index, cell)| {
+                let aux = matches!(cell, Cell::ToolCall(_)).then(|| &mut tool_aux[index]);
+                height.saturating_add(measure_cell(cell, width, self.theme, self.highlighter, aux))
+            })
+    }
+}
+
+impl Widget for TranscriptHistory<'_> {
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        if area.is_empty() {
+            return;
+        }
+
+        let width = area.width.max(1);
+        warm_markdown_layout(self.cells, width, self.theme, self.highlighter);
+        let mut tool_aux = tool_aux_for(self.cells.len());
+        let base_style = fg(self.theme);
+        let mut y = area.y;
+        let mut remaining = area.height;
+
+        for (index, cell) in self.cells.iter().enumerate() {
+            if remaining == 0 {
+                break;
+            }
+            let aux = matches!(cell, Cell::ToolCall(_)).then(|| &mut tool_aux[index]);
+            let height = measure_cell(cell, width, self.theme, self.highlighter, aux).max(1);
+            let row_height = height.min(remaining);
+            let row_area = Rect::new(area.x, y, area.width, row_height);
+            buf.set_style(row_area, base_style);
+            let aux = matches!(cell, Cell::ToolCall(_)).then(|| &mut tool_aux[index]);
+            render_cell(cell, row_area, buf, 0, self.theme, self.highlighter, aux);
+            y += row_height;
+            remaining -= row_height;
+        }
+    }
+}
+
+fn tool_aux_for(len: usize) -> Vec<ToolCallCardAux> {
+    (0..len).map(|_| ToolCallCardAux::default()).collect()
 }
 
 impl<'a> Transcript<'a> {

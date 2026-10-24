@@ -3,11 +3,14 @@ use ratakit_agent::state::{
     AgentEvent, Cell, ContentPart, Level, MessageId, Plan, PlanEntry, PlanEntryId, PlanEntryStatus,
     ToolCall, ToolCallId, ToolKind, ToolStatus, TranscriptState,
 };
-use ratakit_agent::widgets::Transcript;
+use ratakit_agent::widgets::{Transcript, TranscriptHistory};
 use ratakit_core::Theme;
 use ratakit_testing::assert_stateful_widget_snapshot;
 use ratakit_testing::render_stateful_widget;
 use ratakit_text::SyntectHighlighter;
+use ratatui::backend::TestBackend;
+use ratatui::widgets::Widget;
+use ratatui::{Terminal, TerminalOptions, Viewport};
 
 fn mid(s: &str) -> MessageId {
     MessageId::new(s)
@@ -243,4 +246,49 @@ fn transcript_screen_reader_uses_spoken_labels() {
     for decorative_glyph in ["›", "◆", "·", "▸", "✓"] {
         assert!(!rendered.contains(decorative_glyph));
     }
+}
+
+#[test]
+fn completed_transcript_is_inserted_above_an_inline_viewport() {
+    let mut theme = Theme::dark();
+    theme.enable_screen_reader();
+    let mut transcript = TranscriptState::new();
+    transcript.apply(AgentEvent::UserMessage {
+        id: mid("user"),
+        content: vec![ContentPart::Text("Show this in scrollback".into())],
+    });
+    transcript.apply(AgentEvent::AssistantDelta {
+        id: mid("assistant"),
+        text: "Completed reply".into(),
+    });
+    transcript.apply(AgentEvent::MessageDone {
+        id: mid("assistant"),
+    });
+    transcript.apply(AgentEvent::TurnEnded {
+        reason: ratakit_agent::state::StopReason::EndTurn,
+    });
+    let mut cells = transcript.take_completed_cells().expect("turn is complete");
+    let mut history = TranscriptHistory::new(&mut cells, &theme, &SyntectHighlighter);
+    let history_height = history.height(40);
+    let backend = TestBackend::new(40, 12);
+    let mut terminal = Terminal::with_options(
+        backend,
+        TerminalOptions {
+            viewport: Viewport::Inline(4),
+        },
+    )
+    .expect("inline terminal");
+
+    terminal
+        .insert_before(history_height, |buffer| history.render(buffer.area, buffer))
+        .expect("insert history before live viewport");
+    terminal
+        .draw(|frame| frame.render_widget("Composer", frame.area()))
+        .expect("draw live inline viewport");
+
+    let rendered = ratakit_testing::buffer_to_string(terminal.backend().buffer());
+    assert!(rendered.contains("User: Show this in scrollback"));
+    assert!(rendered.contains("Assistant:"));
+    assert!(rendered.contains("Completed reply"));
+    assert!(rendered.contains("Composer"));
 }

@@ -142,6 +142,31 @@ fn turn_end_clears_busy() {
 }
 
 #[test]
+fn completed_cells_can_be_taken_without_clearing_session_metadata() {
+    let mut t = TranscriptState::new();
+    t.apply(AgentEvent::UserMessage {
+        id: mid("u"),
+        content: vec![ContentPart::Text("hi".into())],
+    });
+    assert!(t.take_completed_cells().is_none());
+
+    t.apply(AgentEvent::TurnEnded {
+        reason: ratakit_agent::state::StopReason::EndTurn,
+    });
+    let cells = t.take_completed_cells().expect("turn is complete");
+
+    assert_eq!(cells.len(), 1);
+    assert!(t.cells().is_empty());
+    assert!(!t.is_busy());
+
+    t.apply(AgentEvent::UserMessage {
+        id: mid("u2"),
+        content: vec![ContentPart::Text("next turn".into())],
+    });
+    assert_eq!(t.cells().len(), 1);
+}
+
+#[test]
 fn plan_cell_updates_in_place() {
     let mut t = TranscriptState::new();
     let plan1 = Plan {

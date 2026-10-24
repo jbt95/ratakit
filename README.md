@@ -47,8 +47,7 @@ palette whose semantic text colors meet a tested 7:1 contrast ratio. For
 text-first agent UI, call `theme.enable_screen_reader()`: it selects ASCII
 markers and reduced motion, names transcript and tool states in text, disables
 the scrollbar and side panel, and renders the composer with a text label. The
-ACP examples enable the same profile with `RATAKIT_SCREEN_READER=1`. Inline
-transcript-to-scrollback output is tracked separately under R2.
+ACP examples enable the same profile with `RATAKIT_SCREEN_READER=1`.
 
 ## Examples
 
@@ -59,11 +58,13 @@ cargo run -p claude-acp   # requires Node.js/npm; launches Claude Code's ACP ada
 cargo run -p opencode-acp # requires OpenCode installed
 ```
 
-The ACP examples share one `AgentLayout` app. Set `RATAKIT_INLINE=1` to use the
-inline terminal viewport. CI builds both launchers and runs their headless UI
-smoke paths without starting either real agent. To capture an interactive ACP
-session, set `RATAKIT_ACP_RECORD=recording.jsonl`; recorded event streams can be
-replayed and rendered as phase snapshots with:
+The ACP examples share one `AgentLayout` app. Set `RATAKIT_INLINE=1` to use a
+12-row inline viewport: each completed turn is written once to terminal
+scrollback, while the current turn and composer remain live. Inline mode also
+enables the text-first screen-reader profile. CI builds both launchers and runs
+headless UI smoke paths without starting either real agent. To capture an
+interactive ACP session, set `RATAKIT_ACP_RECORD=recording.jsonl`; recorded
+event streams can be replayed and rendered as phase snapshots with:
 
 ```bash
 cargo run -p mock-agent -- --snapshots recording.jsonl snapshots/
