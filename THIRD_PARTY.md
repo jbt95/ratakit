@@ -7,6 +7,7 @@
 | `crates/ratakit-text/src/markdown_stream.rs` | `openai/codex` `codex-rs/tui/src/markdown_stream.rs` | `main` (2026-10) | Apache-2.0 |
 | `crates/ratakit-core/src/completion.rs` | `openai/codex` `codex-rs/tui/src/bottom_pane/command_popup.rs` | `main` (2026-10) | Apache-2.0 |
 | `crates/ratakit-widgets/src/completion_menu.rs` | `openai/codex` `codex-rs/tui/src/bottom_pane/command_popup.rs` | `main` (2026-10) | Apache-2.0 |
+| `crates/ratakit-agent/src/state/transcript.rs` | `openai/codex` `codex-rs/tui/src/history_cell/` | `main` (2026-10) | Apache-2.0 |
 
 Milestone 0 does not vendor Codex sources yet. When we port files from
 [`openai/codex`](https://github.com/openai/codex) (`codex-rs/tui`), each entry

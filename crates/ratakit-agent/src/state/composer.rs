@@ -9,12 +9,7 @@ use ratakit_core::{
     PasteBurst, Revisioned, Scope, TextBuffer,
 };
 
-/// Minimal slash-command descriptor until A1 lands in `agent::state`.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct SlashCommand {
-    pub name: String,
-    pub description: Option<String>,
-}
+use super::SlashCommand;
 
 /// Pending attachment (images render as placeholder atoms in the buffer).
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -509,12 +504,7 @@ impl ComposerState {
             .map(|cmd| {
                 let label = format!("/{}", cmd.name);
                 let insert = CompletionInsert::Text(format!("/{} ", cmd.name));
-                let item = CompletionItem::new(label, insert);
-                if let Some(desc) = &cmd.description {
-                    item.with_detail(desc.clone())
-                } else {
-                    item
-                }
+                CompletionItem::new(label, insert).with_detail(cmd.description.clone())
             })
             .collect()
     }

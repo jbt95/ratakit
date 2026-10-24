@@ -1,4 +1,8 @@
 //! Agent transcript, composer, and related widgets.
+//!
+//! The [`state`] module is ratatui-free and can be used from other UIs (for example GPUI).
+
+#![allow(clippy::must_use_candidate, clippy::return_self_not_must_use)]
 
 pub mod state;
 
@@ -9,6 +13,6 @@ pub mod widgets;
 pub use widgets::{Composer, ComposerModelItem, ComposerWidgetState};
 
 pub use state::{
-    Attachment, ComposerIntent, ComposerState, FileIndex, QueuedMessage, QueuedPayload,
-    SlashCommand,
+    AgentEvent, Attachment, Cell, ComposerIntent, ComposerState, FileIndex, QueuedMessage,
+    QueuedPayload, SlashCommand, TranscriptState,
 };

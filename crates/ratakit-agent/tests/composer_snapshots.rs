@@ -26,11 +26,13 @@ fn render_composer(width: u16, height: u16, buffer_text: &str) -> String {
     composer.set_slash_commands(vec![
         SlashCommand {
             name: "clear".into(),
-            description: Some("Reset conversation".into()),
+            description: "Reset conversation".into(),
+            argument_hint: None,
         },
         SlashCommand {
             name: "model".into(),
-            description: Some("Pick a model".into()),
+            description: "Pick a model".into(),
+            argument_hint: None,
         },
     ]);
     composer.buffer.insert_str(buffer_text);
