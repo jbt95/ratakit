@@ -10,7 +10,10 @@ pub mod state;
 pub mod widgets;
 
 #[cfg(feature = "widgets")]
-pub use widgets::{Composer, ComposerModelItem, ComposerWidgetState};
+pub use widgets::{
+    Composer, ComposerModelItem, ComposerWidgetState, ModelPicker, ModelPickerIntent,
+    ModelPickerState,
+};
 
 pub use state::{
     AgentEvent, Attachment, Cell, ComposerIntent, ComposerState, FileIndex, QueuedMessage,

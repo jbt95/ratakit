@@ -21,15 +21,27 @@ ratatui-core = { workspace = true, optional = true }
 serde = { version = "1.0.229", optional = true, features = ["derive"] }
 
 [dev-dependencies]
-proptest.workspace = true
+ratakit-core = { workspace = true, features = ["fuzzy"] }
 ratakit-testing.workspace = true
+ratakit-widgets = { workspace = true, features = ["fuzzy"] }
 ratatui.workspace = true
 insta.workspace = true
+proptest.workspace = true
+
+[lints]
+workspace = true
 
 [[test]]
 name = "composer_snapshots"
 path = "tests/composer_snapshots.rs"
 required-features = ["widgets"]
 
-[lints]
-workspace = true
+[[test]]
+name = "model_picker_state"
+path = "tests/model_picker_state.rs"
+required-features = ["widgets"]
+
+[[test]]
+name = "model_picker_snapshots"
+path = "tests/model_picker_snapshots.rs"
+required-features = ["widgets"]
