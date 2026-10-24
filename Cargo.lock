@@ -906,6 +906,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "mock-agent"
+version = "0.0.0"
+dependencies = [
+ "futures-util",
+ "ratakit",
+ "ratakit-testing",
+ "ratatui",
+ "ratatui-crossterm",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "nix"
 version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

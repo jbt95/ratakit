@@ -1,0 +1,27 @@
+[package]
+name = "mock-agent"
+description = "Scripted mock agent replay for AgentLayout (demo and CI)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+ratakit = { path = "../../crates/ratakit", features = [
+    "widgets",
+    "markdown",
+    "highlight-syntect",
+    "diff",
+    "fuzzy",
+    "crossterm",
+    "tokio",
+    "agent",
+    "serde",
+] }
+ratakit-testing = { path = "../../crates/ratakit-testing" }
+ratatui.workspace = true
+ratatui-crossterm.workspace = true
+tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread", "time"] }
+futures-util = { workspace = true, features = ["std"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.145"

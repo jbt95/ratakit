@@ -1,0 +1,7 @@
+{"await_submit":true}
+{"PlanUpdated":{"entries":[{"id":"1","title":"Read DISENO.md","status":"Completed"},{"id":"2","title":"Ship AgentLayout","status":"InProgress"},{"id":"3","title":"Open PR","status":"Pending"}]}}
+{"Usage":{"input_tokens":12000,"output_tokens":800,"cached_tokens":2000,"context_used":0.55,"cost_usd":0.012}}
+{"ModeChanged":"plan"}
+{"AssistantDelta":{"id":"a1","text":"Plan and usage updated."}}
+{"MessageDone":{"id":"a1"}}
+{"TurnEnded":{"reason":"EndTurn"}}

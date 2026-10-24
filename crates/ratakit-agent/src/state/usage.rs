@@ -17,6 +17,7 @@ pub struct Usage {
 /// Session mode identifier (`plan`, `auto`, `ask`, …).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 pub struct ModeId(pub String);
 
 impl ModeId {

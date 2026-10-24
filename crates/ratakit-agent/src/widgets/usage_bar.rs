@@ -14,6 +14,7 @@ pub struct UsageBar<'a> {
     mode: &'a ModeId,
     git_branch: Option<&'a str>,
     theme: &'a Theme,
+    compact: bool,
 }
 
 impl<'a> UsageBar<'a> {
@@ -24,7 +25,15 @@ impl<'a> UsageBar<'a> {
             mode,
             git_branch: None,
             theme,
+            compact: false,
         }
+    }
+
+    /// Fewer segments for narrow layouts (see [`usage_segments_compact`]).
+    #[must_use]
+    pub fn compact(mut self, compact: bool) -> Self {
+        self.compact = compact;
+        self
     }
 
     /// Optional git branch shown on the right (lower priority than mode and context).
@@ -37,9 +46,24 @@ impl<'a> UsageBar<'a> {
 
 impl Widget for UsageBar<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let segments = usage_segments(self.usage, self.mode, self.git_branch);
+        let segments = if self.compact {
+            usage_segments_compact(self.usage, self.mode)
+        } else {
+            usage_segments(self.usage, self.mode, self.git_branch)
+        };
         StatusBar::new(self.theme, &segments).render(area, buf);
     }
+}
+
+/// Compact footer segments for narrow terminals (context gauge + mode only).
+#[must_use]
+pub fn usage_segments_compact(usage: &Usage, mode: &ModeId) -> Vec<StatusSegment> {
+    let context = format_context_segment(usage.context_used);
+    let mode_label = format!("mode {}", mode.status_label());
+    vec![
+        StatusSegment::center(context, 9),
+        StatusSegment::right(mode_label, 10),
+    ]
 }
 
 /// Build [`StatusSegment`]s for a custom layout or testing.
