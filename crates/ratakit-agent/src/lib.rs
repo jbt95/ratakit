@@ -11,5 +11,11 @@ pub mod widgets;
 
 #[cfg(feature = "widgets")]
 pub use widgets::{
-    PlanRows, PlanView, UsageBar, plan_cell_height, render_plan_cell, usage_segments,
+    Composer, ComposerModelItem, ComposerWidgetState, PlanRows, PlanView, UsageBar,
+    plan_cell_height, render_plan_cell, usage_segments,
+};
+
+pub use state::{
+    AgentEvent, Attachment, Cell, ComposerIntent, ComposerState, FileIndex, QueuedMessage,
+    QueuedPayload, SlashCommand, TranscriptState,
 };
