@@ -1,6 +1,8 @@
 use ratakit_agent::state::{AgentEvent, MessageId, TranscriptState};
 use ratakit_agent::widgets::Transcript;
-use ratakit_core::{Component, Event, KeyCode, KeyEvent, KeyEventKind, Keymap, Theme};
+use ratakit_core::{
+    Component, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, Keymap, Theme,
+};
 use ratakit_testing::{assert_stateful_widget_snapshot, render_stateful_widget};
 use ratakit_text::SyntectHighlighter;
 
@@ -45,7 +47,7 @@ fn follow_tail_pins_end_until_user_scrolls_up() {
     let up = Event::Key(KeyEvent {
         code: KeyCode::Up,
         kind: KeyEventKind::Press,
-        modifiers: Default::default(),
+        modifiers: KeyModifiers::default(),
     });
     let _ = state.handle(&up, &Keymap::empty());
     assert!(!state.list().scroll().follow_tail());

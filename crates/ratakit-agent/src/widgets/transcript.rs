@@ -81,7 +81,7 @@ impl StatefulWidget for Transcript<'_> {
 }
 
 fn layout_revision(transcript_revision: u64, width: u16, theme: &Theme) -> u64 {
-    transcript_revision ^ ((width as u64) << 32) ^ theme.theme_revision()
+    transcript_revision ^ (u64::from(width) << 32) ^ theme.theme_revision()
 }
 
 struct TranscriptRows<'a> {

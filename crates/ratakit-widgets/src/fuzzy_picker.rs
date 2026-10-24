@@ -3,7 +3,7 @@
 use std::marker::PhantomData;
 
 use ratakit_core::{
-    ItemHeights, PickerDisplayMode, PickerItem, PickerLayoutHint, PickerRowKind,
+    ItemHeights, PickerDisplayMode, PickerItem, PickerLayoutHint, PickerRow, PickerRowKind,
     PickerSecondaryState, PickerState, Theme, visible_rows,
 };
 use ratatui_core::buffer::Buffer;
@@ -182,7 +182,8 @@ fn render_picker_rows<T: PickerItem>(
     if area.width == 0 || area.height == 0 {
         return;
     }
-    let (list, rows) = state.list_and_rows();
+    let rows = state.rows();
+    let list = state.list_state();
     let content_height = list.layout().content_height;
     let scroll_offset = list.scroll().offset();
     let cache = list.height_cache();
@@ -218,7 +219,15 @@ fn render_picker_rows<T: PickerItem>(
             buf.set_style(row_area, base_style);
         }
         if skip == 0 {
-            render_picker_row(theme, rows, index, selected == Some(index), row_area, buf);
+            render_picker_row(
+                theme,
+                state,
+                rows,
+                index,
+                selected == Some(index),
+                row_area,
+                buf,
+            );
         }
         y += drawable;
         remaining -= drawable;
@@ -247,9 +256,10 @@ fn render_picker_rows<T: PickerItem>(
     }
 }
 
-fn render_picker_row(
+fn render_picker_row<T: PickerItem>(
     theme: &Theme,
-    rows: &[ratakit_core::PickerRow],
+    state: &PickerState<T>,
+    rows: &[PickerRow],
     index: usize,
     selected: bool,
     area: Rect,
@@ -268,12 +278,18 @@ fn render_picker_row(
             row.text.clone(),
             muted(theme).add_modifier(Modifier::BOLD),
         )),
-        PickerRowKind::Item { .. } => Line::from(highlighted_spans(
-            &row.text,
-            &row.match_indices,
-            base,
-            accent(theme),
-        )),
+        PickerRowKind::Item { .. } => {
+            let mut spans = highlighted_spans(&row.text, &row.match_indices, base, accent(theme));
+            if let Some(item) = state.item_for_row(index) {
+                if let Some(annotation) = item.annotation() {
+                    spans.push(Span::styled(
+                        format!(" · {annotation}"),
+                        muted(theme).add_modifier(Modifier::ITALIC),
+                    ));
+                }
+            }
+            Line::from(spans)
+        }
     };
     Paragraph::new(line).render(area, buf);
 }

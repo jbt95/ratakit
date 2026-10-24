@@ -238,7 +238,8 @@ fn render_line_stack(lines: Vec<Line<'static>>, area: Rect, buf: &mut Buffer, sk
     if area.height == 0 {
         return;
     }
-    let start = skip_top.min(lines.len() as u16) as usize;
+    let line_cap = u16::try_from(lines.len()).unwrap_or(u16::MAX);
+    let start = skip_top.min(line_cap) as usize;
     let visible = lines.into_iter().skip(start).take(area.height as usize);
     Paragraph::new(visible.collect::<Vec<_>>()).render(area, buf);
 }

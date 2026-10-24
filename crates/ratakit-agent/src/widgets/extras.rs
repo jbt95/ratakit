@@ -34,7 +34,7 @@ pub struct TranscriptExtras<'a> {
     pub plan: Option<&'a dyn PlanCellRenderer>,
 }
 
-/// Simple placeholder until [`ToolCallCard`] lands (A3).
+/// Simple placeholder until `ToolCallCard` lands (A3).
 #[derive(Debug, Clone, Copy, Default)]
 pub struct PlaceholderToolCallRenderer;
 
@@ -49,7 +49,7 @@ impl ToolCallCellRenderer for PlaceholderToolCallRenderer {
     }
 }
 
-/// Simple placeholder until [`PlanView`] lands (A7).
+/// Simple placeholder until `PlanView` lands (A7).
 #[derive(Debug, Clone, Copy, Default)]
 pub struct PlaceholderPlanRenderer;
 
@@ -125,10 +125,12 @@ pub(crate) fn wrapped_line_count(text: &str, width: u16) -> u16 {
         return 1;
     }
     let cols = width.max(1) as usize;
-    text.lines()
+    let rows = text
+        .lines()
         .map(|line| line.width().div_ceil(cols).max(1))
         .sum::<usize>()
-        .max(1) as u16
+        .max(1);
+    u16::try_from(rows).unwrap_or(u16::MAX)
 }
 
 pub(crate) fn render_wrapped_lines(
@@ -156,7 +158,8 @@ pub(crate) fn render_wrapped_lines(
     if wrapped.is_empty() {
         wrapped.push(Line::from(""));
     }
-    let start = skip_top.min(wrapped.len() as u16) as usize;
+    let line_cap = u16::try_from(wrapped.len()).unwrap_or(u16::MAX);
+    let start = skip_top.min(line_cap) as usize;
     let visible = wrapped.into_iter().skip(start).take(area.height as usize);
     Paragraph::new(visible.collect::<Vec<_>>())
         .style(style)
