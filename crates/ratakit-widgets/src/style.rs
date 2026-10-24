@@ -34,3 +34,7 @@ pub fn cursor_style(theme: &Theme) -> Style {
 pub fn palette_bg(theme: &Theme) -> Style {
     Style::default().bg(semantic_color(theme.palette.background))
 }
+
+pub fn error(theme: &Theme) -> Style {
+    Style::default().fg(semantic_color(theme.palette.error))
+}
