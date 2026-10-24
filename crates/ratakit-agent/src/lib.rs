@@ -8,3 +8,14 @@ pub mod state;
 
 #[cfg(feature = "widgets")]
 pub mod widgets;
+
+#[cfg(feature = "widgets")]
+pub use widgets::{
+    Composer, ComposerModelItem, ComposerWidgetState, ModelPicker, ModelPickerIntent,
+    ModelPickerState,
+};
+
+pub use state::{
+    AgentEvent, Attachment, Cell, ComposerIntent, ComposerState, FileIndex, QueuedMessage,
+    QueuedPayload, SlashCommand, TranscriptState,
+};
