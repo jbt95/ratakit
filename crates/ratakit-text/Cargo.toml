@@ -31,5 +31,10 @@ similar = { workspace = true, optional = true }
 [dev-dependencies]
 ratakit-core.workspace = true
 
+[[test]]
+name = "diff_model"
+path = "tests/diff_model.rs"
+required-features = ["diff"]
+
 [lints]
 workspace = true

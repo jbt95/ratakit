@@ -28,6 +28,11 @@ ratatui.workspace = true
 insta.workspace = true
 ratakit-text = { workspace = true, features = ["highlight-syntect", "diff"] }
 
+[[test]]
+name = "diff_view_snapshots"
+path = "tests/diff_view_snapshots.rs"
+required-features = ["diff", "highlight-syntect"]
+
 [[example]]
 name = "textarea_headless"
 path = "examples/textarea_headless.rs"
