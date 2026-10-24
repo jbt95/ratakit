@@ -12,15 +12,19 @@ authors.workspace = true
 default = ["widgets"]
 widgets = [
     "dep:ratakit-widgets",
-    "ratakit-widgets/fuzzy",
     "dep:ratatui-core",
     "dep:ratatui-widgets",
+    "ratakit-core/fuzzy",
+    "ratakit-text/highlight-syntect",
+    "ratakit-widgets/diff",
+    "ratakit-widgets/fuzzy",
+    "ratakit-widgets/highlight-syntect",
 ]
 serde = ["dep:serde", "ratakit-core/serde"]
 
 [dependencies]
 ratakit-core = { workspace = true, features = ["fuzzy"] }
-ratakit-text = { workspace = true, features = ["markdown", "diff"] }
+ratakit-text = { workspace = true, features = ["markdown", "diff", "highlight-syntect"] }
 ratakit-widgets = { workspace = true, optional = true, features = ["fuzzy"] }
 ratatui-core = { workspace = true, optional = true }
 ratatui-widgets = { workspace = true, optional = true }
@@ -50,6 +54,16 @@ required-features = ["widgets"]
 [[test]]
 name = "model_picker_snapshots"
 path = "tests/model_picker_snapshots.rs"
+required-features = ["widgets"]
+
+[[test]]
+name = "permission_prompt_state"
+path = "tests/permission_prompt_state.rs"
+required-features = ["widgets"]
+
+[[test]]
+name = "permission_prompt_snapshots"
+path = "tests/permission_prompt_snapshots.rs"
 required-features = ["widgets"]
 
 [[test]]
