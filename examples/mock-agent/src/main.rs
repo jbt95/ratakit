@@ -7,7 +7,8 @@
 mod script;
 
 use std::env;
-use std::io::stdout;
+use std::fs;
+use std::io::{Write, stdout};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
@@ -159,8 +160,61 @@ fn run_headless(script_path: &Path) {
     println!("ok: mock-agent headless {FRAMES} frames");
 }
 
+fn write_phase_snapshots(input: &Path, output: &Path) -> std::io::Result<usize> {
+    let script = load_script(input).map_err(std::io::Error::other)?;
+    fs::create_dir_all(output)?;
+    let starts_with_wait =
+        script.phases.len() > 1 && script.phases.first().is_some_and(Vec::is_empty);
+    let first_phase = usize::from(starts_with_wait);
+    let phase_count = script.phases.len().saturating_sub(first_phase);
+    let mut app = App::new(script);
+
+    for phase in 0..phase_count {
+        if first_phase + phase > 0 {
+            app.driver.on_user_submit();
+        }
+        while app.driver.has_pending() {
+            app.apply_step();
+        }
+        let widget = AgentLayout::new(&app.theme, &SyntectHighlighter, &app.files);
+        let rendered = render_stateful(widget, 80, 24, &mut app.layout_state);
+        let snapshot = rendered
+            .split_once("--- styles ---\n")
+            .map_or(rendered.as_str(), |(content, _)| content);
+        let snapshot_path = output.join(format!("phase-{:02}.snap", phase + 1));
+        let mut snapshot_file = fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(snapshot_path)?;
+        snapshot_file.write_all(snapshot.as_bytes())?;
+    }
+    Ok(phase_count)
+}
+
+fn run_snapshot_converter(args: &[String]) -> std::io::Result<bool> {
+    if args
+        .first()
+        .is_none_or(|argument| argument != "--snapshots")
+    {
+        return Ok(false);
+    }
+    if args.len() != 3 {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "usage: mock-agent --snapshots <recording.jsonl> <output-directory>",
+        ));
+    }
+    let count = write_phase_snapshots(Path::new(&args[1]), Path::new(&args[2]))?;
+    println!("wrote {count} phase snapshots to {}", args[2]);
+    Ok(true)
+}
+
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
+    let args: Vec<String> = env::args().skip(1).collect();
+    if run_snapshot_converter(&args)? {
+        return Ok(());
+    }
     let script_path = resolve_script_path();
     if env::var("RATAKIT_MOCK_HEADLESS").is_ok() {
         run_headless(&script_path);

@@ -41,6 +41,7 @@ ratatui.workspace = true
 insta.workspace = true
 proptest.workspace = true
 ratakit-text = { workspace = true, features = ["highlight-syntect", "markdown", "diff"] }
+criterion.workspace = true
 
 [lints]
 workspace = true
@@ -93,4 +94,9 @@ required-features = ["widgets"]
 [[test]]
 name = "agent_layout_snapshots"
 path = "tests/agent_layout_snapshots.rs"
+required-features = ["widgets"]
+
+[[bench]]
+name = "long_transcript"
+harness = false
 required-features = ["widgets"]

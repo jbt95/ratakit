@@ -31,6 +31,7 @@ similar = { workspace = true, optional = true }
 [dev-dependencies]
 ratakit-core.workspace = true
 proptest.workspace = true
+criterion.workspace = true
 
 [[test]]
 name = "markdown_stream_proptest"
@@ -40,6 +41,11 @@ required-features = ["markdown"]
 name = "diff_model"
 path = "tests/diff_model.rs"
 required-features = ["diff"]
+
+[[bench]]
+name = "text_processing"
+harness = false
+required-features = ["markdown", "diff", "highlight-syntect"]
 
 [lints]
 workspace = true

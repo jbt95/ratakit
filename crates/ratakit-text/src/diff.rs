@@ -51,6 +51,7 @@ pub struct FileDiff {
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct DiffModel {
     pub files: Vec<FileDiff>,
+    source_texts: Option<(String, String)>,
 }
 
 /// Error while parsing a unified diff string.
@@ -82,7 +83,20 @@ impl DiffModel {
     /// Build a single-file diff from two text snapshots.
     pub fn from_texts(path: &str, old: &str, new: &str) -> Self {
         let file = file_diff_from_texts(Some(path), Some(path), old, new);
-        Self { files: vec![file] }
+        Self {
+            files: vec![file],
+            source_texts: Some((old.to_string(), new.to_string())),
+        }
+    }
+
+    /// Original old/new snapshots when this model was built with [`Self::from_texts`].
+    ///
+    /// ACP recordings use these source snapshots to preserve a tool diff through
+    /// serde replay. Parsed unified patches do not retain original file contents.
+    pub fn source_texts(&self) -> Option<(&str, &str)> {
+        self.source_texts
+            .as_ref()
+            .map(|(old, new)| (old.as_str(), new.as_str()))
     }
 
     /// Parse a unified diff (git or plain) into a [`DiffModel`].
@@ -275,7 +289,10 @@ fn parse_unified_patch(patch: &str) -> Result<DiffModel, DiffParseError> {
         return Err(DiffParseError::EmptyPatch);
     }
 
-    Ok(DiffModel { files })
+    Ok(DiffModel {
+        files,
+        source_texts: None,
+    })
 }
 
 fn parse_diff_path(raw: &str) -> Option<String> {

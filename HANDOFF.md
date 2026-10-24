@@ -4,8 +4,10 @@ Project status as of October 24, 2026, and the remaining work toward 0.1.0. The 
 
 ## Current status
 
-Milestones 0–3 are complete. C1 and C2 are implemented on the current branch; the
-ACP example build and headless smoke paths pass locally.
+Milestones 0–3 are complete. C1–C3 are implemented on the current branch; the
+ACP example build, headless smoke paths, recorder round trip, and replay snapshot
+conversion pass locally. No real-agent recording is bundled; live recording is
+opt-in and no live agent was launched for this work.
 
 | Milestone | Scope | PRs |
 |---|---|---|
@@ -25,6 +27,10 @@ cargo run -p claude-acp    # Requires Node.js/npm; starts Claude Code's ACP adap
 cargo run -p opencode-acp  # Requires OpenCode installed
 RATAKIT_INLINE=1 cargo run -p mock-agent   # Opt-in inline mode
 RATAKIT_INLINE=1 cargo run -p opencode-acp # Opt-in inline mode for an ACP example
+RATAKIT_ACP_RECORD=recording.jsonl cargo run -p claude-acp # Record a real ACP session
+cargo run -p mock-agent -- --snapshots recording.jsonl snapshots/ # Render replay snapshots
+cargo bench -p ratakit-agent --bench long_transcript
+cargo bench -p ratakit-text --bench text_processing --features "markdown diff highlight-syntect"
 ```
 
 ## Remaining tasks
@@ -42,8 +48,8 @@ Each row represents one PR. Independent work may proceed in parallel.
 - [x] **C2. `examples/claude-acp` and `examples/opencode-acp`.** Depends on C1 and A8.
   - Build a shared app of about 100 lines that launches an agent over stdio and renders it with `AgentLayout`; each example changes only the launch command.
   - CI must compile the examples but must not launch the real agents.
-- [ ] **C3. Recorded scripts and benchmarks.** Depends on C2.
-  - Record real sessions as `.jsonl`, convert them to snapshots, and replay them in `mock-agent`.
+- [x] **C3. Recorded scripts and benchmarks.** Depends on C2.
+  - Opt-in real sessions record as `.jsonl`; convert them to snapshots and replay them in `mock-agent`. A real recording is not bundled because no live agent was launched.
   - Add Criterion benchmarks for long transcript rendering, streaming Markdown, and large diffs.
 
 ### Milestone 5: polish and 0.1

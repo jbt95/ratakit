@@ -51,7 +51,24 @@ cargo run -p opencode-acp # requires OpenCode installed
 
 The ACP examples share one `AgentLayout` app. Set `RATAKIT_INLINE=1` to use the
 inline terminal viewport. CI builds both launchers and runs their headless UI
-smoke paths without starting either real agent.
+smoke paths without starting either real agent. To capture an interactive ACP
+session, set `RATAKIT_ACP_RECORD=recording.jsonl`; recorded event streams can be
+replayed and rendered as phase snapshots with:
+
+```bash
+cargo run -p mock-agent -- --snapshots recording.jsonl snapshots/
+```
+
+Recording is opt-in; CI never launches a real agent, and this repository does
+not bundle a live session recording.
+
+Criterion benchmarks cover long transcript rendering, streaming Markdown, and
+large diffs:
+
+```bash
+cargo bench -p ratakit-agent --bench long_transcript
+cargo bench -p ratakit-text --bench text_processing --features "markdown diff highlight-syntect"
+```
 
 MSRV: **Rust 1.88** (required by ratatui 0.30).
 
