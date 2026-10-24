@@ -1,4 +1,4 @@
-//! Hierarchical tree view built on [`VirtualList`].
+//! Hierarchical tree view built on [`VirtualList`] and [`ListState`](ratakit_core::ListState).
 
 use ratakit_core::{
     FlatTreeRow, GlyphSet, ItemHeights, Revisioned, Theme, TreeRowSizing, TreeSource, TreeState,
