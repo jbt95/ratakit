@@ -12,7 +12,7 @@ pub mod widgets;
 #[cfg(feature = "widgets")]
 pub use widgets::{
     Composer, ComposerModelItem, ComposerWidgetState, ModelPicker, ModelPickerIntent,
-    ModelPickerState,
+    ModelPickerState, PermissionPrompt, PermissionPromptModal, PermissionPromptState,
 };
 
 pub use state::{

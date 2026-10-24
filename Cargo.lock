@@ -1384,6 +1384,7 @@ dependencies = [
  "ratakit-widgets",
  "ratatui",
  "ratatui-core",
+ "ratatui-widgets",
  "serde",
 ]
 
