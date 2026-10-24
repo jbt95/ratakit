@@ -137,11 +137,11 @@ impl ModelPickerState {
         }
         let provider = choice.provider.clone();
         let model = choice.model.clone();
-        let effort = choice.effort.clone();
+        let effort = choice.effort;
         self.picker.select_matching_item(|row| {
             row.provider == provider
                 && row.model == model
-                && row_matches_choice_effort(row, effort.as_ref())
+                && row_matches_choice_effort(row, effort)
         });
         self.refresh_current_markers();
     }
@@ -155,12 +155,17 @@ impl ModelPickerState {
 
     /// Selected effort chip label when the catalog defines effort levels.
     pub fn selected_effort_label(&self) -> Option<&str> {
-        self.picker.secondary().map(|axis| axis.selected_label())
+        self.picker
+            .secondary()
+            .map(ratakit_core::PickerSecondaryState::selected_label)
     }
 
     fn refresh_current_markers(&mut self) {
-        let secondary_label = self.picker.secondary().map(|axis| axis.selected_label());
-        let sections = build_sections(&self.catalog, &self.current, secondary_label);
+        let secondary_label = self
+            .picker
+            .secondary()
+            .map(ratakit_core::PickerSecondaryState::selected_label);
+        let sections = build_sections(&self.catalog, self.current.as_ref(), secondary_label);
         self.picker.set_sections(sections);
     }
 
@@ -191,9 +196,15 @@ impl Component for ModelPickerState {
     type Intent = ModelPickerIntent;
 
     fn handle(&mut self, ev: &Event, keys: &Keymap) -> Outcome<Self::Intent> {
-        let secondary_before = self.picker.secondary().map(|axis| axis.selected());
+        let secondary_before = self
+            .picker
+            .secondary()
+            .map(ratakit_core::PickerSecondaryState::selected);
         let outcome = self.picker.handle(ev, keys);
-        let secondary_after = self.picker.secondary().map(|axis| axis.selected());
+        let secondary_after = self
+            .picker
+            .secondary()
+            .map(ratakit_core::PickerSecondaryState::selected);
         if secondary_before != secondary_after {
             self.refresh_current_markers();
         }
@@ -218,12 +229,12 @@ impl Component for ModelPickerState {
     }
 }
 
-fn row_matches_choice_effort(row: &ModelPickerRow, effort: Option<&Effort>) -> bool {
+fn row_matches_choice_effort(row: &ModelPickerRow, effort: Option<Effort>) -> bool {
     if row.efforts.is_empty() {
         return effort.is_none();
     }
     match effort {
-        Some(e) => row.efforts.iter().any(|allowed| allowed == e),
+        Some(e) => row.efforts.contains(&e),
         None => false,
     }
 }
@@ -247,7 +258,7 @@ fn is_current_row(
 
 fn build_sections(
     catalog: &[ModelCatalogEntry],
-    current: &Option<ModelChoice>,
+    current: Option<&ModelChoice>,
     secondary_label: Option<&str>,
 ) -> Vec<PickerSection<ModelPickerRow>> {
     let mut sections: Vec<PickerSection<ModelPickerRow>> = Vec::new();
@@ -259,7 +270,6 @@ fn build_sections(
             detail: entry.detail.clone(),
             efforts: entry.efforts.clone(),
             is_current: current
-                .as_ref()
                 .is_some_and(|choice| is_current_row(choice, &placeholder, secondary_label)),
         };
         if let Some(section) = sections.iter_mut().find(|s| s.title == entry.provider) {
@@ -288,7 +298,7 @@ fn secondary_axis_for_catalog(catalog: &[ModelCatalogEntry]) -> Option<PickerSec
     let mut efforts: BTreeSet<Effort> = BTreeSet::new();
     for entry in catalog {
         for effort in &entry.efforts {
-            efforts.insert(effort.clone());
+            efforts.insert(*effort);
         }
     }
     if efforts.is_empty() {
