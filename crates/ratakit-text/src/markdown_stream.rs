@@ -87,6 +87,27 @@ impl MarkdownStream {
         &self.buffer
     }
 
+    /// Wrapped visual lines when layout for `width` and `theme` is already cached.
+    pub fn cached_lines(&self, width: u16, theme: &Theme) -> Option<&[StyledLine]> {
+        if self.cached_revision == self.revision
+            && self.cached_width == width
+            && self.cached_theme_revision == theme.theme_revision()
+            && !self.cached_output.is_empty()
+        {
+            Some(&self.cached_output)
+        } else {
+            None
+        }
+    }
+
+    /// Row count from [`cached_lines`](Self::cached_lines), if available.
+    pub fn cached_line_count(&self, width: u16, theme: &Theme) -> Option<u16> {
+        self.cached_lines(width, theme).and_then(|lines| {
+            let count = lines.len().max(1);
+            u16::try_from(count).ok()
+        })
+    }
+
     pub fn is_finished(&self) -> bool {
         self.finished
     }

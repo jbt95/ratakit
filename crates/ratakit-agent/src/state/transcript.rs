@@ -13,12 +13,13 @@ use super::plan::Plan;
 use super::tool::{ToolCall, ToolCallPatch, ToolContent, ToolStatus};
 use super::types::SlashCommand;
 use super::usage::{ModeId, Usage};
-use ratakit_core::Revisioned;
+use ratakit_core::ListState;
 
 /// Transcript model: ordered cells plus session metadata updated via [`TranscriptState::apply`].
 #[derive(Debug)]
 pub struct TranscriptState {
     cells: Vec<Cell>,
+    list: ListState,
     revision: u64,
     busy: bool,
     usage: Option<Usage>,
@@ -36,6 +37,7 @@ impl TranscriptState {
     pub fn new() -> Self {
         Self {
             cells: Vec::new(),
+            list: ListState::new(),
             revision: 0,
             busy: false,
             usage: None,
@@ -82,6 +84,26 @@ impl TranscriptState {
     /// All transcript cells in order.
     pub fn cells(&self) -> &[Cell] {
         &self.cells
+    }
+
+    /// Mutable access to cells (for layout warm-up in the transcript widget).
+    pub fn cells_mut(&mut self) -> &mut [Cell] {
+        &mut self.cells
+    }
+
+    /// Virtual list scroll state (follow-tail, offset, scrollbar layout).
+    pub fn list(&self) -> &ListState {
+        &self.list
+    }
+
+    /// Mutable virtual list state.
+    pub fn list_mut(&mut self) -> &mut ListState {
+        &mut self.list
+    }
+
+    /// Split borrow for the transcript widget (cells + list scroll).
+    pub(crate) fn cells_and_list_mut(&mut self) -> (&mut [Cell], &mut ListState) {
+        (&mut self.cells, &mut self.list)
     }
 
     /// Toggle fold state on thinking or tool-call cells.
@@ -291,12 +313,6 @@ impl TranscriptState {
 impl Default for TranscriptState {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-impl Revisioned for TranscriptState {
-    fn revision(&self) -> u64 {
-        self.revision
     }
 }
 
