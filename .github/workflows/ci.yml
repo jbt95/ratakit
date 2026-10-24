@@ -70,3 +70,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.88.0
       - uses: Swatinem/rust-cache@v2
       - run: cargo run -p hello-headless --quiet
+
+  gallery-headless:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.88.0
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build -p gallery --quiet
+      - run: RATAKIT_GALLERY_HEADLESS=1 cargo run -p gallery --quiet

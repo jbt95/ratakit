@@ -6,6 +6,8 @@
 #![allow(clippy::must_use_candidate, clippy::return_self_not_must_use)]
 
 mod code_block;
+#[cfg(feature = "crossterm")]
+mod crossterm;
 mod dialog;
 mod key_hints;
 mod spinner;
@@ -17,8 +19,17 @@ mod tabs;
 mod textarea;
 mod theme_util;
 mod toasts;
+#[cfg(feature = "tokio")]
+mod tokio;
 mod virtual_list;
 mod wrap;
+
+#[cfg(feature = "crossterm")]
+pub use crossterm::{
+    TerminalSession, TerminalViewport, enter_terminal, enter_terminal_with, from_crossterm_event,
+};
+#[cfg(feature = "tokio")]
+pub use tokio::{FrameScheduler, event_stream};
 
 pub use code_block::{CodeBlock, CodeBlockState};
 pub use dialog::{ConfirmDialog, Dialog, DialogButton, Modal};

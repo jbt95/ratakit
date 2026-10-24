@@ -11,8 +11,8 @@ authors.workspace = true
 [features]
 default = []
 highlight-syntect = ["ratakit-text/highlight-syntect"]
-crossterm = []
-tokio = []
+crossterm = ["dep:crossterm"]
+tokio = ["crossterm", "dep:tokio", "dep:futures-util"]
 
 [dependencies]
 ratakit-core.workspace = true
@@ -20,12 +20,16 @@ ratakit-text.workspace = true
 ratatui-core.workspace = true
 ratatui-widgets.workspace = true
 unicode-width.workspace = true
+crossterm = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
+futures-util = { workspace = true, optional = true }
 
 [dev-dependencies]
 ratakit-testing.workspace = true
 ratatui.workspace = true
 insta.workspace = true
 ratakit-text = { workspace = true, features = ["highlight-syntect"] }
+tokio = { workspace = true, features = ["macros", "rt", "test-util", "time"] }
 
 [[example]]
 name = "textarea_headless"
