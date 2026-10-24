@@ -20,6 +20,7 @@ widgets = [
     "ratakit-widgets/diff",
     "ratakit-widgets/fuzzy",
     "ratakit-widgets/highlight-syntect",
+    "ratakit-widgets/markdown",
 ]
 serde = ["dep:serde", "ratakit-core/serde"]
 
@@ -39,6 +40,7 @@ ratakit-widgets = { workspace = true, features = ["diff", "highlight-syntect", "
 ratatui.workspace = true
 insta.workspace = true
 proptest.workspace = true
+ratakit-text = { workspace = true, features = ["highlight-syntect", "markdown", "diff"] }
 
 [lints]
 workspace = true
@@ -76,4 +78,14 @@ required-features = ["widgets"]
 [[test]]
 name = "usage_plan_snapshots"
 path = "tests/usage_plan_snapshots.rs"
+required-features = ["widgets"]
+
+[[test]]
+name = "transcript_snapshots"
+path = "tests/transcript_snapshots.rs"
+required-features = ["widgets"]
+
+[[test]]
+name = "transcript_scroll"
+path = "tests/transcript_scroll.rs"
 required-features = ["widgets"]

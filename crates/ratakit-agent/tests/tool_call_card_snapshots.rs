@@ -6,7 +6,7 @@ use ratakit_agent::state::{
     AgentEvent, ToolCall, ToolCallCell, ToolCallId, ToolContent, ToolKind, ToolStatus,
     TranscriptState,
 };
-use ratakit_agent::widgets::{ToolCallCard, ToolCallCardAux};
+use ratakit_agent::{ToolCallCard, ToolCallCardAux};
 use ratakit_core::{MotionMode, Theme};
 use ratakit_testing::render_stateful;
 use ratakit_text::{DiffModel, SyntectHighlighter};

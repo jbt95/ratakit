@@ -1,0 +1,48 @@
+---
+source: crates/ratakit-agent/tests/transcript_snapshots.rs
+expression: rendered
+---
+› Hello agent                          ▲
+                                       █
+                                       █
+                                       ▼
+--- styles ---
+(0,0): fg=rgb(137,180,250) bg=Reset
+(1,0): fg=rgb(137,180,250) bg=Reset
+(2,0): fg=rgb(137,180,250) bg=Reset
+(3,0): fg=rgb(137,180,250) bg=Reset
+(4,0): fg=rgb(137,180,250) bg=Reset
+(5,0): fg=rgb(137,180,250) bg=Reset
+(6,0): fg=rgb(137,180,250) bg=Reset
+(7,0): fg=rgb(137,180,250) bg=Reset
+(8,0): fg=rgb(137,180,250) bg=Reset
+(9,0): fg=rgb(137,180,250) bg=Reset
+(10,0): fg=rgb(137,180,250) bg=Reset
+(11,0): fg=rgb(137,180,250) bg=Reset
+(12,0): fg=rgb(137,180,250) bg=Reset
+(13,0): fg=rgb(137,180,250) bg=Reset
+(14,0): fg=rgb(137,180,250) bg=Reset
+(15,0): fg=rgb(137,180,250) bg=Reset
+(16,0): fg=rgb(137,180,250) bg=Reset
+(17,0): fg=rgb(137,180,250) bg=Reset
+(18,0): fg=rgb(137,180,250) bg=Reset
+(19,0): fg=rgb(137,180,250) bg=Reset
+(20,0): fg=rgb(137,180,250) bg=Reset
+(21,0): fg=rgb(137,180,250) bg=Reset
+(22,0): fg=rgb(137,180,250) bg=Reset
+(23,0): fg=rgb(137,180,250) bg=Reset
+(24,0): fg=rgb(137,180,250) bg=Reset
+(25,0): fg=rgb(137,180,250) bg=Reset
+(26,0): fg=rgb(137,180,250) bg=Reset
+(27,0): fg=rgb(137,180,250) bg=Reset
+(28,0): fg=rgb(137,180,250) bg=Reset
+(29,0): fg=rgb(137,180,250) bg=Reset
+(30,0): fg=rgb(137,180,250) bg=Reset
+(31,0): fg=rgb(137,180,250) bg=Reset
+(32,0): fg=rgb(137,180,250) bg=Reset
+(33,0): fg=rgb(137,180,250) bg=Reset
+(34,0): fg=rgb(137,180,250) bg=Reset
+(35,0): fg=rgb(137,180,250) bg=Reset
+(36,0): fg=rgb(137,180,250) bg=Reset
+(37,0): fg=rgb(137,180,250) bg=Reset
+(38,0): fg=rgb(137,180,250) bg=Reset

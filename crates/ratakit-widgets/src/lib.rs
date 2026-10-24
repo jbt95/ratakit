@@ -65,8 +65,8 @@ pub use scroll_view::{ScrollView, ScrollViewContent, ScrollViewMode};
 pub use spinner::Spinner;
 pub use status_bar::{StatusBar, StatusSegment, StatusZone};
 pub use styled_convert::{
-    semantic_to_color, styled_line_to_ratatui, styled_lines_to_ratatui, styled_span_to_ratatui,
-    text_style_to_ratatui,
+    semantic_to_color, styled_line_to_ratatui, styled_line_to_ratatui_owned,
+    styled_lines_to_ratatui, styled_span_to_ratatui, text_style_to_ratatui,
 };
 pub use table::{Table, TableColumn};
 pub use tabs::{TabItem, Tabs};

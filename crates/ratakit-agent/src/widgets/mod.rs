@@ -1,5 +1,9 @@
 //! Agent widgets built on [`ratakit_widgets`].
 
+mod cells;
+mod extras;
+mod transcript;
+
 pub mod composer;
 
 mod model_picker;
@@ -17,4 +21,5 @@ pub use tool_call_card::{
     ToolCallCard, ToolCallCardAux, ToolCallTranscriptRenderer, measure_tool_call_card,
     render_tool_call_card,
 };
+pub use transcript::Transcript;
 pub use usage_bar::{UsageBar, usage_segments};

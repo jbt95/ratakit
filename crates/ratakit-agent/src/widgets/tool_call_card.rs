@@ -2,9 +2,9 @@
 
 use std::fmt::Write;
 
-use ratakit_core::{GlyphSet, Motion, MotionMode, Revisioned, SemanticColor, Theme};
+use ratakit_core::{GlyphSet, MotionMode, Revisioned, SemanticColor, Theme};
 use ratakit_text::{DiffModel, Highlighter, wrap_lines};
-use ratakit_widgets::{CodeBlock, CodeBlockState, DiffMode, DiffView, DiffViewState, Spinner};
+use ratakit_widgets::{CodeBlock, DiffMode, DiffView, Spinner};
 use ratatui_core::buffer::Buffer;
 use ratatui_core::layout::Rect;
 use ratatui_core::style::{Modifier, Style};
@@ -14,6 +14,7 @@ use ratatui_widgets::paragraph::Paragraph;
 use unicode_width::UnicodeWidthStr;
 
 use crate::state::{ToolCallCell, ToolKind, ToolStatus};
+pub use crate::tool_call_aux::ToolCallCardAux;
 use ratatui_core::style::Color;
 
 /// Default head/tail line counts when truncating long tool output (Codex-style).
@@ -38,17 +39,6 @@ struct RowPaintCtx<'a> {
     aux: &'a mut ToolCallCardAux,
     skip_top: u16,
     truncation: OutputTruncation,
-}
-
-/// Per-transcript auxiliary state for tool-call rows (spinner motion, nested widgets).
-#[derive(Debug, Default)]
-pub struct ToolCallCardAux {
-    motion: Motion,
-    output_code: CodeBlockState,
-    diff_view: DiffViewState,
-    cached_revision: u64,
-    cached_width: u16,
-    cached_height: u16,
 }
 
 /// Renders a [`ToolCallCell`] with status, I/O summary, truncated output, and optional diff.
