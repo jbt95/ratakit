@@ -1,6 +1,6 @@
 [package]
 name = "ratakit-agent"
-description = "Agentic coding TUI state and widgets for ratakit (stub — milestone 3+)"
+description = "Agentic coding TUI state and widgets for ratakit"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -10,10 +10,21 @@ authors.workspace = true
 
 [features]
 default = ["widgets"]
-widgets = ["dep:ratakit-widgets"]
+widgets = ["dep:ratakit-widgets", "ratakit-widgets/fuzzy", "dep:ratatui-core"]
 serde = []
 
 [dependencies]
-ratakit-core.workspace = true
+ratakit-core = { workspace = true, features = ["fuzzy"] }
 ratakit-text.workspace = true
-ratakit-widgets = { workspace = true, optional = true }
+ratakit-widgets = { workspace = true, optional = true, features = ["fuzzy"] }
+ratatui-core = { workspace = true, optional = true }
+
+[dev-dependencies]
+ratakit-testing.workspace = true
+ratatui.workspace = true
+insta.workspace = true
+
+[[test]]
+name = "composer_snapshots"
+path = "tests/composer_snapshots.rs"
+required-features = ["widgets"]

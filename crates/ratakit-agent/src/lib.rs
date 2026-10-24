@@ -1,14 +1,14 @@
 //! Agent transcript, composer, and related widgets.
-//!
-//! Milestone 0: crate layout only.
 
-#![allow(missing_docs)]
-
-pub mod state {
-    pub const STUB: &str = "agent state lands in milestone 3";
-}
+pub mod state;
 
 #[cfg(feature = "widgets")]
-pub mod widgets {
-    pub const STUB: &str = "agent widgets land in milestone 3";
-}
+pub mod widgets;
+
+#[cfg(feature = "widgets")]
+pub use widgets::{Composer, ComposerModelItem, ComposerWidgetState};
+
+pub use state::{
+    Attachment, ComposerIntent, ComposerState, FileIndex, QueuedMessage, QueuedPayload,
+    SlashCommand,
+};

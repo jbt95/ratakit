@@ -1376,9 +1376,13 @@ dependencies = [
 name = "ratakit-agent"
 version = "0.0.0"
 dependencies = [
+ "insta",
  "ratakit-core",
+ "ratakit-testing",
  "ratakit-text",
  "ratakit-widgets",
+ "ratatui",
+ "ratatui-core",
 ]
 
 [[package]]
