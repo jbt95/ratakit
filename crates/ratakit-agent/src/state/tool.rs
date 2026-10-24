@@ -102,7 +102,9 @@ mod tool_content_serde {
     #[derive(Serialize, Deserialize)]
     #[serde(rename_all = "snake_case")]
     enum ToolContentWire {
-        Text { text: String },
+        Text {
+            text: String,
+        },
         Diff {
             path: PathBuf,
             old_text: String,
@@ -112,9 +114,7 @@ mod tool_content_serde {
 
     fn to_wire(content: &ToolContent) -> ToolContentWire {
         match content {
-            ToolContent::Text(text) => ToolContentWire::Text {
-                text: text.clone(),
-            },
+            ToolContent::Text(text) => ToolContentWire::Text { text: text.clone() },
             ToolContent::Diff { path, model: _ } => ToolContentWire::Diff {
                 path: path.clone(),
                 old_text: String::new(),

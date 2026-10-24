@@ -10,12 +10,12 @@ use ratatui_core::buffer::Buffer;
 use ratatui_core::layout::{Constraint, Layout, Rect};
 use ratatui_core::widgets::{StatefulWidget, Widget};
 
+use crate::state::TranscriptState;
 use crate::state::composer::FileIndex;
 use crate::state::{
-    AgentEvent, Attachment, ComposerIntent, ComposerState, ModelCatalogEntry, ModelChoice,
-    ModeId, PermissionIntent, PermissionRequest, Plan, Usage,
+    AgentEvent, Attachment, ComposerIntent, ComposerState, ModeId, ModelCatalogEntry, ModelChoice,
+    PermissionIntent, PermissionRequest, Plan, Usage,
 };
-use crate::state::TranscriptState;
 use crate::widgets::composer::ComposerWidgetState;
 use crate::widgets::{
     Composer, ModelPicker, ModelPickerIntent, ModelPickerState, PermissionPrompt,
@@ -203,10 +203,7 @@ impl AgentLayoutState {
         }
     }
 
-    fn map_composer_intent(
-        &mut self,
-        intent: ComposerIntent,
-    ) -> Outcome<AgentLayoutIntent> {
+    fn map_composer_intent(&mut self, intent: ComposerIntent) -> Outcome<AgentLayoutIntent> {
         match intent {
             ComposerIntent::Submit {
                 text,
@@ -290,8 +287,7 @@ fn catalog_from_choices(choices: &[ModelChoice]) -> Vec<ModelCatalogEntry> {
     choices
         .iter()
         .map(|choice| {
-            let mut entry =
-                ModelCatalogEntry::new(choice.provider.clone(), choice.model.clone());
+            let mut entry = ModelCatalogEntry::new(choice.provider.clone(), choice.model.clone());
             if let Some(effort) = choice.effort {
                 entry = entry.with_efforts(vec![effort]);
             }
@@ -310,7 +306,11 @@ pub struct AgentLayout<'a> {
 }
 
 impl<'a> AgentLayout<'a> {
-    pub fn new(theme: &'a Theme, highlighter: &'a dyn Highlighter, files: &'a dyn FileIndex) -> Self {
+    pub fn new(
+        theme: &'a Theme,
+        highlighter: &'a dyn Highlighter,
+        files: &'a dyn FileIndex,
+    ) -> Self {
         Self {
             theme,
             highlighter,
@@ -356,11 +356,8 @@ impl StatefulWidget for AgentLayout<'_> {
 
         let plan_snapshot = state.current_plan().cloned();
         let transcript_area = if state.show_plan_side_panel() {
-            let chunks = Layout::horizontal([
-                Constraint::Min(24),
-                Constraint::Length(28),
-            ])
-                .split(main_area);
+            let chunks =
+                Layout::horizontal([Constraint::Min(24), Constraint::Length(28)]).split(main_area);
             if let Some(plan) = plan_snapshot.as_ref() {
                 let plan_widget = PlanView::new(plan, self.theme).scrollbar(true);
                 plan_widget.render(chunks[1], buf, &mut state.plan_list);
@@ -370,8 +367,11 @@ impl StatefulWidget for AgentLayout<'_> {
             main_area
         };
 
-        Transcript::new(self.theme, self.highlighter)
-            .render(transcript_area, buf, &mut state.transcript);
+        Transcript::new(self.theme, self.highlighter).render(
+            transcript_area,
+            buf,
+            &mut state.transcript,
+        );
 
         let composer_area = Rect {
             x: area.x,

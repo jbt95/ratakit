@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 
 use ratakit_agent::state::{
-    AgentEvent, ContentPart, Effort, MessageId, ModelCatalogEntry, ModelChoice, ModeId,
+    AgentEvent, ContentPart, Effort, MessageId, ModeId, ModelCatalogEntry, ModelChoice,
     PermissionOption, PermissionOptionId, PermissionRequest, Plan, PlanEntry, PlanEntryId,
     PlanEntryStatus, ToolCall, ToolCallId, ToolContent, ToolKind, ToolStatus, Usage,
 };
@@ -118,10 +118,7 @@ fn agent_layout_wide_80x18() {
     seed_transcript(&mut state);
     state.set_model_catalog(sample_catalog());
     let rendered = render_stateful(widget, 80, 18, &mut state);
-    insta::assert_snapshot!(
-        "agent_layout_wide_80x18",
-        compact_layout_snapshot(rendered)
-    );
+    insta::assert_snapshot!("agent_layout_wide_80x18", compact_layout_snapshot(rendered));
 }
 
 #[test]

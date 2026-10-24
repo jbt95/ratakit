@@ -16,9 +16,7 @@ use ratakit::agent::state::{AgentEvent, ContentPart, MessageId};
 use ratakit::agent::widgets::{AgentLayout, AgentLayoutIntent, AgentLayoutState};
 use ratakit::core::{Event, Keymap, KeymapPreset, Outcome};
 use ratakit::text::SyntectHighlighter;
-use ratakit::widgets::{
-    FrameScheduler, TerminalViewport, enter_terminal_with, event_stream,
-};
+use ratakit::widgets::{FrameScheduler, TerminalViewport, enter_terminal_with, event_stream};
 use ratakit_testing::render_stateful;
 use ratatui::Terminal;
 use ratatui::layout::Rect;
@@ -72,10 +70,11 @@ impl App {
         match intent {
             AgentLayoutIntent::Submit { text, mentions, .. } => {
                 let id = MessageId::new(format!("user-{}", self.driver.phase()));
-                self.layout_state.apply_agent_event(AgentEvent::UserMessage {
-                    id,
-                    content: vec![ContentPart::Text(text)],
-                });
+                self.layout_state
+                    .apply_agent_event(AgentEvent::UserMessage {
+                        id,
+                        content: vec![ContentPart::Text(text)],
+                    });
                 if !mentions.is_empty() {
                     let _ = mentions;
                 }
@@ -86,20 +85,20 @@ impl App {
             }
             AgentLayoutIntent::SlashCommand { name, args } => {
                 let id = MessageId::new(format!("slash-{}", self.driver.phase()));
-                self.layout_state.apply_agent_event(AgentEvent::UserMessage {
-                    id,
-                    content: vec![ContentPart::Text(format!("/{name} {args}"))],
-                });
+                self.layout_state
+                    .apply_agent_event(AgentEvent::UserMessage {
+                        id,
+                        content: vec![ContentPart::Text(format!("/{name} {args}"))],
+                    });
                 self.driver.on_user_submit();
                 while self.driver.has_pending() {
                     self.apply_step();
                 }
             }
             AgentLayoutIntent::Cancel => {
-                self.layout_state
-                    .apply_agent_event(AgentEvent::TurnEnded {
-                        reason: ratakit::agent::state::StopReason::Cancelled,
-                    });
+                self.layout_state.apply_agent_event(AgentEvent::TurnEnded {
+                    reason: ratakit::agent::state::StopReason::Cancelled,
+                });
             }
             AgentLayoutIntent::Permission(_) | AgentLayoutIntent::ModelChange(_) => {}
         }
@@ -151,7 +150,9 @@ fn run_headless(script_path: &Path) {
         let widget = AgentLayout::new(&app.theme, &highlighter, &app.files);
         let snapshot = render_stateful(widget, 72, 16, &mut app.layout_state);
         assert!(
-            snapshot.contains("composer") || snapshot.contains("Type") || snapshot.contains("Message"),
+            snapshot.contains("composer")
+                || snapshot.contains("Type")
+                || snapshot.contains("Message"),
             "frame {frame} missing composer chrome"
         );
     }
