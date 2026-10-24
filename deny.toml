@@ -2,6 +2,7 @@
 version = 2
 ignore = []
 
+# `nucleo-matcher` / `nucleo` (MPL-2.0) are optional via the workspace `fuzzy` / `fuzzy-async` features.
 [licenses]
 version = 2
 allow = [

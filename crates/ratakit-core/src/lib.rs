@@ -9,6 +9,8 @@
 mod component;
 mod event;
 mod focus;
+#[cfg(feature = "fuzzy")]
+mod fuzzy;
 mod keymap;
 mod outcome;
 mod revision;
@@ -20,6 +22,10 @@ pub use event::{
     Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, MouseButton, MouseEvent, MouseEventKind,
 };
 pub use focus::{FocusId, FocusRing};
+#[cfg(feature = "fuzzy")]
+pub use fuzzy::{
+    FuzzyDelimiterMode, FuzzyFilter, FuzzyOptions, FuzzyRankedMatch, normalize_match_indices,
+};
 pub use keymap::{ActionId, KeyChord, Keymap, KeymapPreset, Scope};
 pub use outcome::Outcome;
 pub use revision::Revisioned;
