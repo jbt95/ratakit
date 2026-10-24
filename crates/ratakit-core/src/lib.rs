@@ -7,6 +7,7 @@
 //! [`PasteBurst`] for terminals without bracketed paste.
 
 mod component;
+mod dialog;
 mod event;
 mod focus;
 #[cfg(feature = "fuzzy")]
@@ -18,11 +19,14 @@ mod motion;
 mod outcome;
 mod revision;
 mod scroll;
+mod table;
+mod tabs;
 mod text;
 mod theme;
 mod toast;
 
 pub use component::Component;
+pub use dialog::{DialogIntent, DialogState};
 pub use event::{
     Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, MouseButton, MouseEvent, MouseEventKind,
 };
@@ -40,6 +44,8 @@ pub use motion::Motion;
 pub use outcome::Outcome;
 pub use revision::Revisioned;
 pub use scroll::ScrollState;
+pub use table::{SortDirection, TableState};
+pub use tabs::TabsState;
 pub use text::{Atom, AtomKind, PasteBurst, Position, TextBuffer};
 pub use theme::{GlyphSet, MotionMode, Palette, SemanticColor, SyntaxThemeId, Theme};
 pub use toast::{Toast, ToastLevel, ToastQueue};

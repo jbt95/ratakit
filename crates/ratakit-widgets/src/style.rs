@@ -35,6 +35,10 @@ pub fn palette_bg(theme: &Theme) -> Style {
     Style::default().bg(semantic_color(theme.palette.background))
 }
 
+pub fn error(theme: &Theme) -> Style {
+    Style::default().fg(semantic_color(theme.palette.error))
+}
+
 /// Style for a selected virtual list row.
 pub fn selected_row_style(theme: &Theme) -> Style {
     fg(theme).add_modifier(Modifier::REVERSED)
