@@ -10,6 +10,7 @@ authors.workspace = true
 
 [features]
 default = []
+diff = ["ratakit-text/diff"]
 highlight-syntect = ["ratakit-text/highlight-syntect"]
 crossterm = []
 tokio = []
@@ -25,7 +26,7 @@ unicode-width.workspace = true
 ratakit-testing.workspace = true
 ratatui.workspace = true
 insta.workspace = true
-ratakit-text = { workspace = true, features = ["highlight-syntect"] }
+ratakit-text = { workspace = true, features = ["highlight-syntect", "diff"] }
 
 [[example]]
 name = "textarea_headless"

@@ -9,6 +9,9 @@ mod highlight;
 mod styled;
 mod wrap;
 
+#[cfg(feature = "diff")]
+mod diff;
+
 #[cfg(feature = "highlight-syntect")]
 mod highlight_syntect;
 
@@ -23,3 +26,11 @@ pub use wrap::{
 pub use highlight::SyntectHighlighter;
 #[cfg(feature = "highlight-syntect")]
 pub use highlight_syntect::{SyntectHlState, language_from_shebang};
+
+#[cfg(feature = "diff")]
+pub use diff::{
+    DiffHunk, DiffLine, DiffModel, DiffParseError, DiffSide, FileDiff, IntraSpan, display_path,
+    enrich_intra_line, path_for_side,
+};
+#[cfg(feature = "diff")]
+pub use similar::ChangeTag;

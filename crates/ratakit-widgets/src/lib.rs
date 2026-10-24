@@ -7,6 +7,8 @@
 
 mod code_block;
 mod dialog;
+#[cfg(feature = "diff")]
+mod diff_view;
 mod key_hints;
 mod spinner;
 mod status_bar;
@@ -22,6 +24,8 @@ mod wrap;
 
 pub use code_block::{CodeBlock, CodeBlockState};
 pub use dialog::{ConfirmDialog, Dialog, DialogButton, Modal};
+#[cfg(feature = "diff")]
+pub use diff_view::{DiffMode, DiffView, DiffViewState};
 pub use key_hints::KeyHints;
 pub use ratakit_core::{DialogIntent, DialogState, SortDirection, TableState, TabsState};
 pub use spinner::Spinner;
