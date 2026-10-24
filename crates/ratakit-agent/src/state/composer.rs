@@ -153,7 +153,7 @@ impl ComposerState {
         }
     }
 
-    pub fn add_attachment(&mut self, attachment: Attachment) {
+    pub fn add_attachment(&mut self, attachment: &Attachment) {
         self.buffer
             .insert_atom(Atom::attachment(attachment.label.clone()));
         self.bump_revision();
@@ -428,8 +428,7 @@ impl ComposerState {
         let pos = matches
             .iter()
             .position(|&idx| idx == current)
-            .map(|p| p.saturating_sub(1))
-            .unwrap_or(matches.len() - 1);
+            .map_or(matches.len() - 1, |p| p.saturating_sub(1));
         let next_idx = matches[pos];
         self.history_browse = Some(next_idx);
         self.buffer.set_text(&self.history[next_idx]);
@@ -580,15 +579,13 @@ fn file_completion_items(files: &dyn FileIndex, query: &str) -> Vec<CompletionIt
 }
 
 fn is_image_attachment_label(label: &str) -> bool {
-    std::path::Path::new(label)
-        .extension()
-        .is_some_and(|ext| {
-            ext.eq_ignore_ascii_case("png")
-                || ext.eq_ignore_ascii_case("jpg")
-                || ext.eq_ignore_ascii_case("jpeg")
-                || ext.eq_ignore_ascii_case("gif")
-                || ext.eq_ignore_ascii_case("webp")
-        })
+    std::path::Path::new(label).extension().is_some_and(|ext| {
+        ext.eq_ignore_ascii_case("png")
+            || ext.eq_ignore_ascii_case("jpg")
+            || ext.eq_ignore_ascii_case("jpeg")
+            || ext.eq_ignore_ascii_case("gif")
+            || ext.eq_ignore_ascii_case("webp")
+    })
 }
 
 fn catalog_changed(current: &[CompletionItem], next: &[CompletionItem]) -> bool {
