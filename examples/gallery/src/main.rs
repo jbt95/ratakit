@@ -8,8 +8,12 @@ use std::io::stdout;
 use std::time::{Duration, Instant};
 
 use futures_util::StreamExt;
-use ratakit::agent::state::{Effort, ModelCatalogEntry, ModelChoice};
+use ratakit::agent::state::{
+    Effort, ModeId, ModelCatalogEntry, ModelChoice, Plan, PlanEntry, PlanEntryId, PlanEntryStatus,
+    Usage,
+};
 use ratakit::agent::widgets::{ModelPicker, ModelPickerState};
+use ratakit::agent::{PlanView, UsageBar};
 use ratakit::core::{
     ActionLabels, Component, Event, KeyCode, Keymap, KeymapPreset, ListState, Motion, MotionMode,
     PickerSection, TableState, TabsState, Theme, Toast, ToastLevel, ToastQueue,
@@ -29,8 +33,9 @@ use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::widgets::StatefulWidget;
 use ratatui_crossterm::CrosstermBackend;
 
-const GALLERY_TABS: [&str; 10] = [
+const GALLERY_TABS: [&str; 11] = [
     "Input", "List", "Tree", "Code", "Diff", "Markdown", "Chrome", "Data", "Picker", "Models",
+    "Agent",
 ];
 
 fn gallery_markdown_sample() -> String {
@@ -188,6 +193,10 @@ struct App {
     model_picker: ModelPickerState,
     hint_labels: ActionLabels,
     highlighter: SyntectHighlighter,
+    demo_usage: Usage,
+    demo_mode: ModeId,
+    demo_plan: Plan,
+    plan_list: ListState,
     should_quit: bool,
 }
 
@@ -234,6 +243,26 @@ impl App {
         hint_labels.insert("focus.next", "next");
         hint_labels.insert("focus.prev", "prev");
         hint_labels.insert("app.quit", "quit");
+
+        let demo_plan = Plan {
+            entries: vec![
+                PlanEntry {
+                    id: PlanEntryId::new("a"),
+                    title: "Explore gallery".to_string(),
+                    status: PlanEntryStatus::Completed,
+                },
+                PlanEntry {
+                    id: PlanEntryId::new("b"),
+                    title: "Try UsageBar and PlanView".to_string(),
+                    status: PlanEntryStatus::InProgress,
+                },
+                PlanEntry {
+                    id: PlanEntryId::new("c"),
+                    title: "Ship milestone A7".to_string(),
+                    status: PlanEntryStatus::Pending,
+                },
+            ],
+        };
 
         Self {
             theme,
@@ -314,6 +343,16 @@ impl App {
             },
             hint_labels,
             highlighter: SyntectHighlighter,
+            demo_usage: Usage {
+                input_tokens: 42_000,
+                output_tokens: 1_800,
+                cached_tokens: 9_500,
+                context_used: Some(0.55),
+                cost_usd: Some(0.12),
+            },
+            demo_mode: ModeId::new("ask"),
+            demo_plan,
+            plan_list: ListState::new(),
             should_quit: false,
         }
     }
@@ -361,6 +400,9 @@ impl App {
             9 => {
                 let _ = self.model_picker.handle(ev, &self.keys);
             }
+            10 => {
+                let _ = self.plan_list.handle(ev, &self.keys);
+            }
             _ => {}
         }
 
@@ -371,8 +413,11 @@ impl App {
                         let next = (self.gallery_tab.selected() + 1) % GALLERY_TABS.len();
                         self.gallery_tab.select(next);
                     }
-                    KeyCode::Char('0') if GALLERY_TABS.len() == 10 => {
+                    KeyCode::Char('0') => {
                         self.gallery_tab.select(9);
+                    }
+                    KeyCode::Char('a') | KeyCode::Char('A') => {
+                        self.gallery_tab.select(10);
                     }
                     KeyCode::Char(c) if c.is_ascii_digit() => {
                         let idx = (c as u8 - b'1') as usize;
@@ -521,11 +566,25 @@ impl App {
                 let widget = ModelPicker::new(&self.theme);
                 widget.render(chunks[1], frame.buffer_mut(), &mut self.model_picker);
             }
+            10 => {
+                let inner = Layout::default()
+                    .direction(Direction::Vertical)
+                    .constraints([Constraint::Length(1), Constraint::Min(3)])
+                    .split(chunks[1]);
+                ratatui::widgets::Widget::render(
+                    UsageBar::new(&self.demo_usage, &self.demo_mode, &self.theme)
+                        .git_branch(Some("gallery")),
+                    inner[0],
+                    frame.buffer_mut(),
+                );
+                let plan = PlanView::new(&self.demo_plan, &self.theme).scrollbar(true);
+                plan.render(inner[1], frame.buffer_mut(), &mut self.plan_list);
+            }
             _ => {}
         }
 
         let footer = format!(
-            "Tab/1-0: sections · m: modal · q: quit · motion: {}",
+            "Tab/1-9/0/a: sections · m: modal · q: quit · motion: {}",
             match self.theme.motion {
                 MotionMode::Full => "full",
                 MotionMode::Reduced => "reduced",
@@ -561,6 +620,8 @@ fn run_headless() {
     assert!(snapshot.contains("Diff"));
     assert!(snapshot.contains("Markdown"));
     assert!(snapshot.contains("Picker"));
+    assert!(snapshot.contains("Models"));
+    assert!(snapshot.contains("Agent"));
 
     let picker_widget = FuzzyPicker::new("Open file", &theme).preview(true);
     let picker_snapshot = render_stateful(picker_widget, 80, 20, &mut app.picker);

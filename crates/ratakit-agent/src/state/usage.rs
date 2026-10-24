@@ -27,4 +27,9 @@ impl ModeId {
     pub fn as_str(&self) -> &str {
         &self.0
     }
+
+    /// Short label for the status bar (`plan`, `auto`, `ask`, …).
+    pub fn status_label(&self) -> &str {
+        self.as_str()
+    }
 }
