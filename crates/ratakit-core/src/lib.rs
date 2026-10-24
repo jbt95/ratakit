@@ -14,9 +14,11 @@ mod focus;
 mod fuzzy;
 mod key_hints;
 mod keymap;
+mod list;
 mod motion;
 mod outcome;
 mod revision;
+mod scroll;
 mod table;
 mod tabs;
 mod text;
@@ -37,9 +39,11 @@ pub use key_hints::{
     ActionLabels, KeyHint, format_chord, key_hints_from_keymap, key_hints_revision,
 };
 pub use keymap::{ActionId, KeyBinding, KeyChord, Keymap, KeymapPreset, Scope};
+pub use list::{HeightCache, ItemHeights, ListLayoutHint, ListState, VisibleRows, visible_rows};
 pub use motion::Motion;
 pub use outcome::Outcome;
 pub use revision::Revisioned;
+pub use scroll::ScrollState;
 pub use table::{SortDirection, TableState};
 pub use tabs::TabsState;
 pub use text::{Atom, AtomKind, PasteBurst, Position, TextBuffer};
