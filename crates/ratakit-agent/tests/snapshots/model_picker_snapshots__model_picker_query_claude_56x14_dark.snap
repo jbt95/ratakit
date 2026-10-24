@@ -1,0 +1,51 @@
+---
+source: crates/ratakit-agent/tests/model_picker_snapshots.rs
+expression: compact_picker_snapshot(rendered)
+---
+╭Choose model──────────────────────────────────────────╮
+│> claude                                              │
+│Effort: low medium high                               │
+│Anthropic                    ▲Balanced speed and quali│
+│claude-sonnet-4              █                        │
+│                             █                        │
+│                             █                        │
+│                             █                        │
+│                             █                        │
+│                             █                        │
+│                             ║                        │
+│                             ▼                        │
+│  ↑↓ select · ←→ effort · enter confirm · esc cancel  │
+╰──────────────────────────────────────────────────────╯
+--- styles ---
+(1,1): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(2,1): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(13,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(14,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(15,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(16,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(17,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(18,2): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(1,3): fg=rgb(108,112,134) bg=rgb(30,30,46) bold
+(2,3): fg=rgb(108,112,134) bg=rgb(30,30,46) bold
+(3,3): fg=rgb(108,112,134) bg=rgb(30,30,46) bold
+(4,3): fg=rgb(108,112,134) bg=rgb(30,30,46) bold
+(5,3): fg=rgb(108,112,134) bg=rgb(30,30,46) bold
+(6,3): fg=rgb(108,112,134) bg=rgb(30,30,46) bold
+(7,3): fg=rgb(108,112,134) bg=rgb(30,30,46) bold
+(8,3): fg=rgb(108,112,134) bg=rgb(30,30,46) bold
+(9,3): fg=rgb(108,112,134) bg=rgb(30,30,46) bold
+(1,4): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(2,4): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(3,4): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(4,4): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(5,4): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(6,4): fg=rgb(137,180,250) bg=rgb(30,30,46)
+(7,4): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(8,4): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(9,4): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(10,4): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(11,4): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(12,4): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(13,4): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(14,4): fg=rgb(30,30,46) bg=rgb(137,180,250) bold
+(15,4): fg=rgb(30,30,46) bg=rgb(137,180,250) bold

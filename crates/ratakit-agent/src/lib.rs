@@ -11,8 +11,9 @@ pub mod widgets;
 
 #[cfg(feature = "widgets")]
 pub use widgets::{
-    Composer, ComposerModelItem, ComposerWidgetState, PlanRows, PlanView, UsageBar,
-    plan_cell_height, render_plan_cell, usage_segments,
+    Composer, ComposerModelItem, ComposerWidgetState, ModelPicker, ModelPickerIntent,
+    ModelPickerState, PlanRows, PlanView, UsageBar, plan_cell_height, render_plan_cell,
+    usage_segments,
 };
 
 pub use state::{

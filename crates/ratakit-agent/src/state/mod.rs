@@ -21,7 +21,7 @@ pub use composer::{
 };
 pub use event::AgentEvent;
 pub use ids::{CellId, MessageId, ToolCallId};
-pub use model::{Effort, ModelChoice};
+pub use model::{Effort, ModelCatalogEntry, ModelChoice};
 pub use permission::{PermissionIntent, PermissionOption, PermissionOptionId, PermissionRequest};
 pub use plan::{Plan, PlanEntry, PlanEntryId, PlanEntryStatus};
 pub use tool::{ToolCall, ToolCallPatch, ToolContent, ToolKind, ToolStatus};
