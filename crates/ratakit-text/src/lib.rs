@@ -11,6 +11,12 @@ mod wrap;
 
 #[cfg(feature = "diff")]
 mod diff;
+#[cfg(feature = "markdown")]
+mod markdown_doc;
+#[cfg(feature = "markdown")]
+mod markdown_render;
+#[cfg(feature = "markdown")]
+mod markdown_stream;
 
 #[cfg(feature = "highlight-syntect")]
 mod highlight_syntect;
@@ -34,3 +40,10 @@ pub use diff::{
 };
 #[cfg(feature = "diff")]
 pub use similar::ChangeTag;
+
+#[cfg(feature = "markdown")]
+pub use markdown_doc::MarkdownDoc;
+#[cfg(feature = "markdown")]
+pub use markdown_render::{MarkdownOptions, MarkdownStyles, StreamingCodeState, render_markdown};
+#[cfg(feature = "markdown")]
+pub use markdown_stream::MarkdownStream;

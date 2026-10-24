@@ -71,6 +71,42 @@ impl TextAreaState {
             self.scroll_top = row.saturating_sub(height as usize - 1);
         }
     }
+
+    /// Inner content rect and absolute cursor coordinates for anchoring overlays.
+    pub fn cursor_layout(&mut self, area: Rect, max_height: Option<u16>) -> TextAreaCursorLayout {
+        let inner_width = area.width.saturating_sub(2);
+        let inner_height = area
+            .height
+            .saturating_sub(2)
+            .min(max_height.unwrap_or(area.height));
+        self.last_width = inner_width;
+        self.ensure_cursor_visible(inner_width, inner_height);
+
+        let inner = Rect {
+            x: area.x + 1,
+            y: area.y + 1,
+            width: inner_width,
+            height: inner_height,
+        };
+
+        let wrapped = self.wrapped(inner_width);
+        let (cursor_row, cursor_col) = cursor_wrapped_position(&wrapped, self.buffer.cursor());
+        let view_row = cursor_row.saturating_sub(self.scroll_top);
+        let cursor_x = inner.x + cursor_col.min(inner.width as usize - 1) as u16;
+        let cursor_y = inner.y + view_row.min(inner.height as usize - 1) as u16;
+
+        TextAreaCursorLayout {
+            inner,
+            cursor: (cursor_x, cursor_y),
+        }
+    }
+}
+
+/// Layout snapshot for anchoring widgets (e.g. [`CompletionMenu`](super::CompletionMenu)) to the caret.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TextAreaCursorLayout {
+    pub inner: Rect,
+    pub cursor: (u16, u16),
 }
 
 impl Component for TextAreaState {

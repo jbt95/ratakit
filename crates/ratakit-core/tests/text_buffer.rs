@@ -1,6 +1,15 @@
 use ratakit_core::{Atom, TextBuffer};
 
 #[test]
+fn replace_range_swaps_text_for_atom() {
+    let mut buffer = TextBuffer::new();
+    buffer.insert_str("hello @fi");
+    buffer.replace_range(6..10, "", Some(Atom::mention("@file.rs")));
+    assert_eq!(buffer.text(), "hello @file.rs");
+    assert_eq!(buffer.atoms().len(), 1);
+}
+
+#[test]
 fn insert_and_undo() {
     let mut buf = TextBuffer::new();
     buf.insert_str("hello");

@@ -11,9 +11,11 @@ authors.workspace = true
 [features]
 default = []
 diff = ["ratakit-text/diff"]
+fuzzy = ["ratakit-core/fuzzy"]
+markdown = ["ratakit-text/markdown"]
 highlight-syntect = ["ratakit-text/highlight-syntect"]
-crossterm = []
-tokio = []
+crossterm = ["dep:crossterm"]
+tokio = ["crossterm", "dep:tokio", "dep:futures-util"]
 
 [dependencies]
 ratakit-core.workspace = true
@@ -21,17 +23,27 @@ ratakit-text.workspace = true
 ratatui-core.workspace = true
 ratatui-widgets.workspace = true
 unicode-width.workspace = true
+crossterm = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
+futures-util = { workspace = true, optional = true }
 
 [dev-dependencies]
+ratakit-core = { workspace = true, features = ["fuzzy"] }
 ratakit-testing.workspace = true
 ratatui.workspace = true
 insta.workspace = true
-ratakit-text = { workspace = true, features = ["highlight-syntect", "diff"] }
+proptest.workspace = true
+ratakit-text = { workspace = true, features = ["highlight-syntect", "markdown", "diff"] }
+tokio = { workspace = true, features = ["macros", "rt", "test-util", "time"] }
 
 [[test]]
 name = "diff_view_snapshots"
 path = "tests/diff_view_snapshots.rs"
 required-features = ["diff", "highlight-syntect"]
+
+[[test]]
+name = "markdown_snapshots"
+required-features = ["markdown", "highlight-syntect"]
 
 [[example]]
 name = "textarea_headless"

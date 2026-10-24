@@ -135,6 +135,7 @@ fn push_grapheme(line: &mut StyledLine, grapheme: &str, style: TextStyle) {
     line.push(StyledSpan {
         text: grapheme.to_string(),
         style,
+        link: None,
     });
 }
 
