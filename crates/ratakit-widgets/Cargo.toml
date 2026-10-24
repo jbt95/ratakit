@@ -10,6 +10,7 @@ authors.workspace = true
 
 [features]
 default = []
+fuzzy = ["ratakit-core/fuzzy"]
 highlight-syntect = ["ratakit-text/highlight-syntect"]
 crossterm = []
 tokio = []

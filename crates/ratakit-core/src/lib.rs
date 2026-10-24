@@ -17,6 +17,8 @@ mod keymap;
 mod list;
 mod motion;
 mod outcome;
+#[cfg(feature = "fuzzy")]
+mod picker;
 mod revision;
 mod scroll;
 mod table;
@@ -42,6 +44,11 @@ pub use keymap::{ActionId, KeyBinding, KeyChord, Keymap, KeymapPreset, Scope};
 pub use list::{HeightCache, ItemHeights, ListLayoutHint, ListState, VisibleRows, visible_rows};
 pub use motion::Motion;
 pub use outcome::Outcome;
+#[cfg(feature = "fuzzy")]
+pub use picker::{
+    PickerDisplayMode, PickerIntent, PickerItem, PickerLayoutHint, PickerRow, PickerRowKind,
+    PickerSecondaryAxis, PickerSecondaryState, PickerSection, PickerState,
+};
 pub use revision::Revisioned;
 pub use scroll::ScrollState;
 pub use table::{SortDirection, TableState};

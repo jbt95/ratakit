@@ -7,6 +7,8 @@
 
 mod code_block;
 mod dialog;
+#[cfg(feature = "fuzzy")]
+mod fuzzy_picker;
 mod key_hints;
 mod spinner;
 mod status_bar;
@@ -22,8 +24,15 @@ mod wrap;
 
 pub use code_block::{CodeBlock, CodeBlockState};
 pub use dialog::{ConfirmDialog, Dialog, DialogButton, Modal};
+#[cfg(feature = "fuzzy")]
+pub use fuzzy_picker::FuzzyPicker;
 pub use key_hints::KeyHints;
 pub use ratakit_core::{DialogIntent, DialogState, SortDirection, TableState, TabsState};
+#[cfg(feature = "fuzzy")]
+pub use ratakit_core::{
+    PickerDisplayMode, PickerIntent, PickerItem, PickerRow, PickerRowKind, PickerSecondaryAxis,
+    PickerSecondaryState, PickerSection, PickerState,
+};
 pub use spinner::Spinner;
 pub use status_bar::{StatusBar, StatusSegment, StatusZone};
 pub use styled_convert::{
