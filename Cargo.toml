@@ -1,0 +1,46 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/ratakit-core",
+    "crates/ratakit-text",
+    "crates/ratakit-widgets",
+    "crates/ratakit-agent",
+    "crates/ratakit-acp",
+    "crates/ratakit-testing",
+    "crates/ratakit",
+    "examples/hello-headless",
+]
+default-members = ["crates/ratakit"]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2024"
+license = "Apache-2.0"
+rust-version = "1.88.0"
+repository = "https://github.com/jbt95/ratakit"
+authors = ["Jordi Bermejo Tornero <jbt@example.com>"]
+
+[workspace.dependencies]
+ratakit-core = { path = "crates/ratakit-core", version = "0.0.0" }
+ratakit-text = { path = "crates/ratakit-text", version = "0.0.0" }
+ratakit-widgets = { path = "crates/ratakit-widgets", version = "0.0.0" }
+ratakit-agent = { path = "crates/ratakit-agent", version = "0.0.0" }
+ratakit-acp = { path = "crates/ratakit-acp", version = "0.0.0" }
+ratakit-testing = { path = "crates/ratakit-testing", version = "0.0.0" }
+
+unicode-width = "0.2.2"
+unicode-segmentation = "1.13.3"
+thiserror = "2.0.21"
+
+ratatui-core = "0.1.2"
+ratatui-widgets = "0.3.2"
+ratatui = "0.30.2"
+
+insta = { version = "1.49.0", features = ["redactions"] }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }

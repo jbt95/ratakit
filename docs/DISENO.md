@@ -1,6 +1,6 @@
 # ratakit: documento de diseño
 
-> **Nombre provisional.** "ratakit" es solo un nombre de trabajo. **Ya está ocupado en crates.io** (crate `ratakit` 0.5.0, "Toolkit for writing TUI applications", sin cambios desde 2022), así que no se puede publicar con ese nombre. En la sección 13 hay alternativas comprobadas como libres. En este documento, `ratakit` y `ratakit-*` se refieren al nombre que elijamos al final.
+> **Nombre definitivo:** **ratakit** (`ratakit`, `ratakit-core`, `ratakit-widgets`, etc.). En crates.io existe un crate antiguo homónimo (0.5.0, sin mantenimiento desde 2022); la publicación del workspace se hará cuando el mantenimiento lo apruebe, sin mezclar con ese paquete.
 
 - **Estado:** borrador 0.1, 24 de octubre de 2026
 - **Autor:** Jordi Bermejo Tornero (@jbt95)
@@ -494,7 +494,7 @@ Los dos comparten `examples/common/app.rs`; solo cambia el `AgentCommand`. El ob
 
 ### Accesibilidad
 
-- **Movimiento reducido:** `MotionMode::Reduced` desactiva spinners animados, shimmer y transiciones, y los sustituye por texto estático ("trabajando…"). Se activa por configuración, con la variable `TUIKIT_REDUCED_MOTION`, o si se detecta un lector de pantalla (idea de `codex-rs/tui/src/screen_reader.rs`).
+- **Movimiento reducido:** `MotionMode::Reduced` desactiva spinners animados, shimmer y transiciones, y los sustituye por texto estático ("trabajando…"). Se activa por configuración, con la variable `RATAKIT_REDUCED_MOTION`, o si se detecta un lector de pantalla (idea de `codex-rs/tui/src/screen_reader.rs`).
 - **Modo lector de pantalla:** salida lineal sin cajas ni redibujados en sitio. Las celdas cerradas se escriben una vez al scrollback, que es lo que hace Codex con `insert_history.rs`, y solo la zona del composer se mantiene viva.
 - **Sin depender del color:** se respeta `NO_COLOR`, y cada estado (éxito, error, pendiente) lleva un glifo y una etiqueta, no solo color. Los temas incluyen variantes de alto contraste y aptas para daltonismo, y se valida el contraste mínimo del tema en tests.
 - **ASCII:** `GlyphSet::Ascii` para terminales sin Unicode o con fuentes limitadas.
@@ -576,22 +576,16 @@ Versiones comprobadas en crates.io el 24 de octubre de 2026.
 | **Derivar demasiado de Codex** (deuda de atribución, código acoplado) | Bajo/medio | Tomar ficheros concretos y registrados en `THIRD_PARTY.md`; reescribir en lugar de copiar cuando el acoplamiento con `codex_*` sea alto |
 | **Rendimiento con syntect** (regex onig vs fancy) | Medio | `fancy-regex` por defecto (sin C) y `onig` opcional; caché de resaltado por línea; resaltar solo lo visible |
 | **MPL-2.0 de nucleo** | Bajo | Solo como dependencia, detrás de una feature; documentado en `cargo deny` |
-| **Nombre ocupado** (`ratakit` ya existe en crates.io) | Bajo | Elegir un nombre de la sección 13 antes del primer `cargo publish` y reservar todos los crates del workspace a la vez |
+| **Homónimo en crates.io** (crate `ratakit` 0.5.0 abandonado) | Bajo | Nombre del proyecto fijado en **ratakit**; coordinar publicación y nombres de crates con el mantenimiento antes del primer release |
 | **Pocos mantenedores** | Medio | Una buena documentación y la galería de ejemplos para atraer contribuidores; issues "good first issue" por componente |
 
-## 13. Nombres posibles
+## 13. Nombre del proyecto
 
-Comprobados en la API de crates.io el 24 de octubre de 2026. "Libre" significa que la API devuelve 404 para el nombre base **y** para `-core`, `-widgets`, `-agent`, `-acp` y `-examples`.
+**Decisión:** el proyecto se llama **ratakit** (crates `ratakit`, `ratakit-core`, `ratakit-widgets`, `ratakit-agent`, `ratakit-acp`, `ratakit-testing`).
 
-| Nombre | Estado | Comentario |
-|---|---|---|
-| ~~`ratakit`~~ | **Ocupado** (0.5.0, 2022) | Provisional, no se puede publicar |
-| **`ratakit`** | Libre (los 6) | Deja clara la relación con ratatui; corto. Los nombres `ratatui-*` están reservados por convención para crates del ecosistema, y `ratakit` lo evita |
-| **`urdimbre`** | Libre (los 6) | Es el conjunto de hilos del telar sobre los que se teje todo: encaja con "base sobre la que construir" y es distintivo. Difícil de pronunciar fuera del español |
-| **`bastidor`** | Libre (los 6) | El marco que sostiene el tejido o el lienzo; también es un "chasis". Fácil de pronunciar |
-| **`tuiforge`** | Libre (los 6) | Descriptivo y fácil de buscar en inglés |
+En crates.io hay un crate homónimo antiguo (`ratakit` 0.5.0, sin cambios desde 2022). No confundir con este workspace. La publicación en crates.io queda para el hito 5 (R4), con aprobación del mantenimiento.
 
-Descartados por estar ocupados: `tui-kit`, `ratkit`, `ratatui-kit`, `termkit`, `agent-tui`, `telar`, `trama`, `forja`, `tessera`. Mi preferencia: **`ratakit`**, por lo fácil que es de encontrar, o **`bastidor`**, si queremos algo con más personalidad. Conviene reservar el nombre (publicar una 0.0.0 vacía de cada crate) en cuanto se decida, siempre con aprobación de Jordi.
+Alternativas que se barajaron antes de fijar el nombre: `urdimbre`, `bastidor`, `tuiforge` (véase historial del documento).
 
 ## 14. Roadmap por hitos
 
@@ -655,7 +649,7 @@ Cada fila es **un PR**. "Depende de" indica qué PRs tienen que estar mergeados 
 | R1 | Accesibilidad: modo lector de pantalla, alto contraste, auditoría de `MotionMode` | A8 |
 | R2 | Modo inline (historial al scrollback, idea de `insert_history.rs`) | A2 |
 | R3 | Documentación: guía, `docs.rs` con ejemplos, README, tabla de compatibilidad con ratatui | todo |
-| R4 | Nombre definitivo, reservar crates y release 0.1.0 (solo con la aprobación de Jordi) | R1–R3 |
+| R4 | Reservar crates en crates.io y release 0.1.0 (solo con la aprobación de Jordi) | R1–R3 |
 
 **Grafo resumido:**
 
@@ -670,8 +664,7 @@ Con 4–6 agentes en paralelo en los hitos 1–3, la estimación total es de **3
 
 ## 15. Preguntas abiertas
 
-1. Nombre definitivo (sección 13).
-2. ¿El modo inline (scrollback) o la pantalla alternativa por defecto? Codex usa inline; opencode y pi usan pantalla alternativa.
+1. ¿El modo inline (scrollback) o la pantalla alternativa por defecto? Codex usa inline; opencode y pi usan pantalla alternativa.
 3. ¿Ofrecemos tree-sitter desde la v1 o solo syntect? Propuesta: solo syntect en la v1.
 4. ¿Exponemos `fs` y `terminal` del cliente en el adaptador ACP (por ejemplo para revisar diffs antes de escribir)? Propuesta: después de la 0.1.
 5. ¿Integración con el cliente de review "revu" (GPUI)? Podría compartir `ratakit-agent` sin la feature `widgets` y `ratakit-acp`, que no dependen de ratatui. Es un argumento más para mantener el estado sin ratatui. Si hace falta, `agent::state` se puede separar en su propio crate (`ratakit-agent-state`).

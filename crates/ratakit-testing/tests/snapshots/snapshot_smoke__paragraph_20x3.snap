@@ -1,0 +1,8 @@
+---
+source: crates/ratakit-testing/tests/snapshot_smoke.rs
+expression: rendered
+---
+hello ratakit       
+                    
+                    
+--- styles ---

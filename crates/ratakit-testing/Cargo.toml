@@ -1,0 +1,16 @@
+[package]
+name = "ratakit-testing"
+description = "Snapshot testing helpers and KeySeq for ratakit"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+ratatui.workspace = true
+insta.workspace = true
+ratakit-core.workspace = true
+
+[dev-dependencies]

@@ -1,0 +1,23 @@
+[package]
+name = "ratakit-core"
+description = "State, events, keymaps, focus, and theming for ratakit (no ratatui dependency)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[features]
+default = []
+fuzzy = ["dep:nucleo-matcher"]
+serde = ["dep:serde"]
+
+[dependencies]
+unicode-width.workspace = true
+unicode-segmentation.workspace = true
+thiserror.workspace = true
+nucleo-matcher = { version = "0.3.1", optional = true }
+serde = { version = "1.0.229", optional = true, features = ["derive"] }
+
+[dev-dependencies]

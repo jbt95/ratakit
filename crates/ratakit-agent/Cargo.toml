@@ -1,0 +1,19 @@
+[package]
+name = "ratakit-agent"
+description = "Agentic coding TUI state and widgets for ratakit (stub — milestone 3+)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[features]
+default = ["widgets"]
+widgets = ["dep:ratakit-widgets"]
+serde = []
+
+[dependencies]
+ratakit-core.workspace = true
+ratakit-text.workspace = true
+ratakit-widgets = { workspace = true, optional = true }

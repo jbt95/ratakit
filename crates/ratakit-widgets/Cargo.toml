@@ -1,0 +1,20 @@
+[package]
+name = "ratakit-widgets"
+description = "Generic ratatui widgets for ratakit (stub — milestone 1+)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[features]
+default = []
+crossterm = []
+tokio = []
+
+[dependencies]
+ratakit-core.workspace = true
+ratakit-text.workspace = true
+ratatui-core.workspace = true
+ratatui-widgets.workspace = true

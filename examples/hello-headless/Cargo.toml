@@ -1,0 +1,12 @@
+[package]
+name = "hello-headless"
+version = "0.0.0"
+edition = "2024"
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+ratakit-core = { path = "../../crates/ratakit-core" }
+ratakit-testing = { path = "../../crates/ratakit-testing" }
+ratatui = { workspace = true }
+ratatui-widgets = { workspace = true }
