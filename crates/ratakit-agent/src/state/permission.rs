@@ -18,6 +18,7 @@ pub enum PermissionIntent {
 /// Identifier for a permission option (maps to ACP outcomes in the adapter).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 pub struct PermissionOptionId(pub String);
 
 impl PermissionOptionId {
@@ -38,6 +39,7 @@ pub struct PermissionOption {
 
 /// Tool call the user is asked to approve or deny.
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct PermissionRequest {
     pub tool_call: ToolCall,
     pub options: Vec<PermissionOption>,

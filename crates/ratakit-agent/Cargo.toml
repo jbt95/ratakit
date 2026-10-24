@@ -89,3 +89,8 @@ required-features = ["widgets"]
 name = "transcript_scroll"
 path = "tests/transcript_scroll.rs"
 required-features = ["widgets"]
+
+[[test]]
+name = "agent_layout_snapshots"
+path = "tests/agent_layout_snapshots.rs"
+required-features = ["widgets"]

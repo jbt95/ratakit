@@ -1,0 +1,9 @@
+{"await_submit":true}
+{"AssistantDelta":{"id":"a1","text":"Hello from **mock-agent**!"}}
+{"AssistantDelta":{"id":"a1","text":" Streaming works."}}
+{"MessageDone":{"id":"a1"}}
+{"TurnEnded":{"reason":"EndTurn"}}
+{"await_submit":true}
+{"AssistantDelta":{"id":"a2","text":"Thanks — scripted turn two."}}
+{"MessageDone":{"id":"a2"}}
+{"TurnEnded":{"reason":"EndTurn"}}

@@ -88,6 +88,16 @@ impl TranscriptState {
         &self.model_choices
     }
 
+    /// Latest plan cell in the transcript, if any.
+    pub fn current_plan(&self) -> Option<&Plan> {
+        self.plan_cell.and_then(|idx| {
+            self.cells.get(idx).and_then(|cell| match cell {
+                Cell::Plan(plan) => Some(plan),
+                _ => None,
+            })
+        })
+    }
+
     /// All transcript cells in order.
     pub fn cells(&self) -> &[Cell] {
         &self.cells

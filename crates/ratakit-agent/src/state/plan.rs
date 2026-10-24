@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 /// Stable id for a plan entry.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 pub struct PlanEntryId(pub String);
 
 impl PlanEntryId {

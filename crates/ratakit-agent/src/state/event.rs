@@ -1,5 +1,8 @@
 //! Inbound agent events (protocol-neutral).
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 use super::ids::{MessageId, ToolCallId};
 use super::model::ModelChoice;
 use super::plan::Plan;
@@ -9,6 +12,7 @@ use super::usage::{ModeId, Usage};
 
 /// Single entry point for transcript updates from any agent backend.
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum AgentEvent {
     UserMessage {
         id: MessageId,

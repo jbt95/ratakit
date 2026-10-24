@@ -1,0 +1,4 @@
+{"await_submit":true}
+{"ToolCallStarted":{"id":"edit-1","title":"Edit src/lib.rs","kind":"Edit","status":"InProgress","locations":["src/lib.rs"],"content":[{"type":"text","text":"fn helper() {}\n"}]}}
+{"permission":{"tool_call":{"id":"edit-1","title":"Apply patch","kind":"Edit","status":"Pending","locations":["src/lib.rs"],"content":[{"type":"diff","path":"src/lib.rs","old_text":"fn helper() {}\n","new_text":"fn helper() -> i32 { 1 }\n"}]},"options":[{"id":"allow_once","label":"Allow once","persistent":false},{"id":"reject_once","label":"Reject","persistent":false}]}}
+{"TurnEnded":{"reason":"EndTurn"}}

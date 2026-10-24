@@ -79,3 +79,12 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo build -p gallery --quiet
       - run: RATAKIT_GALLERY_HEADLESS=1 cargo run -p gallery --quiet
+
+  mock-agent-headless:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.88.0
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build -p mock-agent --quiet
+      - run: RATAKIT_MOCK_HEADLESS=1 cargo run -p mock-agent --quiet

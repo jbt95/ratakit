@@ -1,0 +1,46 @@
+---
+source: crates/ratakit-agent/tests/agent_layout_snapshots.rs
+expression: compact_layout_snapshot(rendered)
+---
+› Explain ratakit AgentLayout                  ▲
+◆                                              █
+AgentLayout composes transcript, composer, and █
+overlays.                                      █
+✓ Wire layout                                  █
+◉ Add mock-agent                               █
+                                               ║
+                                               ║
+                                               ║
+                                               ▼
+╭composer──────────────────────────────────────╮
+│Type a message… (Tab: focus, Ctrl+M: model)   │
+╰──────────────────────────────────────────────╯
+             ██░░░░░░ 35%              mode auto
+--- styles ---
+(0,0): fg=rgb(137,180,250) bg=Reset
+(1,0): fg=rgb(137,180,250) bg=Reset
+(2,0): fg=rgb(137,180,250) bg=Reset
+(3,0): fg=rgb(137,180,250) bg=Reset
+(4,0): fg=rgb(137,180,250) bg=Reset
+(5,0): fg=rgb(137,180,250) bg=Reset
+(6,0): fg=rgb(137,180,250) bg=Reset
+(7,0): fg=rgb(137,180,250) bg=Reset
+(8,0): fg=rgb(137,180,250) bg=Reset
+(9,0): fg=rgb(137,180,250) bg=Reset
+(10,0): fg=rgb(137,180,250) bg=Reset
+(11,0): fg=rgb(137,180,250) bg=Reset
+(12,0): fg=rgb(137,180,250) bg=Reset
+(13,0): fg=rgb(137,180,250) bg=Reset
+(14,0): fg=rgb(137,180,250) bg=Reset
+(15,0): fg=rgb(137,180,250) bg=Reset
+(16,0): fg=rgb(137,180,250) bg=Reset
+(17,0): fg=rgb(137,180,250) bg=Reset
+(18,0): fg=rgb(137,180,250) bg=Reset
+(19,0): fg=rgb(137,180,250) bg=Reset
+(20,0): fg=rgb(137,180,250) bg=Reset
+(21,0): fg=rgb(137,180,250) bg=Reset
+(22,0): fg=rgb(137,180,250) bg=Reset
+(23,0): fg=rgb(137,180,250) bg=Reset
+(24,0): fg=rgb(137,180,250) bg=Reset
+…
+(47,13): fg=rgb(205,214,244) bg=rgb(30,30,46)
