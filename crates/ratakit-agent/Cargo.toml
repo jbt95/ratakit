@@ -71,6 +71,11 @@ path = "tests/permission_prompt_snapshots.rs"
 required-features = ["widgets"]
 
 [[test]]
+name = "usage_plan_snapshots"
+path = "tests/usage_plan_snapshots.rs"
+required-features = ["widgets"]
+
+[[test]]
 name = "transcript_snapshots"
 path = "tests/transcript_snapshots.rs"
 required-features = ["widgets"]

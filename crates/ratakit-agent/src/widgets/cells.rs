@@ -4,10 +4,10 @@ use crate::state::{
     AssistantCell, Cell, ErrorCell, Level, NoticeCell, Plan, ThinkingCell, ToolCallCell, UserCell,
 };
 use crate::widgets::extras::{
-    PlaceholderPlanRenderer, PlaceholderToolCallRenderer, PlanCellRenderer, ToolCallCellRenderer,
-    TranscriptExtras, label_line, render_wrapped_lines, thinking_summary, user_plain_text,
-    wrapped_line_count,
+    PlaceholderToolCallRenderer, ToolCallCellRenderer, TranscriptExtras, label_line,
+    render_wrapped_lines, thinking_summary, user_plain_text, wrapped_line_count,
 };
+use crate::widgets::plan_view::{plan_cell_height, render_plan_cell};
 use ratakit_core::Theme;
 use ratakit_text::Highlighter;
 use ratakit_widgets::semantic_to_color;
@@ -55,7 +55,7 @@ pub(crate) fn measure_cell(
         Cell::Assistant(a) => measure_assistant(a, width, theme),
         Cell::Thinking(t) => measure_thinking(t, width, theme),
         Cell::ToolCall(tc) => measure_tool_call(tc, width, extras),
-        Cell::Plan(p) => measure_plan(p, width, extras),
+        Cell::Plan(p) => measure_plan(p, width, theme, extras),
         Cell::Notice(n) => measure_notice(n, width),
         Cell::Error(e) => measure_error(e, width),
     }
@@ -77,7 +77,7 @@ pub(crate) fn render_cell(
         Cell::Assistant(a) => render_assistant(a, area, buf, skip_top, theme),
         Cell::Thinking(t) => render_thinking(t, area, buf, skip_top, theme),
         Cell::ToolCall(tc) => render_tool_call(tc, area, buf, skip_top, extras),
-        Cell::Plan(p) => render_plan(p, area, buf, skip_top, extras),
+        Cell::Plan(p) => render_plan(p, area, buf, skip_top, theme, extras),
         Cell::Notice(n) => render_notice(n, area, buf, skip_top, theme),
         Cell::Error(e) => render_error(e, area, buf, skip_top, theme),
     }
@@ -183,11 +183,11 @@ fn render_tool_call(
     }
 }
 
-fn measure_plan(plan: &Plan, width: u16, extras: TranscriptExtras<'_>) -> u16 {
+fn measure_plan(plan: &Plan, width: u16, theme: &Theme, extras: TranscriptExtras<'_>) -> u16 {
     if let Some(r) = extras.plan {
         r.height(plan, width)
     } else {
-        PlaceholderPlanRenderer.height(plan, width)
+        plan_cell_height(plan, width, theme.glyphs)
     }
 }
 
@@ -196,12 +196,13 @@ fn render_plan(
     area: Rect,
     buf: &mut Buffer,
     skip_top: u16,
+    theme: &Theme,
     extras: TranscriptExtras<'_>,
 ) {
     if let Some(r) = extras.plan {
         r.render(plan, area, buf, skip_top);
     } else {
-        PlaceholderPlanRenderer.render(plan, area, buf, skip_top);
+        render_plan_cell(plan, theme, area, buf, skip_top);
     }
 }
 

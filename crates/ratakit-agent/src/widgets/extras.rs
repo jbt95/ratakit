@@ -21,7 +21,7 @@ pub trait ToolCallCellRenderer {
     fn render(&self, cell: &ToolCallCell, area: Rect, buf: &mut Buffer, skip_top: u16);
 }
 
-/// Renders a [`Plan`] transcript cell (see milestone A7).
+/// Overrides default plan transcript rendering ([`super::plan_view::render_plan_cell`]).
 pub trait PlanCellRenderer {
     fn height(&self, plan: &Plan, width: u16) -> u16;
     fn render(&self, plan: &Plan, area: Rect, buf: &mut Buffer, skip_top: u16);
@@ -49,46 +49,6 @@ impl ToolCallCellRenderer for PlaceholderToolCallRenderer {
     }
 }
 
-/// Simple placeholder until `PlanView` lands (A7).
-#[derive(Debug, Clone, Copy, Default)]
-pub struct PlaceholderPlanRenderer;
-
-impl PlanCellRenderer for PlaceholderPlanRenderer {
-    fn height(&self, plan: &Plan, width: u16) -> u16 {
-        if plan.entries.is_empty() {
-            return 1;
-        }
-        let lines: Vec<String> = plan
-            .entries
-            .iter()
-            .map(|e| format!("- [{}] {}", plan_status_char(e.status), e.title))
-            .collect();
-        lines
-            .iter()
-            .map(|l| wrapped_line_count(l, width))
-            .sum::<u16>()
-            .max(1)
-    }
-
-    fn render(&self, plan: &Plan, area: Rect, buf: &mut Buffer, skip_top: u16) {
-        let lines: Vec<String> = if plan.entries.is_empty() {
-            vec!["(empty plan)".into()]
-        } else {
-            plan.entries
-                .iter()
-                .map(|e| format!("- [{}] {}", plan_status_char(e.status), e.title))
-                .collect()
-        };
-        render_wrapped_lines(
-            &lines.iter().map(String::as_str).collect::<Vec<_>>(),
-            area,
-            buf,
-            skip_top,
-            Style::default(),
-        );
-    }
-}
-
 fn placeholder_tool_line(cell: &ToolCallCell) -> String {
     let title = if cell.call.title.is_empty() {
         "(tool)"
@@ -108,15 +68,6 @@ fn tool_status_label(status: ToolStatus) -> &'static str {
         ToolStatus::Completed => "done",
         ToolStatus::Failed => "failed",
         ToolStatus::Cancelled => "cancelled",
-    }
-}
-
-fn plan_status_char(status: crate::state::PlanEntryStatus) -> char {
-    use crate::state::PlanEntryStatus;
-    match status {
-        PlanEntryStatus::Pending => ' ',
-        PlanEntryStatus::InProgress => '>',
-        PlanEntryStatus::Completed => 'x',
     }
 }
 

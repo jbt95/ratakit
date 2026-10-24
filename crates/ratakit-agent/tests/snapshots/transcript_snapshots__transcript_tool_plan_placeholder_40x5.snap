@@ -3,8 +3,8 @@ source: crates/ratakit-agent/tests/transcript_snapshots.rs
 expression: rendered
 ---
 [tool read_file · running]             ▲
-- [x] Scan repo                        █
-- [>] Fix tests                        █
+✓ Scan repo                            █
+◉ Fix tests                            █
                                        ║
                                        ▼
 --- styles ---
@@ -47,17 +47,17 @@ expression: rendered
 (36,0): fg=rgb(205,214,244) bg=Reset
 (37,0): fg=rgb(205,214,244) bg=Reset
 (38,0): fg=rgb(205,214,244) bg=Reset
-(0,1): fg=rgb(205,214,244) bg=Reset
-(1,1): fg=rgb(205,214,244) bg=Reset
-(2,1): fg=rgb(205,214,244) bg=Reset
-(3,1): fg=rgb(205,214,244) bg=Reset
-(4,1): fg=rgb(205,214,244) bg=Reset
-(5,1): fg=rgb(205,214,244) bg=Reset
-(6,1): fg=rgb(205,214,244) bg=Reset
-(7,1): fg=rgb(205,214,244) bg=Reset
-(8,1): fg=rgb(205,214,244) bg=Reset
-(9,1): fg=rgb(205,214,244) bg=Reset
-(10,1): fg=rgb(205,214,244) bg=Reset
+(0,1): fg=rgb(166,227,161) bg=Reset
+(1,1): fg=rgb(166,227,161) bg=Reset
+(2,1): fg=rgb(166,227,161) bg=Reset
+(3,1): fg=rgb(166,227,161) bg=Reset
+(4,1): fg=rgb(166,227,161) bg=Reset
+(5,1): fg=rgb(166,227,161) bg=Reset
+(6,1): fg=rgb(166,227,161) bg=Reset
+(7,1): fg=rgb(166,227,161) bg=Reset
+(8,1): fg=rgb(166,227,161) bg=Reset
+(9,1): fg=rgb(166,227,161) bg=Reset
+(10,1): fg=rgb(166,227,161) bg=Reset
 (11,1): fg=rgb(205,214,244) bg=Reset
 (12,1): fg=rgb(205,214,244) bg=Reset
 (13,1): fg=rgb(205,214,244) bg=Reset
@@ -86,8 +86,8 @@ expression: rendered
 (36,1): fg=rgb(205,214,244) bg=Reset
 (37,1): fg=rgb(205,214,244) bg=Reset
 (38,1): fg=rgb(205,214,244) bg=Reset
-(0,2): fg=rgb(205,214,244) bg=Reset
-(1,2): fg=rgb(205,214,244) bg=Reset
+(0,2): fg=rgb(137,180,250) bg=Reset
+(1,2): fg=rgb(137,180,250) bg=Reset
 (2,2): fg=rgb(205,214,244) bg=Reset
 (3,2): fg=rgb(205,214,244) bg=Reset
 (4,2): fg=rgb(205,214,244) bg=Reset
