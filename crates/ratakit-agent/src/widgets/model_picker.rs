@@ -139,9 +139,7 @@ impl ModelPickerState {
         let model = choice.model.clone();
         let effort = choice.effort;
         self.picker.select_matching_item(|row| {
-            row.provider == provider
-                && row.model == model
-                && row_matches_choice_effort(row, effort)
+            row.provider == provider && row.model == model && row_matches_choice_effort(row, effort)
         });
         self.refresh_current_markers();
     }
