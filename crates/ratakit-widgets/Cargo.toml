@@ -10,6 +10,7 @@ authors.workspace = true
 
 [features]
 default = []
+markdown = ["ratakit-text/markdown"]
 highlight-syntect = ["ratakit-text/highlight-syntect"]
 crossterm = ["dep:crossterm"]
 tokio = ["crossterm", "dep:tokio", "dep:futures-util"]
@@ -28,8 +29,13 @@ futures-util = { workspace = true, optional = true }
 ratakit-testing.workspace = true
 ratatui.workspace = true
 insta.workspace = true
-ratakit-text = { workspace = true, features = ["highlight-syntect"] }
+proptest.workspace = true
+ratakit-text = { workspace = true, features = ["highlight-syntect", "markdown"] }
 tokio = { workspace = true, features = ["macros", "rt", "test-util", "time"] }
+
+[[test]]
+name = "markdown_snapshots"
+required-features = ["markdown", "highlight-syntect"]
 
 [[example]]
 name = "textarea_headless"

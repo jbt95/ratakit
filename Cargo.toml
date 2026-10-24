@@ -32,6 +32,8 @@ ratakit-testing = { path = "crates/ratakit-testing", version = "0.0.0" }
 unicode-width = "0.2.2"
 unicode-segmentation = "1.13.3"
 textwrap = { version = "0.16.4", default-features = false }
+pulldown-cmark = "0.13.0"
+proptest = "1.9.0"
 syntect = { version = "5.3.0", default-features = false, features = ["default-fancy"] }
 two-face = { version = "0.5.2", default-features = false, features = ["syntect-default-fancy"] }
 thiserror = "2.0.21"

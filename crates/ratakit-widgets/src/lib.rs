@@ -10,6 +10,8 @@ mod code_block;
 mod crossterm;
 mod dialog;
 mod key_hints;
+#[cfg(feature = "markdown")]
+mod markdown;
 mod spinner;
 mod status_bar;
 mod style;
@@ -34,6 +36,8 @@ pub use tokio::{FrameScheduler, event_stream};
 pub use code_block::{CodeBlock, CodeBlockState};
 pub use dialog::{ConfirmDialog, Dialog, DialogButton, Modal};
 pub use key_hints::KeyHints;
+#[cfg(feature = "markdown")]
+pub use markdown::{Markdown, MarkdownState};
 pub use ratakit_core::{DialogIntent, DialogState, SortDirection, TableState, TabsState};
 pub use spinner::Spinner;
 pub use status_bar::{StatusBar, StatusSegment, StatusZone};

@@ -12,11 +12,11 @@ use ratakit::core::{
     ActionLabels, Component, Event, FuzzyFilter, KeyCode, Keymap, KeymapPreset, ListState, Motion,
     MotionMode, TableState, TabsState, Theme, Toast, ToastLevel, ToastQueue, key_hints_from_keymap,
 };
-use ratakit::text::{LangId, SyntectHighlighter};
+use ratakit::text::{LangId, MarkdownOptions, SyntectHighlighter};
 use ratakit::widgets::{
-    CodeBlock, CodeBlockState, ConfirmDialog, DialogState, FrameScheduler, KeyHints, RowRenderer,
-    Spinner, StatusBar, StatusSegment, TabItem as WidgetTabItem, Table, TableColumn, Tabs,
-    TextArea, TextAreaState, Toasts, VirtualList, enter_terminal, event_stream,
+    CodeBlock, CodeBlockState, ConfirmDialog, DialogState, FrameScheduler, KeyHints, Markdown,
+    MarkdownState, RowRenderer, Spinner, StatusBar, StatusSegment, TabItem as WidgetTabItem, Table,
+    TableColumn, Tabs, TextArea, TextAreaState, Toasts, VirtualList, enter_terminal, event_stream,
 };
 use ratakit_testing::render_stateful;
 use ratatui::Terminal;
@@ -24,7 +24,25 @@ use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::widgets::StatefulWidget;
 use ratatui_crossterm::CrosstermBackend;
 
-const GALLERY_TABS: [&str; 6] = ["Input", "List", "Code", "Chrome", "Data", "Fuzzy"];
+const GALLERY_TABS: [&str; 7] = [
+    "Input", "List", "Code", "Markdown", "Chrome", "Data", "Fuzzy",
+];
+
+fn gallery_markdown_sample() -> String {
+    [
+        "# ratakit gallery",
+        "",
+        "Streaming **markdown** with `code` and lists:",
+        "",
+        "- TextArea on tab 1",
+        "- VirtualList on tab 2",
+        "",
+        "```rust",
+        "println!(\"hello\");",
+        "```",
+    ]
+    .join("\n")
+}
 
 struct DemoRows {
     labels: Vec<String>,
@@ -88,6 +106,7 @@ struct App {
     list_rows: DemoRows,
     list_state: ListState,
     code: CodeBlockState,
+    markdown: MarkdownState,
     motion: Motion,
     toasts: ToastQueue,
     dialog: DialogState,
@@ -122,6 +141,10 @@ impl App {
         code.set_source("fn main() {\n    println!(\"hello\");\n}\n");
         code.set_language(LangId("Rust".to_string()));
 
+        let mut markdown = MarkdownState::new(MarkdownOptions::default());
+        markdown.push_delta(&gallery_markdown_sample());
+        markdown.finish();
+
         let mut toasts = ToastQueue::new();
         toasts.push(Toast::persistent(
             "Welcome to the gallery",
@@ -152,6 +175,7 @@ impl App {
             ]),
             list_state: ListState::new(),
             code,
+            markdown,
             motion: Motion::new(),
             toasts,
             dialog: DialogState::new(),
@@ -219,7 +243,7 @@ impl App {
             1 => {
                 let _ = self.list_state.handle(ev, &self.keys);
             }
-            5 => {
+            6 => {
                 if let Event::Key(key) = ev {
                     if key.kind == ratakit::core::KeyEventKind::Press {
                         match key.code {
@@ -305,6 +329,10 @@ impl App {
                 widget.render(chunks[1], frame.buffer_mut(), &mut self.code);
             }
             3 => {
+                let widget = Markdown::new(&self.theme, &self.highlighter);
+                widget.render(chunks[1], frame.buffer_mut(), &mut self.markdown);
+            }
+            4 => {
                 let inner = Layout::default()
                     .direction(Direction::Vertical)
                     .constraints([
@@ -337,7 +365,7 @@ impl App {
                 );
                 Toasts::new(&self.theme).render(inner[3], frame.buffer_mut(), &mut self.toasts);
             }
-            4 => {
+            5 => {
                 let inner = Layout::default()
                     .direction(Direction::Vertical)
                     .constraints([Constraint::Length(3), Constraint::Min(3)])
@@ -373,7 +401,7 @@ impl App {
                     &mut self.table,
                 );
             }
-            5 => {
+            6 => {
                 use ratatui::style::Style;
                 use ratatui::text::Line;
                 use ratatui::widgets::Paragraph;
@@ -393,7 +421,7 @@ impl App {
         }
 
         let footer = format!(
-            "Tab/1-6: sections · m: modal · q: quit · motion: {}",
+            "Tab/1-7: sections · m: modal · q: quit · motion: {}",
             match self.theme.motion {
                 MotionMode::Full => "full",
                 MotionMode::Reduced => "reduced",
@@ -426,6 +454,7 @@ fn run_headless() {
     let mut tabs_state = app.gallery_tab.clone();
     let snapshot = render_stateful(tabs, 80, 3, &mut tabs_state);
     assert!(snapshot.contains("Input"));
+    assert!(snapshot.contains("Markdown"));
     assert!(snapshot.contains("Fuzzy"));
     println!("ok: gallery headless snapshot {} bytes", snapshot.len());
 }
