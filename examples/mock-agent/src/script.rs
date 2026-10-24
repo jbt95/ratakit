@@ -70,7 +70,7 @@ fn parse_line(line: &str) -> Result<ReplayStep, String> {
     Ok(ReplayStep::Event(event))
 }
 
-/// Drives phased replay against [`AgentLayoutState`].
+/// Drives phased replay against the mock app's layout state.
 #[derive(Debug)]
 pub struct ScriptDriver {
     script: ReplayScript,
