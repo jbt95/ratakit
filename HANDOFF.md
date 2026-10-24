@@ -4,7 +4,8 @@ Project status as of October 24, 2026, and the remaining work toward 0.1.0. The 
 
 ## Current status
 
-Milestones 0–3 are complete and merged into `main`. CI is green.
+Milestones 0–3 are complete. C1 and C2 are implemented on the current branch; the
+ACP example build and headless smoke paths pass locally.
 
 | Milestone | Scope | PRs |
 |---|---|---|
@@ -20,7 +21,10 @@ Milestones 0–3 are complete and merged into `main`. CI is green.
 ```sh
 cargo run -p gallery       # Generic components, organized into tabs
 cargo run -p mock-agent    # The agent layout replaying .jsonl scripts
+cargo run -p claude-acp    # Requires Node.js/npm; starts Claude Code's ACP adapter
+cargo run -p opencode-acp  # Requires OpenCode installed
 RATAKIT_INLINE=1 cargo run -p mock-agent   # Opt-in inline mode
+RATAKIT_INLINE=1 cargo run -p opencode-acp # Opt-in inline mode for an ACP example
 ```
 
 ## Remaining tasks
@@ -35,7 +39,7 @@ Each row represents one PR. Independent work may proceed in parallel.
   - Send prompts, cancellations, and model or mode changes.
   - Test against a fake ACP agent over an in-memory transport, without network access.
   - Keep the crate free of ratatui dependencies so a review client such as revu can reuse it.
-- [ ] **C2. `examples/claude-acp` and `examples/opencode-acp`.** Depends on C1 and A8.
+- [x] **C2. `examples/claude-acp` and `examples/opencode-acp`.** Depends on C1 and A8.
   - Build a shared app of about 100 lines that launches an agent over stdio and renders it with `AgentLayout`; each example changes only the launch command.
   - CI must compile the examples but must not launch the real agents.
 - [ ] **C3. Recorded scripts and benchmarks.** Depends on C2.
@@ -63,7 +67,7 @@ Each row represents one PR. Independent work may proceed in parallel.
 
 ## Conventions and lessons
 
-- **CI (9 checks):** `fmt`, `clippy` (with `-D warnings`), `test`, `msrv` (1.88), `deny`, `docs`, `hello-headless`, `gallery-headless`, and `mock-agent-headless`. Do not rename existing checks; new jobs are fine.
+- **CI (10 checks):** `fmt`, `clippy` (with `-D warnings`), `test`, `msrv` (1.88), `deny`, `docs`, `hello-headless`, `gallery-headless`, `mock-agent-headless`, and `acp-examples`. Do not rename existing checks; new jobs are fine.
 - **Merge:** squash-merge when CI is green and the branch is up to date with `main`.
 - **Parallel PRs:** changes often overlap in `widgets/mod.rs`, `lib.rs`, `state/mod.rs`, and `Cargo.toml`. After each merge, branches must merge `main` and preserve existing modules and exports. Resolve conflicts by merging `main`, not by requesting approval.
 - **Composable modules:** each component should expose render functions or traits from its own module (for example, `render_tool_call_card` and `render_plan_cell`) so other work can use it without editing its files.

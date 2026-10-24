@@ -1,0 +1,23 @@
+[package]
+name = "acp-example-app"
+description = "Shared AgentLayout application for ratakit ACP examples"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+ratakit = { path = "../../crates/ratakit", default-features = false, features = [
+    "acp",
+    "widgets",
+    "markdown",
+    "highlight-syntect",
+    "diff",
+    "fuzzy",
+    "crossterm",
+] }
+ratakit-testing = { path = "../../crates/ratakit-testing" }
+ratatui.workspace = true
+ratatui-crossterm.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
+futures-util = { workspace = true, features = ["std"] }

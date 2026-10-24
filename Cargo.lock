@@ -3,6 +3,18 @@
 version = 4
 
 [[package]]
+name = "acp-example-app"
+version = "0.0.0"
+dependencies = [
+ "futures-util",
+ "ratakit",
+ "ratakit-testing",
+ "ratatui",
+ "ratatui-crossterm",
+ "tokio",
+]
+
+[[package]]
 name = "adler2"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -421,6 +433,15 @@ dependencies = [
  "num-traits",
  "serde",
  "windows-link",
+]
+
+[[package]]
+name = "claude-acp"
+version = "0.0.0"
+dependencies = [
+ "acp-example-app",
+ "ratakit",
+ "tokio",
 ]
 
 [[package]]
@@ -1472,6 +1493,15 @@ checksum = "1e68317604e77e53b85896388e1a803c1d21b74c899ec9e5e1112db90735edd7"
 dependencies = [
  "cc",
  "pkg-config",
+]
+
+[[package]]
+name = "opencode-acp"
+version = "0.0.0"
+dependencies = [
+ "acp-example-app",
+ "ratakit",
+ "tokio",
 ]
 
 [[package]]

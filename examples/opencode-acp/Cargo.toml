@@ -1,0 +1,12 @@
+[package]
+name = "opencode-acp"
+description = "Ratakit AgentLayout driven by OpenCode over ACP"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+acp-example-app = { path = "../acp-app" }
+ratakit = { path = "../../crates/ratakit", default-features = false, features = ["acp"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

@@ -11,6 +11,9 @@ members = [
     "examples/hello-headless",
     "examples/gallery",
     "examples/mock-agent",
+    "examples/acp-app",
+    "examples/claude-acp",
+    "examples/opencode-acp",
 ]
 default-members = ["crates/ratakit"]
 
