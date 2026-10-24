@@ -60,3 +60,13 @@ pub fn assert_stateful_widget_snapshot<W: StatefulWidget>(
     let rendered = render_stateful(widget, width, height, state);
     insta::assert_snapshot!(name, rendered);
 }
+
+/// Alias for [`render_stateful`] with `(widget, state, width, height)` argument order.
+pub fn render_stateful_widget<W: StatefulWidget>(
+    widget: W,
+    state: &mut W::State,
+    width: u16,
+    height: u16,
+) -> String {
+    render_stateful(widget, width, height, state)
+}

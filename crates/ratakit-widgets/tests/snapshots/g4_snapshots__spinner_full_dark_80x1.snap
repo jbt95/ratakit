@@ -1,0 +1,15 @@
+---
+source: crates/ratakit-widgets/tests/g4_snapshots.rs
+expression: rendered
+---
+⠋ Loading                                                                       
+--- styles ---
+(0,0): fg=rgb(137,180,250) bg=Reset bold
+(1,0): fg=rgb(137,180,250) bg=Reset bold
+(2,0): fg=rgb(205,214,244) bg=Reset
+(3,0): fg=rgb(205,214,244) bg=Reset
+(4,0): fg=rgb(205,214,244) bg=Reset
+(5,0): fg=rgb(205,214,244) bg=Reset
+(6,0): fg=rgb(205,214,244) bg=Reset
+(7,0): fg=rgb(205,214,244) bg=Reset
+(8,0): fg=rgb(205,214,244) bg=Reset
