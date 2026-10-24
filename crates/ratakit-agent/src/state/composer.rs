@@ -553,18 +553,11 @@ fn collect_attachments(buffer: &TextBuffer) -> Vec<Attachment> {
         .atoms()
         .iter()
         .filter_map(|atom| match &atom.kind {
-            AtomKind::Attachment { label } => {
-                let lower = label.to_ascii_lowercase();
-                Some(Attachment {
-                    label: label.clone(),
-                    path: None,
-                    image: lower.ends_with(".png")
-                        || lower.ends_with(".jpg")
-                        || lower.ends_with(".jpeg")
-                        || lower.ends_with(".gif")
-                        || lower.ends_with(".webp"),
-                })
-            }
+            AtomKind::Attachment { label } => Some(Attachment {
+                label: label.clone(),
+                path: None,
+                image: is_image_attachment_label(label),
+            }),
             _ => None,
         })
         .collect()
@@ -584,6 +577,18 @@ fn file_completion_items(files: &dyn FileIndex, query: &str) -> Vec<CompletionIt
             )
         })
         .collect()
+}
+
+fn is_image_attachment_label(label: &str) -> bool {
+    std::path::Path::new(label)
+        .extension()
+        .is_some_and(|ext| {
+            ext.eq_ignore_ascii_case("png")
+                || ext.eq_ignore_ascii_case("jpg")
+                || ext.eq_ignore_ascii_case("jpeg")
+                || ext.eq_ignore_ascii_case("gif")
+                || ext.eq_ignore_ascii_case("webp")
+        })
 }
 
 fn catalog_changed(current: &[CompletionItem], next: &[CompletionItem]) -> bool {
