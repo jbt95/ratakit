@@ -15,16 +15,18 @@ use ratakit::agent::state::{
 use ratakit::agent::widgets::{ModelPicker, ModelPickerState};
 use ratakit::agent::{PlanView, UsageBar};
 use ratakit::core::{
-    ActionLabels, Component, Event, KeyCode, Keymap, KeymapPreset, ListState, Motion, MotionMode,
-    PickerSection, TableState, TabsState, Theme, Toast, ToastLevel, ToastQueue,
-    key_hints_from_keymap,
+    ActionLabels, CheckboxState, Component, Event, KeyCode, Keymap, KeymapPreset, ListState,
+    Motion, MotionMode, PickerSection, RadioGroupState, SelectState, SwitchState, TableState,
+    TabsState, Theme, Toast, ToastLevel, ToastQueue, key_hints_from_keymap,
 };
 use ratakit::text::{DiffModel, LangId, MarkdownOptions, SyntectHighlighter};
 use ratakit::widgets::{
-    CodeBlock, CodeBlockState, ConfirmDialog, DialogState, DiffView, DiffViewState, FrameScheduler,
-    FuzzyPicker, KeyHints, Markdown, MarkdownState, PickerItem, PickerState, RowRenderer, Spinner,
-    StatusBar, StatusSegment, TabItem as WidgetTabItem, Table, TableColumn, Tabs, TextArea,
-    TextAreaState, Toasts, Tree, VirtualList, enter_terminal, event_stream,
+    Badge, Button, ButtonSize, Card, Checkbox, CodeBlock, CodeBlockState, CommandPalette,
+    ConfirmDialog, DialogState, DiffView, DiffViewState, FrameScheduler, KeyHints, Markdown,
+    MarkdownState, Orientation, PickerItem, PickerState, Progress, RadioGroup, RowRenderer, Select,
+    SelectOption, Separator, Skeleton, Spinner, StatusBar, StatusSegment, Switch,
+    TabItem as WidgetTabItem, Table, TableColumn, Tabs, TextArea, TextAreaState, Toasts, Tree,
+    Variant, VirtualList, enter_terminal, event_stream,
 };
 use ratakit::widgets::{TreeSource, TreeState};
 use ratakit_testing::render_stateful;
@@ -33,9 +35,9 @@ use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::widgets::StatefulWidget;
 use ratatui_crossterm::CrosstermBackend;
 
-const GALLERY_TABS: [&str; 11] = [
-    "Input", "List", "Tree", "Code", "Diff", "Markdown", "Chrome", "Data", "Picker", "Models",
-    "Agent",
+const GALLERY_TABS: [&str; 12] = [
+    "Input", "List", "Tree", "Code", "Diff", "Markdown", "Chrome", "Data", "Command", "Models",
+    "Agent", "UI",
 ];
 
 fn gallery_markdown_sample() -> String {
@@ -191,6 +193,11 @@ struct App {
     table: TableState,
     picker: PickerState<GalleryFile>,
     model_picker: ModelPickerState,
+    checkbox: CheckboxState,
+    switch: SwitchState,
+    radio_group: RadioGroupState,
+    select: SelectState,
+    select_options: Vec<SelectOption>,
     hint_labels: ActionLabels,
     highlighter: SyntectHighlighter,
     demo_usage: Usage,
@@ -341,6 +348,25 @@ impl App {
                 picker.open();
                 picker
             },
+            checkbox: CheckboxState::new(true),
+            switch: SwitchState::new(false),
+            radio_group: {
+                let mut state = RadioGroupState::new();
+                state.set_option_count(3);
+                state.select(1);
+                state
+            },
+            select: {
+                let mut state = SelectState::new();
+                state.set_option_count(3);
+                state.select(0);
+                state
+            },
+            select_options: vec![
+                SelectOption::new("System"),
+                SelectOption::new("Dark"),
+                SelectOption::new("Light"),
+            ],
             hint_labels,
             highlighter: SyntectHighlighter,
             demo_usage: Usage {
@@ -403,6 +429,29 @@ impl App {
             10 => {
                 let _ = self.plan_list.handle(ev, &self.keys);
             }
+            11 => {
+                if let Event::Key(key) = ev {
+                    if key.kind == ratakit::core::KeyEventKind::Press {
+                        match key.code {
+                            KeyCode::Char('c') => {
+                                self.checkbox.toggle();
+                            }
+                            KeyCode::Char('s') => {
+                                self.switch.toggle();
+                            }
+                            KeyCode::Char('e') if !self.select.is_open() => {
+                                self.select.open();
+                            }
+                            _ if self.select.is_open() => {
+                                let _ = self.select.handle(ev, &self.keys);
+                            }
+                            _ => {
+                                let _ = self.radio_group.handle(ev, &self.keys);
+                            }
+                        }
+                    }
+                }
+            }
             _ => {}
         }
 
@@ -418,6 +467,9 @@ impl App {
                     }
                     KeyCode::Char('a') | KeyCode::Char('A') => {
                         self.gallery_tab.select(10);
+                    }
+                    KeyCode::Char('u') | KeyCode::Char('U') => {
+                        self.gallery_tab.select(11);
                     }
                     KeyCode::Char(c) if c.is_ascii_digit() => {
                         let idx = (c as u8 - b'1') as usize;
@@ -559,7 +611,7 @@ impl App {
                 );
             }
             8 => {
-                let widget = FuzzyPicker::new("Open file", &self.theme).preview(true);
+                let widget = CommandPalette::new("Open file", &self.theme).preview(true);
                 widget.render(chunks[1], frame.buffer_mut(), &mut self.picker);
             }
             9 => {
@@ -580,16 +632,21 @@ impl App {
                 let plan = PlanView::new(&self.demo_plan, &self.theme).scrollbar(true);
                 plan.render(inner[1], frame.buffer_mut(), &mut self.plan_list);
             }
+            11 => self.draw_components(chunks[1], frame.buffer_mut()),
             _ => {}
         }
 
-        let footer = format!(
-            "Tab/1-9/0/a: sections · m: modal · q: quit · motion: {}",
-            match self.theme.motion {
-                MotionMode::Full => "full",
-                MotionMode::Reduced => "reduced",
-            }
-        );
+        let footer = if self.gallery_tab.selected() == 11 {
+            "c checkbox · s switch · ↑/↓ radio · e select · Enter/↑/↓/Esc menu".to_owned()
+        } else {
+            format!(
+                "Tab/1-9/0/a/u: sections · m: modal · q: quit · motion: {}",
+                match self.theme.motion {
+                    MotionMode::Full => "full",
+                    MotionMode::Reduced => "reduced",
+                }
+            )
+        };
         use ratatui::style::Style;
         use ratatui::widgets::Paragraph;
         ratatui::widgets::Widget::render(
@@ -602,6 +659,121 @@ impl App {
             let dialog = ConfirmDialog::new(&self.theme, "Gallery modal", "Press OK or Cancel.");
             dialog.render(area, frame.buffer_mut(), &mut self.dialog);
         }
+    }
+}
+
+impl App {
+    fn draw_components(&mut self, area: Rect, buf: &mut ratatui::buffer::Buffer) {
+        let sections = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Length(2),
+            Constraint::Length(1),
+            Constraint::Min(5),
+        ])
+        .split(area);
+        let button_areas = Layout::horizontal([
+            Constraint::Length(16),
+            Constraint::Length(16),
+            Constraint::Length(18),
+            Constraint::Length(16),
+            Constraint::Length(12),
+            Constraint::Min(1),
+        ])
+        .split(sections[0]);
+        ratatui::widgets::Widget::render(Button::new(&self.theme, "Save"), button_areas[0], buf);
+        ratatui::widgets::Widget::render(
+            Button::new(&self.theme, "Cancel").variant(Variant::Secondary),
+            button_areas[1],
+            buf,
+        );
+        ratatui::widgets::Widget::render(
+            Button::new(&self.theme, "Delete").variant(Variant::Destructive),
+            button_areas[2],
+            buf,
+        );
+        ratatui::widgets::Widget::render(
+            Button::new(&self.theme, "Focused")
+                .variant(Variant::Outline)
+                .focused(true),
+            button_areas[3],
+            buf,
+        );
+        ratatui::widgets::Widget::render(
+            Button::new(&self.theme, "Disabled")
+                .size(ButtonSize::Small)
+                .disabled(true),
+            button_areas[4],
+            buf,
+        );
+
+        let badge_areas = Layout::horizontal([
+            Constraint::Length(14),
+            Constraint::Length(14),
+            Constraint::Length(16),
+            Constraint::Length(14),
+            Constraint::Min(1),
+        ])
+        .split(sections[1]);
+        ratatui::widgets::Widget::render(Badge::new(&self.theme, "Default"), badge_areas[0], buf);
+        ratatui::widgets::Widget::render(
+            Badge::new(&self.theme, "Secondary").variant(Variant::Secondary),
+            badge_areas[1],
+            buf,
+        );
+        ratatui::widgets::Widget::render(
+            Badge::new(&self.theme, "Destructive").variant(Variant::Destructive),
+            badge_areas[2],
+            buf,
+        );
+        ratatui::widgets::Widget::render(
+            Badge::new(&self.theme, "Outline").variant(Variant::Outline),
+            badge_areas[3],
+            buf,
+        );
+
+        ratatui::widgets::Widget::render(
+            Separator::new(&self.theme).orientation(Orientation::Horizontal),
+            sections[2],
+            buf,
+        );
+
+        let columns = Layout::horizontal([Constraint::Percentage(48), Constraint::Percentage(52)])
+            .split(sections[3]);
+        let controls = Layout::vertical([
+            Constraint::Length(1),
+            Constraint::Length(1),
+            Constraint::Length(4),
+            Constraint::Min(1),
+        ])
+        .split(columns[0]);
+        Checkbox::new(&self.theme, "Email alerts").render(controls[0], buf, &mut self.checkbox);
+        Switch::new(&self.theme, "Compact mode").render(controls[1], buf, &mut self.switch);
+        RadioGroup::new(&self.theme, &["System", "Compact", "Comfortable"]).render(
+            controls[2],
+            buf,
+            &mut self.radio_group,
+        );
+        Select::new(&self.theme, &self.select_options)
+            .placeholder("Choose a theme")
+            .render(controls[3], buf, &mut self.select);
+
+        let card = Card::new(&self.theme).title("Composed surface");
+        let inner = card.inner(columns[1]);
+        ratatui::widgets::Widget::render(card, columns[1], buf);
+        let card_rows = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Length(1),
+            Constraint::Length(1),
+            Constraint::Min(1),
+        ])
+        .split(inner);
+        ratatui::widgets::Widget::render(
+            ratatui::widgets::Paragraph::new("Cards are surfaces, not app shells."),
+            card_rows[0],
+            buf,
+        );
+        ratatui::widgets::Widget::render(Progress::new(&self.theme, 0.72), card_rows[1], buf);
+        ratatui::widgets::Widget::render(Skeleton::new(&self.theme), card_rows[3], buf);
     }
 }
 
@@ -619,11 +791,12 @@ fn run_headless() {
     assert!(snapshot.contains("Tree"));
     assert!(snapshot.contains("Diff"));
     assert!(snapshot.contains("Markdown"));
-    assert!(snapshot.contains("Picker"));
+    assert!(snapshot.contains("Command"));
     assert!(snapshot.contains("Models"));
     assert!(snapshot.contains("Agent"));
+    assert!(snapshot.contains("UI"));
 
-    let picker_widget = FuzzyPicker::new("Open file", &theme).preview(true);
+    let picker_widget = CommandPalette::new("Open file", &theme).preview(true);
     let picker_snapshot = render_stateful(picker_widget, 80, 20, &mut app.picker);
     assert!(picker_snapshot.contains("Open file"));
     assert!(picker_snapshot.contains("src/main.rs"));

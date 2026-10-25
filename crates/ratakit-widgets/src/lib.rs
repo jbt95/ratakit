@@ -1,13 +1,22 @@
-//! Generic ratatui widgets for [ratakit](https://github.com/jbt95/ratakit).
+//! Generic Ratatui widgets for ratakit.
 //!
-//! Widgets are thin [`StatefulWidget`](ratatui_core::widgets::StatefulWidget) views over state in
-//! [`ratakit_core`].
+//! Widgets implement [`Widget`](ratatui_core::widgets::Widget) or
+//! [`StatefulWidget`](ratatui_core::widgets::StatefulWidget); interaction state
+//! lives in [`ratakit_core`]. Keep state and event routing in the application,
+//! render each frame, and translate [`ratakit_core::Outcome`] intents at the app
+//! boundary. This crate does not own the event loop or terminal session.
+//!
+//! Markdown, diff, fuzzy, Crossterm, and Tokio integrations are feature-gated.
+//! Check this crate's feature list when depending on it directly. The umbrella
+//! `ratakit` crate provides a separate feature set; see the
+//! [user guide](https://github.com/jbt95/ratakit/blob/main/docs/USER_GUIDE.md).
 
 #![allow(clippy::must_use_candidate, clippy::return_self_not_must_use)]
 
 mod code_block;
 #[cfg(feature = "fuzzy")]
 mod completion_menu;
+mod controls;
 #[cfg(feature = "crossterm")]
 mod crossterm;
 mod dialog;
@@ -18,6 +27,7 @@ mod fuzzy_picker;
 mod key_hints;
 #[cfg(feature = "markdown")]
 mod markdown;
+mod primitives;
 mod scroll_view;
 mod spinner;
 mod status_bar;
@@ -44,17 +54,26 @@ pub use tokio::{FrameScheduler, event_stream};
 pub use code_block::{CodeBlock, CodeBlockState};
 #[cfg(feature = "fuzzy")]
 pub use completion_menu::{CompletionMenu, CompletionMenuLayout, CompletionMenuState};
+pub use controls::{Checkbox, RadioGroup, Select, SelectOption, Switch};
 pub use dialog::{ConfirmDialog, Dialog, DialogButton, Modal};
 #[cfg(feature = "diff")]
 pub use diff_view::{DiffMode, DiffView, DiffViewState};
 #[cfg(feature = "fuzzy")]
 pub use fuzzy_picker::FuzzyPicker;
+/// Command-palette name for the existing fuzzy picker implementation.
+#[cfg(feature = "fuzzy")]
+pub type CommandPalette<'a, T> = fuzzy_picker::FuzzyPicker<'a, T>;
 pub use key_hints::KeyHints;
 #[cfg(feature = "markdown")]
 pub use markdown::{Markdown, MarkdownState};
+pub use primitives::{
+    Badge, Button, ButtonSize, Card, Orientation, Progress, Separator, Skeleton, Variant,
+};
 pub use ratakit_core::{
-    DialogIntent, DialogState, FlatTreeRow, ScrollLayoutHint, ScrollState, SortDirection,
-    TableState, TabsState, TreeIntent, TreePath, TreeRowSizing, TreeSource, TreeState,
+    CheckboxState, DialogIntent, DialogState, FlatTreeRow, RadioGroupIntent, RadioGroupState,
+    ScrollLayoutHint, ScrollState, SelectIntent, SelectState, SortDirection, SwitchState,
+    TableState, TabsState, ToggleIntent, ToggleState, TreeIntent, TreePath, TreeRowSizing,
+    TreeSource, TreeState,
 };
 #[cfg(feature = "fuzzy")]
 pub use ratakit_core::{

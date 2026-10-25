@@ -5,9 +5,18 @@ generic widgets, a protocol-neutral agent UI, and an optional Agent Client
 Protocol (ACP) bridge. The application still owns its event loop, runtime,
 terminal backend, and agent process.
 
-> **Release status:** ratakit is not published on crates.io yet. A crates.io
-> dependency example will be added after the 0.1.0 release is approved. The
-> snippets below assume a checkout of this repository.
+> **Release status:** ratakit is not published on crates.io yet. The dependency
+> examples below assume a checkout of this repository.
+
+## In this guide
+
+- [Choose a crate](#choose-a-crate)
+- [Add the umbrella crate and select features](#add-the-umbrella-crate)
+- [Render a widget and handle input](#render-a-widget)
+- [Build an agent UI](#build-an-agent-ui)
+- [Configure terminal modes](#terminal-and-inline-modes)
+- [Accessibility](#accessibility)
+- [Tests, examples, and compatibility](#tests-and-examples)
 
 ## Choose a crate
 
@@ -21,12 +30,14 @@ terminal backend, and agent process.
 | `ratakit-acp` | Connecting an ACP agent to `ratakit-agent::state` |
 | `ratakit-testing` | TestBackend rendering and snapshot helpers |
 
-The core state crates do not depend on ratatui. Agent widgets are enabled by the
-`widgets` feature of `ratakit-agent`; the ACP bridge itself does not depend on
-ratatui.
+`ratakit-core`, `ratakit-text`, and `ratakit-agent::state` do not depend on
+ratatui. `ratakit-agent` widgets are optional behind its `widgets` feature; the
+ACP bridge also has no ratatui dependency.
 
 For a hands-on event-loop, keymap, recording, and testing recipe, see the
 [Integration Cookbook](COOKBOOK.md).
+The [Component Catalog](COMPONENTS.md) lists the available primitives and their interaction
+contracts.
 
 ## Add the umbrella crate
 
@@ -53,15 +64,18 @@ ratakit = {
 }
 ```
 
-Useful optional umbrella features:
+Umbrella features:
 
 | Feature | Enables |
 |---|---|
 | `widgets` | Generic widget types |
 | `markdown` | Markdown widget and parser |
 | `highlight-syntect` | Syntect syntax highlighting |
+| `highlight-syntect-onig` | Syntect's Oniguruma regex backend; may require a C toolchain |
+| `highlight-treesitter` | Reserved feature flag; no tree-sitter highlighter is currently implemented |
 | `diff` | Diff model and widget |
 | `fuzzy` | Fuzzy picker and completion support |
+| `fuzzy-async` | Reserved feature flag; no async matching implementation is exposed yet |
 | `crossterm` | Crossterm event conversion and terminal session helpers |
 | `tokio` | Async event stream and frame scheduler |
 | `agent` | Protocol-neutral agent state and widgets |
@@ -69,8 +83,10 @@ Useful optional umbrella features:
 | `serde` | Serialization support for the types that expose it |
 | `recording` | Versioned JSONL recording and replay for agent events |
 
-`highlight-syntect-onig` uses Syntect's Oniguruma backend and may require a C
-toolchain. The default Syntect backend uses the pure-Rust `fancy-regex` feature.
+The defaults enable `widgets`, `markdown`, `highlight-syntect`, `diff`, `fuzzy`,
+and `crossterm`. `highlight-syntect` uses the pure-Rust `fancy-regex` backend by
+default. The table describes the umbrella crate; when depending on a lower-level
+crate directly, inspect that crate's manifest for its own feature defaults.
 
 ## Render a widget
 
@@ -97,16 +113,46 @@ terminal.draw(|frame| {
 # Ok::<(), Box<dyn std::error::Error>>(())
 ```
 
-In an application, route normalized `ratakit::core::Event` values to the state
-through its `Component::handle` method. Handle the returned `Outcome` and
-perform application side effects—such as submitting text—in the event loop.
-ratakit does not own that loop.
+In an application, route normalized `ratakit::core::Event` values to state
+through `Component::handle`. Handle the returned `Outcome` and perform
+application side effects—such as submitting text—in the event loop. Ratakit
+does not own that loop.
+
+## Handle input
+
+Widget state and key policy remain in the application. For controls that
+implement `Component`, handle normalized events separately from rendering:
+
+```rust,ignore
+use ratakit::core::{Component, Outcome, ToggleIntent};
+use ratakit::widgets::{Checkbox, CheckboxState};
+
+let mut notifications = CheckboxState::new(false);
+let outcome = notifications.handle(&event, &keymap);
+if let Outcome::Intent(ToggleIntent::Changed(enabled)) = outcome {
+    app.notifications_enabled = enabled;
+}
+
+// In the draw closure:
+frame.render_stateful_widget(
+    Checkbox::new(&theme, "Email notifications"),
+    area,
+    &mut notifications,
+);
+```
+
+With the `crossterm` feature, `ratakit::from_crossterm_event` converts Crossterm
+events to normalized events. Apps using another backend can construct
+`ratakit::core::Event` directly. The application decides which component
+receives each event and what each intent means.
 
 ## Build an agent UI
 
 Enable `agent` on the umbrella crate. Apply protocol-neutral events to
 `TranscriptState`; it retains the transcript and agent metadata independently
-of rendering:
+of rendering. The umbrella `agent` feature also enables `ratakit-agent`'s
+default `widgets` feature. Depend on `ratakit-agent` directly with default
+features disabled if only its state types are needed:
 
 ```rust
 use ratakit::agent::state::{AgentEvent, MessageId, StopReason, TranscriptState};
@@ -124,7 +170,7 @@ transcript.apply(AgentEvent::TurnEnded {
 assert_eq!(transcript.cells().len(), 1);
 ```
 
-With the default `widgets` feature, `AgentLayout` combines the transcript,
+With the `widgets` feature, `AgentLayout` combines the transcript,
 composer, permissions, model picker, usage, and plan widgets. The
 `examples/mock-agent` application demonstrates a deterministic event loop and
 replay scripts. `examples/acp-app` demonstrates connecting that layout to an
@@ -139,9 +185,11 @@ next/previous keys.
 
 ## Terminal and inline modes
 
-`TerminalViewport::AlternateScreen` is the default for `enter_terminal()`.
-Inline mode uses the main terminal buffer, so create the Ratatui terminal with a
-matching inline viewport as well:
+With the `crossterm` feature, `TerminalViewport::AlternateScreen` is the default
+for `enter_terminal()`. Keep the returned `TerminalSession` alive for the UI's
+lifetime so it can restore terminal modes when dropped. Inline mode uses the
+main terminal buffer, so create the Ratatui terminal with a matching inline
+viewport as well:
 
 ```rust
 use ratakit::widgets::TerminalViewport;
@@ -172,7 +220,8 @@ archive yourself.
 
 ## Tests and examples
 
-Run the workspace checks from the repository root:
+Run the main workspace checks from the repository root. CI also checks
+no-default-feature builds, the Rust 1.88 MSRV, and headless examples:
 
 ```sh
 cargo fmt --all -- --check
@@ -181,8 +230,9 @@ cargo clippy --workspace --all-targets --all-features -- -D warnings
 RUSTDOCFLAGS='-D warnings' cargo doc --workspace --all-features --no-deps
 ```
 
-`ratakit-testing` includes `render_widget`, `render_stateful`, and snapshot
-helpers for headless widget tests. The examples can be run with:
+`ratakit-testing` includes `render_widget`, `render_stateful`,
+`render_stateful_buffer`, `ComponentHarness`, and snapshot helpers for headless
+tests. The examples can be run with:
 
 ```sh
 cargo run -p gallery
@@ -197,7 +247,8 @@ not bundle a live recording.
 
 ## Compatibility
 
-The current tested dependency baseline and compatibility caveats are listed in
-the [README compatibility table](../README.md#compatibility). ratakit targets
-Rust 1.88 and the ratatui 0.30 split-crate API. Backends other than Crossterm
-have not been validated by this workspace.
+The current tested dependency baseline is listed in the
+[README compatibility table](../README.md#compatibility). Ratakit targets Rust
+1.88 and the ratatui 0.30 split-crate API. The bundled terminal-session and event
+conversion helpers use Crossterm; other Ratatui backends can render the widgets,
+but are not validated by this workspace.

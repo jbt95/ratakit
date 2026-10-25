@@ -1,7 +1,9 @@
-//! Text processing for ratakit: styled lines, wrapping, and syntax highlighting.
+//! UI-independent text processing for ratakit: styled lines, wrapping, Markdown, diffs, and syntax highlighting.
 //!
-//! This crate deliberately has **no** ratatui dependency; widgets in `ratakit-widgets`
-//! convert [`StyledLine`] values into ratatui types at render time.
+//! This crate has **no** ratatui dependency. Widgets in `ratakit-widgets`
+//! convert [`StyledLine`] values into Ratatui types at render time. Markdown,
+//! syntax highlighters, and diff models are enabled by optional Cargo features;
+//! the plain styling and wrapping types are available without them.
 
 #![allow(clippy::must_use_candidate, clippy::return_self_not_must_use)]
 

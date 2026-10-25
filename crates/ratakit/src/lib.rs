@@ -1,12 +1,16 @@
 //! **ratakit** — reusable ratatui components plus an optional agentic-coding UI layer.
 //!
 //! See the [repository README](https://github.com/jbt95/ratakit) for status and roadmap.
-//! The [user guide](https://github.com/jbt95/ratakit/blob/main/docs/USER_GUIDE.md) covers feature
-//! selection, terminal setup, accessibility, and examples.
+//! The [user guide](https://github.com/jbt95/ratakit/blob/main/docs/USER_GUIDE.md) covers crate and
+//! feature selection, terminal setup, accessibility, and examples. The
+//! [component catalog](https://github.com/jbt95/ratakit/blob/main/docs/COMPONENTS.md) lists widget
+//! contracts; the [integration cookbook](https://github.com/jbt95/ratakit/blob/main/docs/COOKBOOK.md)
+//! explains event and application ownership boundaries.
 //!
 //! # Render a stateful widget
 //!
-//! Keep state in the application and render a borrowed widget into each frame:
+//! Keep widget state in the application and render it into each frame. This
+//! headless example uses `TestBackend`, so it does not enter a real terminal:
 //!
 //! ```
 //! use ratakit::core::Theme;

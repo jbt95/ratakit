@@ -5,6 +5,48 @@ agent process, and key bindings. The complete working integration is in
 [`examples/acp-app/src/lib.rs`](../examples/acp-app/src/lib.rs). This page explains the seams to
 keep when adapting it.
 
+## Recipes
+
+- [Route input to a generic widget](#route-input-to-a-generic-widget)
+- [Drive an agent layout](#drive-an-agent-layout)
+- [Keep shortcuts and help text aligned](#keep-shortcuts-and-help-text-aligned)
+- [Navigate transcript search results](#navigate-transcript-search-results)
+- [Record and replay safely](#record-and-replay-safely)
+- [Test interactions and accessible output](#test-interactions-and-accessible-output)
+- [Check a release without publishing](#check-a-release-without-publishing)
+
+## Route input to a generic widget
+
+Keep the widget state and `Keymap` in application state. Route an event only to
+the component that owns the current focus, then interpret its `Outcome` in the
+application. The component reports an intent; the application performs the
+resulting domain update or side effect:
+
+```rust,ignore
+match checkbox.handle(&event, &keymap) {
+    Outcome::Intent(ToggleIntent::Changed(checked)) => {
+        app.notifications_enabled = checked;
+    }
+    Outcome::Consumed => {}
+    Outcome::Ignored => route_to_next_handler(&event),
+}
+```
+
+Render from the same application-owned state each frame:
+
+```rust,ignore
+frame.render_stateful_widget(
+    Checkbox::new(&theme, "Email notifications"),
+    area,
+    &mut checkbox,
+);
+```
+
+The `Checkbox` and `Switch` widgets are views, not event-loop owners. `Button`
+is presentational: the app decides its activation, focus, and hit-testing
+policy. For all available widgets and interaction contracts, see the
+[Component Catalog](COMPONENTS.md).
+
 ## Drive an agent layout
 
 Keep the `Theme`, `AgentLayoutState`, file index, and keymap in application state. Feed inbound
@@ -66,7 +108,7 @@ if transcript.navigate_search(&mut search, SearchDirection::Next) {
 
 Enable the `recording` feature to use `RecordingWriter` and `RecordingReader`. Choose the path and
 retention policy in the application; recording is opt-in and can contain prompts, tool output, and
-file paths. Use the redaction callbacks before writing sensitive values:
+file paths. Treat recordings as sensitive data. Redact secrets and user content before writing:
 
 ```rust,ignore
 let mut recording = RecordingWriter::new(writer)?;

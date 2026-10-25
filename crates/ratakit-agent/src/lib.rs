@@ -1,6 +1,12 @@
-//! Agent transcript, composer, and related widgets.
+//! Protocol-neutral agent transcript state and optional Ratatui widgets.
 //!
-//! The [`state`] module is ratatui-free and can be used from other UIs (for example GPUI).
+//! The [`state`] module has no ratatui dependency and can be used from other UIs
+//! (for example GPUI). It stores protocol-neutral events and state; applications
+//! own agent processes, event loops, terminal setup, and side effects.
+//!
+//! The crate's `widgets` feature adds the composer, transcript, permission,
+//! model-picker, plan, and usage views. Disable default features when only the
+//! protocol-neutral state is needed.
 //!
 //! # Apply protocol-neutral events
 //!

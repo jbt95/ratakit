@@ -1,14 +1,19 @@
-//! Core state, events, keymaps, focus management, and theming for [ratakit](https://github.com/jbt95/ratakit).
+//! Application-independent state, events, keymaps, focus management, and theming for ratakit.
 //!
-//! This crate deliberately has **no** dependency on ratatui so application state can be unit-tested
-//! without a terminal.
+//! This crate has **no** dependency on ratatui or a terminal backend. Keep domain
+//! state and event handling here; render the resulting state from a widget crate
+//! or another UI. For event-driven state, [`Component::handle`] returns an
+//! [`Outcome`] so the application can decide which intents cause side effects.
 //!
-//! Text editing state lives in [`TextBuffer`] ([`Atom`]s, undo/redo, large-paste collapsing) and
-//! [`PasteBurst`] for terminals without bracketed paste.
+//! Text editing state lives in [`TextBuffer`] and its embedded [`Atom`] values,
+//! with undo/redo and large-paste collapsing. [`PasteBurst`] detects paste-like
+//! input on terminals that do not report bracketed paste. Fuzzy picker and
+//! completion state requires the optional `fuzzy` feature.
 
 #[cfg(feature = "fuzzy")]
 mod completion;
 mod component;
+mod controls;
 mod dialog;
 mod event;
 mod focus;
@@ -36,6 +41,10 @@ pub use completion::{
     CompletionSession, CompletionState, CompletionTrigger, CompletionTriggers,
 };
 pub use component::Component;
+pub use controls::{
+    CheckboxState, RadioGroupIntent, RadioGroupState, SelectIntent, SelectState, SwitchState,
+    ToggleIntent, ToggleState,
+};
 pub use dialog::{DialogIntent, DialogState};
 pub use event::{
     Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, MouseButton, MouseEvent, MouseEventKind,

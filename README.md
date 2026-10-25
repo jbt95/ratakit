@@ -3,47 +3,56 @@
 **ratakit** is an open-source (Apache-2.0) Rust TUI component library built on
 [ratatui](https://github.com/ratatui/ratatui). It has two layers:
 
-1. **Generic widgets** — editors, lists, markdown, diffs, pickers, and other
-   pieces useful in any terminal UI.
+1. **Generic widgets** — buttons, form controls, visual primitives, editors,
+   lists, Markdown, diffs, pickers, and other reusable pieces.
 2. **Agentic coding UI** — transcript, composer, tool cards, permission prompts,
    model picker, usage bar, and an optional [ACP](https://agentclientprotocol.com/)
    adapter for clients like Claude Code or opencode.
 
-The library follows ratatui’s `Widget` / `StatefulWidget` pattern: **state and
-logic live in crates without a ratatui dependency** so you can unit-test without
-a terminal; widgets are thin renderers per frame.
+The library follows ratatui’s `Widget` / `StatefulWidget` pattern. Interaction
+state is separated from rendering so it can be tested without a terminal;
+widgets are thin, per-frame renderers and the application owns the event loop.
 
 ## Status
 
-**Pre-alpha.** The generic widgets, agent UI, ACP bridge, accessibility profiles,
-inline transcript scrollback, and user documentation are implemented. The project
-is **not published to crates.io**; a 0.1.0 release is pending Jordi's approval.
+**Pre-alpha.** The public API may change before the first stable release. Ratakit
+is **not published to crates.io**; use the workspace and path-dependency examples
+below while evaluating it.
 
-Start with the [English user guide](docs/USER_GUIDE.md) and
-[integration cookbook](docs/COOKBOOK.md).
+## Start here
+
+- **Build an application:** start with the [User Guide](docs/USER_GUIDE.md) for
+  crate and feature selection, then use the [Integration Cookbook](docs/COOKBOOK.md)
+  for event handling and app ownership boundaries.
+- **Choose a widget:** browse the [Component Catalog](docs/COMPONENTS.md), then
+  run `cargo run -p gallery` for an interactive showcase.
+- **Contribute:** read [CONTRIBUTING.md](CONTRIBUTING.md) before changing the
+  workspace. LLM guidance is in [`skills/ratakit/SKILL.md`](skills/ratakit/SKILL.md).
 
 ## Workspace crates
 
 | Crate | Role |
 |---|---|
 | `ratakit-core` | Events, outcomes, keymaps, focus, theme (no ratatui) |
-| `ratakit-text` | Markdown streaming, highlighting, diffs |
+| `ratakit-text` | Styled text, wrapping, optional Markdown, highlighting, and diffs |
 | `ratakit-widgets` | Generic ratatui widgets |
 | `ratakit-agent` | Protocol-neutral agent state + widgets |
 | `ratakit-acp` | Optional ACP bridge (no ratatui dependency) |
 | `ratakit-testing` | `TestBackend` snapshots, `KeySeq`, `assert_widget_snapshot!` |
 | `ratakit` | Umbrella crate with feature flags |
 
-## Quick start
+## Check out and run
 
 ```bash
-cargo test --workspace
+cargo +1.88.0 test --workspace --all-features
 cargo run -p hello-headless
+cargo run -p gallery
 ```
 
-The crates are not published yet. For a consumer app in this repository, add a
-path dependency on `crates/ratakit`; the guide explains feature selection and
-shows a widget-rendering example.
+For an application in this checkout, add a path dependency on `crates/ratakit`.
+The [User Guide](docs/USER_GUIDE.md#add-the-umbrella-crate) shows the dependency,
+feature selection, and a headless widget-rendering example. The umbrella crate
+keeps optional integrations behind Cargo features; enable only what the app uses.
 
 ## Accessibility profiles
 

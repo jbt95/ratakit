@@ -1,8 +1,10 @@
-//! Optional adapter between ACP agents and ratakit's protocol-neutral agent state.
+//! Optional adapter between Agent Client Protocol (ACP) agents and ratakit's protocol-neutral agent state.
 //!
-//! This crate deliberately has no ratatui dependency. Applications receive
-//! [`BridgeEvent`] values and forward [`AgentEvent`](ratakit_agent::state::AgentEvent)
-//! values to their chosen interface.
+//! This crate has no ratatui dependency. [`AcpBridge::spawn`] starts and
+//! initializes an agent process; the application polls [`BridgeEvent`] values,
+//! forwards [`AgentEvent`](ratakit_agent::state::AgentEvent) values to its UI,
+//! and responds to permission requests. The bridge does not own the UI loop or
+//! grant the agent filesystem or terminal capabilities.
 //!
 //! # Configure an agent command
 //!

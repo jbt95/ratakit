@@ -1,4 +1,10 @@
-//! Test utilities: render widgets to text snapshots and parse key sequences.
+//! Headless test utilities for ratakit components and widgets.
+//!
+//! Use [`ComponentHarness`] and [`KeySeq`] to drive event-driven state without a
+//! terminal. Use [`render_widget`] or [`render_stateful`] for text snapshots,
+//! [`render_stateful_buffer`] for cell/style assertions, and
+//! [`assert_accessible_labels`] for text-first output. These helpers use
+//! Ratatui's `TestBackend` and do not start a real terminal session.
 
 mod accessibility;
 mod buffer_text;

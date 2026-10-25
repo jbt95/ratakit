@@ -1,39 +1,60 @@
 use crate::Revisioned;
 
-/// Semantic colors independent of ratatui style types.
+/// Explicit sRGB color channels, independent of Ratatui style types.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Rgb {
+    /// Red channel, from 0 to 255.
     pub r: u8,
+    /// Green channel, from 0 to 255.
     pub g: u8,
+    /// Blue channel, from 0 to 255.
     pub b: u8,
 }
 
+/// Palette color that can be measured or delegated to the terminal palette.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SemanticColor {
+    /// Explicit RGB color.
     Rgb(Rgb),
+    /// Terminal palette index; its actual RGB value is terminal-dependent.
     Index(u8),
 }
 
+/// Semantic UI colors shared by themed widgets.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Palette {
+    /// Main surface color.
     pub background: SemanticColor,
+    /// Default text color.
     pub foreground: SemanticColor,
+    /// Emphasis and selection color.
     pub accent: SemanticColor,
+    /// Positive or successful state color.
     pub success: SemanticColor,
+    /// Caution state color.
     pub warning: SemanticColor,
+    /// Error or destructive state color.
     pub error: SemanticColor,
+    /// Secondary text color.
     pub muted: SemanticColor,
+    /// Divider and outline color.
     pub border: SemanticColor,
 }
 
 /// Semantic text color included in [`Palette::text_contrast_ratios`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PaletteTextRole {
+    /// Default body text.
     Foreground,
+    /// Emphasized or selected text.
     Accent,
+    /// Positive-state text.
     Success,
+    /// Caution-state text.
     Warning,
+    /// Error-state text.
     Error,
+    /// Secondary text.
     Muted,
 }
 
@@ -43,7 +64,9 @@ pub enum PaletteTextRole {
 /// controlled by the terminal and cannot be measured portably.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PaletteTextContrast {
+    /// Semantic role of the measured text color.
     pub role: PaletteTextRole,
+    /// Contrast ratio against the palette background, or `None` for indexed colors.
     pub ratio: Option<f64>,
 }
 
@@ -64,6 +87,7 @@ impl Palette {
         })
     }
 
+    /// Create the standard dark palette.
     pub fn dark_defaults() -> Self {
         Self {
             background: SemanticColor::Rgb(Rgb {
@@ -109,6 +133,7 @@ impl Palette {
         }
     }
 
+    /// Create the standard light palette.
     pub fn light_defaults() -> Self {
         Self {
             background: SemanticColor::Rgb(Rgb {
@@ -217,32 +242,47 @@ const fn rgb(r: u8, g: u8, b: u8) -> SemanticColor {
     SemanticColor::Rgb(Rgb { r, g, b })
 }
 
+/// Motion policy for animated widgets and scheduled redraws.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum MotionMode {
+    /// Use the component's full motion behavior.
     #[default]
     Full,
+    /// Prefer static output or slower animation.
     Reduced,
 }
 
+/// Glyph profile used by widgets that offer Unicode and ASCII markers.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum GlyphSet {
+    /// Use Unicode box drawing and markers.
     #[default]
     Unicode,
+    /// Use ASCII alternatives for constrained terminals and text-first output.
     Ascii,
 }
 
+/// Identifier used to choose a syntax-color theme in highlighting integrations.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SyntaxThemeId(pub &'static str);
 
 impl SyntaxThemeId {
+    /// Bundled Base16 Marduk dark syntax theme.
     pub const BASE16_MARDUK: Self = Self("base16-marduk.dark");
 }
 
+/// Palette and rendering preferences shared by ratakit widgets.
+///
+/// Keep the theme in application state and pass a shared reference to widgets.
 #[derive(Debug, Clone)]
 pub struct Theme {
+    /// Semantic UI colors.
     pub palette: Palette,
+    /// Syntax highlighting palette identifier.
     pub syntax: SyntaxThemeId,
+    /// Animation policy.
     pub motion: MotionMode,
+    /// Preferred glyph profile.
     pub glyphs: GlyphSet,
     /// Text-first labels and static output intended for screen-reader workflows.
     pub screen_reader: bool,
@@ -250,6 +290,7 @@ pub struct Theme {
 }
 
 impl Theme {
+    /// Create a dark theme with Unicode glyphs and full motion.
     pub fn dark() -> Self {
         Self {
             palette: Palette::dark_defaults(),
@@ -261,6 +302,7 @@ impl Theme {
         }
     }
 
+    /// Create a light theme with Unicode glyphs and full motion.
     pub fn light() -> Self {
         Self {
             palette: Palette::light_defaults(),
@@ -303,16 +345,19 @@ impl Theme {
         }
     }
 
+    /// Set the motion policy and advance the theme revision.
     pub fn with_motion(&mut self, motion: MotionMode) {
         self.motion = motion;
         self.revision += 1;
     }
 
+    /// Set the glyph profile and advance the theme revision.
     pub fn with_glyphs(&mut self, glyphs: GlyphSet) {
         self.glyphs = glyphs;
         self.revision += 1;
     }
 
+    /// Revision token for caches that depend on changes made through theme methods.
     pub fn theme_revision(&self) -> u64 {
         self.revision
     }
