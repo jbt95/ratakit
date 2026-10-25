@@ -27,6 +27,6 @@ pub use permission::{
 };
 pub use plan::{Plan, PlanEntry, PlanEntryId, PlanEntryStatus};
 pub use tool::{ToolCall, ToolCallPatch, ToolContent, ToolKind, ToolStatus};
-pub use transcript::TranscriptState;
+pub use transcript::{TranscriptSearchResult, TranscriptState};
 pub use types::{ContentPart, Level, SlashCommand, StopReason};
 pub use usage::{ModeId, Usage};

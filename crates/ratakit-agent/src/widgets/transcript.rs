@@ -120,6 +120,7 @@ impl StatefulWidget for Transcript<'_> {
             area.width
         };
 
+        let pending_search_scroll = state.take_pending_search_scroll();
         let layout_key = layout_revision(state.revision(), content_width, self.theme);
         let (cells, list, tool_aux) = state.layout_borrow_mut();
 
@@ -141,6 +142,9 @@ impl StatefulWidget for Transcript<'_> {
         };
 
         list.prepare_layout(&measured, content_width, area.height);
+        if let Some(index) = pending_search_scroll {
+            list.scroll_to_item(index);
+        }
         paint_viewport(
             cells,
             list,

@@ -73,3 +73,21 @@ fn list_prepare_layout_pins_tail_on_stream() {
     assert_eq!(state.scroll().offset(), 2);
     assert!(state.scroll().follow_tail());
 }
+
+#[test]
+fn scroll_to_item_selects_and_releases_follow_tail() {
+    let source = FixedHeights {
+        heights: vec![1, 3, 2],
+        revision: 1,
+    };
+    let mut state = ListState::new();
+    assert!(!state.scroll_to_item(1), "items need a measured layout");
+
+    state.prepare_layout(&source, 20, 3);
+    assert!(state.scroll().follow_tail());
+    assert!(state.scroll_to_item(1));
+
+    assert_eq!(state.selected(), Some(1));
+    assert_eq!(state.scroll().offset(), 1);
+    assert!(!state.scroll().follow_tail());
+}

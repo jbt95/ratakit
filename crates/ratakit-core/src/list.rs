@@ -188,6 +188,26 @@ impl ListState {
         }
     }
 
+    /// Select an item and scroll it into view using the most recently measured layout.
+    ///
+    /// Returns `false` when the item is not in the current height cache. Render the list once
+    /// before calling this method so variable-height items have been measured.
+    pub fn scroll_to_item(&mut self, index: usize) -> bool {
+        if index >= self.height_cache.heights.len() {
+            return false;
+        }
+
+        let layout = self.layout;
+        let max_offset = layout
+            .content_height
+            .saturating_sub(layout.viewport_height as usize);
+        let offset = self.height_cache.item_start(index).min(max_offset);
+        self.scroll.release_tail();
+        self.scroll.scroll_to_offset(offset);
+        self.select(Some(index));
+        true
+    }
+
     /// Last layout hint written by the list widget (for scroll key handling).
     #[must_use]
     pub fn layout(&self) -> ListLayoutHint {

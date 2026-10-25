@@ -2149,6 +2149,7 @@ dependencies = [
  "ratatui-core",
  "ratatui-widgets",
  "serde",
+ "unicode-segmentation",
  "unicode-width",
 ]
 

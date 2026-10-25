@@ -126,6 +126,13 @@ composer, permissions, model picker, usage, and plan widgets. The
 replay scripts. `examples/acp-app` demonstrates connecting that layout to an
 ACP bridge.
 
+`TranscriptState::search(query, limit)` returns fuzzy-ranked matches and a short
+preview for each matching cell. Call `jump_to_search_result(&result)` to select
+the matching cell and scroll it into view on the next render. Results become
+stale when transcript content changes; the method returns `false` for stale
+results. Applications can bind this to their own search prompt and
+next/previous keys.
+
 ## Terminal and inline modes
 
 `TerminalViewport::AlternateScreen` is the default for `enter_terminal()`.

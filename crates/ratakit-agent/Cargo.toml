@@ -31,6 +31,7 @@ ratakit-widgets = { workspace = true, optional = true, features = ["fuzzy"] }
 ratatui-core = { workspace = true, optional = true }
 ratatui-widgets = { workspace = true, optional = true }
 unicode-width = { workspace = true, optional = true }
+unicode-segmentation.workspace = true
 serde = { version = "1.0.229", optional = true, features = ["derive"] }
 
 [dev-dependencies]

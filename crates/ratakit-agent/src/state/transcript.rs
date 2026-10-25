@@ -13,7 +13,8 @@ use super::plan::Plan;
 use super::tool::{ToolCall, ToolCallPatch, ToolContent, ToolStatus};
 use super::types::SlashCommand;
 use super::usage::{ModeId, Usage};
-use ratakit_core::ListState;
+use ratakit_core::{FuzzyFilter, ListState};
+use unicode_segmentation::UnicodeSegmentation;
 
 #[cfg(feature = "widgets")]
 use crate::tool_call_aux::ToolCallCardAux;
@@ -33,8 +34,21 @@ pub struct TranscriptState {
     open_thinking: HashMap<MessageId, usize>,
     open_tools: HashMap<ToolCallId, usize>,
     plan_cell: Option<usize>,
+    pending_search_scroll: Option<usize>,
     #[cfg(feature = "widgets")]
     tool_call_aux: Vec<ToolCallCardAux>,
+}
+
+/// A fuzzy match in a transcript cell.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TranscriptSearchResult {
+    /// Index of the matching cell in [`TranscriptState::cells`].
+    pub cell_index: usize,
+    /// Nucleo fuzzy score; higher scores are more relevant.
+    pub score: u32,
+    /// Short excerpt around the match, suitable for a search-results list.
+    pub preview: String,
+    transcript_revision: u64,
 }
 
 impl TranscriptState {
@@ -53,6 +67,7 @@ impl TranscriptState {
             open_thinking: HashMap::new(),
             open_tools: HashMap::new(),
             plan_cell: None,
+            pending_search_scroll: None,
             #[cfg(feature = "widgets")]
             tool_call_aux: Vec::new(),
         }
@@ -106,6 +121,63 @@ impl TranscriptState {
     /// Mutable access to cells (for layout warm-up in the transcript widget).
     pub fn cells_mut(&mut self) -> &mut [Cell] {
         &mut self.cells
+    }
+
+    /// Fuzzy-search text from transcript cells, ordered by relevance.
+    ///
+    /// Searches user and assistant messages, thinking text, tool titles/paths/inputs/outputs and
+    /// diffs, plan entries, notices, and errors. Returns no results for an empty query. The
+    /// `limit` caps the result count; each match identifies one transcript cell.
+    pub fn search(&self, query: &str, limit: usize) -> Vec<TranscriptSearchResult> {
+        if limit == 0 {
+            return Vec::new();
+        }
+
+        let mut filter = FuzzyFilter::new();
+        filter.set_pattern(query);
+        if filter.matches_everything() {
+            return Vec::new();
+        }
+
+        let mut results = Vec::new();
+        let mut indices = Vec::new();
+        for (cell_index, cell) in self.cells.iter().enumerate() {
+            let text = searchable_cell_text(cell);
+            if let Some(score) = filter.score_with_indices(&text, &mut indices) {
+                results.push(TranscriptSearchResult {
+                    cell_index,
+                    score,
+                    preview: search_preview(&text, &indices),
+                    transcript_revision: self.revision,
+                });
+            }
+        }
+        results.sort_by(|left, right| {
+            right
+                .score
+                .cmp(&left.score)
+                .then_with(|| left.cell_index.cmp(&right.cell_index))
+        });
+        results.truncate(limit);
+        results
+    }
+
+    /// Scroll the transcript to a current search result and highlight its cell.
+    ///
+    /// The scroll is applied on the next transcript render, after current row heights are
+    /// measured. Returns `false` if the transcript changed since the result was produced.
+    pub fn jump_to_search_result(&mut self, result: &TranscriptSearchResult) -> bool {
+        if result.transcript_revision != self.revision || result.cell_index >= self.cells.len() {
+            return false;
+        }
+        self.list.select(Some(result.cell_index));
+        self.pending_search_scroll = Some(result.cell_index);
+        true
+    }
+
+    #[cfg(feature = "widgets")]
+    pub(crate) fn take_pending_search_scroll(&mut self) -> Option<usize> {
+        self.pending_search_scroll.take()
     }
 
     /// Take the finished transcript cells, leaving session metadata intact.
@@ -271,6 +343,7 @@ impl TranscriptState {
     }
 
     fn bump(&mut self) {
+        self.pending_search_scroll = None;
         self.revision += 1;
     }
 
@@ -367,6 +440,105 @@ impl TranscriptState {
         self.cells.push(Cell::Plan(plan));
         self.plan_cell = Some(idx);
     }
+}
+
+fn searchable_cell_text(cell: &Cell) -> String {
+    let mut text = String::new();
+    match cell {
+        Cell::User(user) => {
+            append_search_text(&mut text, "User");
+            for part in &user.content {
+                match part {
+                    super::types::ContentPart::Text(value) => append_search_text(&mut text, value),
+                    super::types::ContentPart::Image { alt } => append_search_text(&mut text, alt),
+                }
+            }
+        }
+        Cell::Assistant(assistant) => {
+            append_search_text(&mut text, "Assistant");
+            append_search_text(&mut text, assistant.stream.source());
+        }
+        Cell::Thinking(thinking) => {
+            append_search_text(&mut text, "Thinking");
+            append_search_text(&mut text, thinking.stream.source());
+        }
+        Cell::ToolCall(tool) => {
+            append_search_text(&mut text, "Tool");
+            append_search_text(&mut text, tool.title());
+            append_search_text(&mut text, tool.input_text());
+            append_search_text(&mut text, tool.output_text());
+            for location in tool.locations() {
+                let path = location.to_string_lossy();
+                append_search_text(&mut text, &path);
+            }
+            if let Some((old_text, new_text)) =
+                tool.inline_diff().and_then(|diff| diff.source_texts())
+            {
+                append_search_text(&mut text, old_text);
+                append_search_text(&mut text, new_text);
+            }
+        }
+        Cell::Plan(plan) => {
+            append_search_text(&mut text, "Plan");
+            for entry in &plan.entries {
+                append_search_text(&mut text, &entry.title);
+            }
+        }
+        Cell::Notice(notice) => {
+            append_search_text(&mut text, "Notice");
+            append_search_text(&mut text, &notice.text);
+        }
+        Cell::Error(error) => {
+            append_search_text(&mut text, "Error");
+            append_search_text(&mut text, &error.text);
+        }
+    }
+    text
+}
+
+fn append_search_text(target: &mut String, value: &str) {
+    if value.is_empty() {
+        return;
+    }
+    if !target.is_empty() {
+        target.push('\n');
+    }
+    target.push_str(value);
+}
+
+fn search_preview(text: &str, indices: &[u32]) -> String {
+    const CONTEXT_GRAPHEMES: usize = 36;
+    const MAX_PREVIEW_GRAPHEMES: usize = 120;
+
+    let grapheme_count = text.graphemes(true).count();
+    let first = indices
+        .first()
+        .and_then(|index| usize::try_from(*index).ok())
+        .unwrap_or(0)
+        .min(grapheme_count);
+    let last = indices
+        .last()
+        .and_then(|index| usize::try_from(*index).ok())
+        .and_then(|index| index.checked_add(1))
+        .unwrap_or(first)
+        .min(grapheme_count);
+    let start = first.saturating_sub(CONTEXT_GRAPHEMES);
+    let end = last
+        .saturating_add(CONTEXT_GRAPHEMES)
+        .min(grapheme_count)
+        .min(start.saturating_add(MAX_PREVIEW_GRAPHEMES));
+
+    let mut preview = String::with_capacity(text.len().min(256));
+    if start > 0 {
+        preview.push('…');
+    }
+    for grapheme in text.graphemes(true).skip(start).take(end - start) {
+        preview.push_str(grapheme);
+    }
+    if end < grapheme_count {
+        preview.push('…');
+    }
+    preview
 }
 
 impl Default for TranscriptState {

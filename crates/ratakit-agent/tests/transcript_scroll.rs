@@ -84,3 +84,36 @@ fn follow_tail_snapshot_scrolled_up_40x4() {
         4
     );
 }
+
+#[test]
+fn search_result_jumps_to_and_highlights_the_matching_cell() {
+    let theme = Theme::dark();
+    SyntectHighlighter::apply_theme(&theme);
+    let mut state = TranscriptState::new();
+    for index in 0..8 {
+        let text = if index == 2 {
+            "the searchable result"
+        } else {
+            "ordinary transcript row"
+        };
+        state.apply(AgentEvent::Notice {
+            level: ratakit_agent::state::Level::Info,
+            text: text.into(),
+        });
+    }
+
+    let result = state.search("searchable", 10).remove(0);
+    assert_eq!(result.cell_index, 2);
+    assert!(state.jump_to_search_result(&result));
+
+    assert_eq!(state.list().selected(), Some(2));
+    let rendered = render_stateful_widget(
+        Transcript::new(&theme, &SyntectHighlighter).scrollbar(false),
+        &mut state,
+        40,
+        3,
+    );
+    assert_eq!(state.list().scroll().offset(), 2);
+    assert!(!state.list().scroll().follow_tail());
+    assert!(rendered.contains("searchable result"));
+}

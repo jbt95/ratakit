@@ -167,6 +167,61 @@ fn completed_cells_can_be_taken_without_clearing_session_metadata() {
 }
 
 #[test]
+fn fuzzy_search_finds_message_and_tool_output_with_context() {
+    let mut t = TranscriptState::new();
+    t.apply(AgentEvent::UserMessage {
+        id: mid("u-search"),
+        content: vec![ContentPart::Text("Please find this needle".into())],
+    });
+    t.apply(AgentEvent::ToolCallStarted(ToolCall {
+        id: tid("tool-search"),
+        title: "Run tests".into(),
+        kind: ToolKind::Execute,
+        status: ToolStatus::Completed,
+        locations: Vec::new(),
+        content: vec![ToolContent::Text("the suite failed in module alpha".into())],
+    }));
+
+    let matches = t.search("needl", 10);
+    assert!(!matches.is_empty());
+    assert_eq!(matches[0].cell_index, 0);
+    assert!(matches[0].preview.contains("needle"));
+
+    let matches = t.search("failed", 1);
+    assert_eq!(matches.len(), 1);
+    assert_eq!(matches[0].cell_index, 1);
+    assert!(matches[0].preview.contains("failed"));
+    assert!(t.search("", 10).is_empty());
+    assert!(t.search("failed", 0).is_empty());
+}
+
+#[test]
+fn transcript_search_results_expire_when_transcript_changes() {
+    let mut t = TranscriptState::new();
+    t.apply(AgentEvent::Notice {
+        level: ratakit_agent::state::Level::Info,
+        text: "search target".into(),
+    });
+    let result = t.search("target", 1).remove(0);
+    t.apply(AgentEvent::Error("new cell".into()));
+
+    assert!(!t.jump_to_search_result(&result));
+}
+
+#[test]
+fn transcript_search_preview_stays_bounded_for_large_cells() {
+    let mut t = TranscriptState::new();
+    t.apply(AgentEvent::AssistantDelta {
+        id: mid("long"),
+        text: format!("{}needle", "background ".repeat(100)),
+    });
+
+    let result = t.search("needle", 1).remove(0);
+    assert!(result.preview.contains("needle"));
+    assert!(result.preview.chars().count() <= 122);
+}
+
+#[test]
 fn plan_cell_updates_in_place() {
     let mut t = TranscriptState::new();
     let plan1 = Plan {

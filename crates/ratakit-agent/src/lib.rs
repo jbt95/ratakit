@@ -18,6 +18,8 @@
 //!     reason: StopReason::EndTurn,
 //! });
 //! assert_eq!(transcript.cells().len(), 1);
+//! let matches = transcript.search("Hello", 5);
+//! assert_eq!(matches[0].cell_index, 0);
 //! ```
 
 #![allow(clippy::must_use_candidate, clippy::return_self_not_must_use)]
@@ -42,5 +44,5 @@ pub use widgets::{
 
 pub use state::{
     AgentEvent, Attachment, Cell, ComposerIntent, ComposerState, FileIndex, QueuedMessage,
-    QueuedPayload, SlashCommand, TranscriptState,
+    QueuedPayload, SlashCommand, TranscriptSearchResult, TranscriptState,
 };
