@@ -25,6 +25,9 @@ The core state crates do not depend on ratatui. Agent widgets are enabled by the
 `widgets` feature of `ratakit-agent`; the ACP bridge itself does not depend on
 ratatui.
 
+For a hands-on event-loop, keymap, recording, and testing recipe, see the
+[Integration Cookbook](COOKBOOK.md).
+
 ## Add the umbrella crate
 
 For a consumer package inside this checkout, point at the umbrella crate. Add
@@ -64,6 +67,7 @@ Useful optional umbrella features:
 | `agent` | Protocol-neutral agent state and widgets |
 | `acp` | Agent feature, ACP bridge, and Tokio integration |
 | `serde` | Serialization support for the types that expose it |
+| `recording` | Versioned JSONL recording and replay for agent events |
 
 `highlight-syntect-onig` uses Syntect's Oniguruma backend and may require a C
 toolchain. The default Syntect backend uses the pure-Rust `fancy-regex` feature.

@@ -47,6 +47,7 @@ serde = [
     "ratakit-text/serde",
     "ratakit-agent/serde",
 ]
+recording = ["agent", "ratakit-agent/recording"]
 unstable-acp = ["acp"]
 
 [dependencies]

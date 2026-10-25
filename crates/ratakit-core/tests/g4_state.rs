@@ -85,6 +85,7 @@ fn key_hints_from_default_preset() {
             .iter()
             .any(|h| h.chord == format_chord(&KeyChord::new(KeyCode::Tab)))
     );
+    assert!(key_hints_from_keymap(&map, &labels, 0).is_empty());
 }
 
 #[test]

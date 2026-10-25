@@ -222,6 +222,46 @@ fn transcript_search_preview_stays_bounded_for_large_cells() {
 }
 
 #[test]
+fn transcript_search_navigator_wraps_and_discards_stale_results() {
+    let mut t = TranscriptState::new();
+    for text in ["needle first", "needle second"] {
+        t.apply(AgentEvent::Notice {
+            level: ratakit_agent::state::Level::Info,
+            text: text.into(),
+        });
+    }
+    let mut navigator = t.search_navigator("needle", 10);
+
+    assert!(t.navigate_search(&mut navigator, ratakit_agent::state::SearchDirection::Next));
+    assert_eq!(navigator.selected_index(), Some(0));
+    assert!(t.navigate_search(
+        &mut navigator,
+        ratakit_agent::state::SearchDirection::Previous
+    ));
+    assert_eq!(navigator.selected_index(), Some(1));
+    assert!(t.navigate_search(&mut navigator, ratakit_agent::state::SearchDirection::Next));
+    assert_eq!(navigator.selected_index(), Some(0));
+
+    t.apply(AgentEvent::Error("transcript changed".into()));
+    assert!(!t.navigate_search(&mut navigator, ratakit_agent::state::SearchDirection::Next));
+    assert!(navigator.results().is_empty());
+}
+
+#[test]
+fn mutable_cell_access_invalidates_search_results() {
+    let mut t = TranscriptState::new();
+    t.apply(AgentEvent::Notice {
+        level: ratakit_agent::state::Level::Info,
+        text: "target".into(),
+    });
+    let result = t.search("target", 1).remove(0);
+
+    let _cells = t.cells_mut();
+
+    assert!(!t.jump_to_search_result(&result));
+}
+
+#[test]
 fn plan_cell_updates_in_place() {
     let mut t = TranscriptState::new();
     let plan1 = Plan {

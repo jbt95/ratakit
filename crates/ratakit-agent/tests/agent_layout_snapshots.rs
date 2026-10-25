@@ -9,7 +9,7 @@ use ratakit_agent::state::{
 };
 use ratakit_agent::widgets::{AgentLayout, AgentLayoutState, agent_layout_focus};
 use ratakit_core::Theme;
-use ratakit_testing::render_stateful;
+use ratakit_testing::{assert_accessible_labels, render_stateful};
 use ratakit_text::SyntectHighlighter;
 
 struct EmptyFiles;
@@ -178,4 +178,38 @@ fn agent_layout_model_picker_56x14() {
         "agent_layout_model_picker_56x14",
         compact_layout_snapshot(rendered)
     );
+}
+
+#[test]
+fn agent_layout_renders_across_sizes_and_accessibility_profiles() {
+    for (width, height, profile) in [
+        (32, 10, "dark"),
+        (80, 24, "high-contrast"),
+        (120, 30, "screen-reader"),
+    ] {
+        let mut theme = match profile {
+            "high-contrast" => Theme::high_contrast_dark(),
+            _ => Theme::dark(),
+        };
+        if profile == "screen-reader" {
+            theme.enable_screen_reader();
+        }
+        SyntectHighlighter::apply_theme(&theme);
+        let highlighter = SyntectHighlighter;
+        let files = EmptyFiles;
+        let widget = AgentLayout::new(&theme, &highlighter, &files);
+        let mut state = AgentLayoutState::new();
+        seed_transcript(&mut state);
+
+        let rendered = render_stateful(widget, width, height, &mut state);
+        assert!(
+            !rendered.trim().is_empty(),
+            "empty render at {width}x{height}"
+        );
+        if profile == "screen-reader" {
+            assert_accessible_labels(&rendered, &["User:", "Assistant:"]);
+        } else {
+            assert!(rendered.contains("Type a message"));
+        }
+    }
 }

@@ -23,6 +23,7 @@ widgets = [
     "ratakit-widgets/markdown",
 ]
 serde = ["dep:serde", "ratakit-core/serde"]
+recording = ["serde", "dep:serde_json"]
 
 [dependencies]
 ratakit-core = { workspace = true, features = ["fuzzy"] }
@@ -33,6 +34,7 @@ ratatui-widgets = { workspace = true, optional = true }
 unicode-width = { workspace = true, optional = true }
 unicode-segmentation.workspace = true
 serde = { version = "1.0.229", optional = true, features = ["derive"] }
+serde_json = { workspace = true, optional = true }
 
 [dev-dependencies]
 ratakit-core = { workspace = true, features = ["fuzzy"] }

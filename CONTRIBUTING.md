@@ -10,17 +10,18 @@ change until 0.1.0.
 - `cargo fmt --all`
 - `cargo clippy --workspace --all-targets --all-features -- -D warnings`
 
-Design notes live in [`docs/DISENO.md`](docs/DISENO.md) (Spanish). The English
-README summarizes goals and status.
+Start with the [English user guide](docs/USER_GUIDE.md) and
+[integration cookbook](docs/COOKBOOK.md). Licensing and source attribution
+conventions are in [`THIRD_PARTY.md`](THIRD_PARTY.md).
 
 ## Pull requests
 
-- One logical change per PR when possible (see the milestone roadmap in the design doc).
+- One logical change per PR when possible; keep changes within the agreed scope.
 - Include tests: unit tests for state in `ratakit-core` / `ratakit-agent::state`,
   insta snapshots for widgets via `ratakit-testing`.
 - Run CI locally before pushing.
 - For code derived from [Codex](https://github.com/openai/codex), follow the
-  header and `THIRD_PARTY.md` rules in the design doc.
+  source header and [`THIRD_PARTY.md`](THIRD_PARTY.md) rules.
 
 ## License
 

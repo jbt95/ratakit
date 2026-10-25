@@ -16,12 +16,10 @@ ratakit = { path = "../../crates/ratakit", features = [
     "crossterm",
     "tokio",
     "agent",
-    "serde",
+    "recording",
 ] }
 ratakit-testing = { path = "../../crates/ratakit-testing" }
 ratatui.workspace = true
 ratatui-crossterm.workspace = true
 tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread", "time"] }
 futures-util = { workspace = true, features = ["std"] }
-serde = { version = "1.0.229", features = ["derive"] }
-serde_json = "1.0.145"

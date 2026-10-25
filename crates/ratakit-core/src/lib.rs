@@ -62,7 +62,10 @@ pub use scroll::{ScrollLayoutHint, ScrollState};
 pub use table::{SortDirection, TableState};
 pub use tabs::TabsState;
 pub use text::{Atom, AtomKind, PasteBurst, Position, TextBuffer};
-pub use theme::{GlyphSet, MotionMode, Palette, Rgb, SemanticColor, SyntaxThemeId, Theme};
+pub use theme::{
+    GlyphSet, MotionMode, Palette, PaletteTextContrast, PaletteTextRole, Rgb, SemanticColor,
+    SyntaxThemeId, Theme, contrast_ratio,
+};
 pub use toast::{Toast, ToastLevel, ToastQueue};
 pub use tree::{
     FlatTreeRow, TreeIntent, TreePath, TreeRowSizing, TreeSource, TreeState, tree_indent_cols,

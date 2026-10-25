@@ -35,6 +35,7 @@ pub struct TranscriptState {
     open_tools: HashMap<ToolCallId, usize>,
     plan_cell: Option<usize>,
     pending_search_scroll: Option<usize>,
+    active_search_result: Option<TranscriptSearchResult>,
     #[cfg(feature = "widgets")]
     tool_call_aux: Vec<ToolCallCardAux>,
 }
@@ -48,7 +49,61 @@ pub struct TranscriptSearchResult {
     pub score: u32,
     /// Short excerpt around the match, suitable for a search-results list.
     pub preview: String,
+    /// Grapheme indices in the searchable cell text that contributed to the match.
+    pub matched_indices: Vec<u32>,
     transcript_revision: u64,
+}
+
+/// Cyclic navigation through a transcript search result set.
+#[derive(Debug, Clone, Default)]
+pub struct TranscriptSearchNavigator {
+    results: Vec<TranscriptSearchResult>,
+    selected: Option<usize>,
+    transcript_revision: u64,
+}
+
+impl TranscriptSearchNavigator {
+    /// Search results in relevance order.
+    pub fn results(&self) -> &[TranscriptSearchResult] {
+        &self.results
+    }
+
+    /// Current result index in [`Self::results`].
+    pub fn selected_index(&self) -> Option<usize> {
+        self.selected
+    }
+
+    /// Current result, if navigation has selected one.
+    pub fn selected(&self) -> Option<&TranscriptSearchResult> {
+        self.selected.and_then(|index| self.results.get(index))
+    }
+
+    fn advance(&mut self, direction: SearchDirection) -> Option<usize> {
+        if self.results.is_empty() {
+            return None;
+        }
+        let len = self.results.len();
+        let index = match (self.selected, direction) {
+            (None, SearchDirection::Next) => 0,
+            (Some(index), SearchDirection::Next) => (index + 1) % len,
+            (None | Some(0), SearchDirection::Previous) => len - 1,
+            (Some(index), SearchDirection::Previous) => index - 1,
+        };
+        self.selected = Some(index);
+        Some(index)
+    }
+
+    fn invalidate(&mut self) {
+        self.results.clear();
+        self.selected = None;
+    }
+}
+
+/// Direction for moving through a [`TranscriptSearchNavigator`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SearchDirection {
+    Next,
+    Previous,
 }
 
 impl TranscriptState {
@@ -68,6 +123,7 @@ impl TranscriptState {
             open_tools: HashMap::new(),
             plan_cell: None,
             pending_search_scroll: None,
+            active_search_result: None,
             #[cfg(feature = "widgets")]
             tool_call_aux: Vec::new(),
         }
@@ -119,7 +175,11 @@ impl TranscriptState {
     }
 
     /// Mutable access to cells (for layout warm-up in the transcript widget).
+    ///
+    /// This advances the transcript revision before returning the slice, invalidating outstanding
+    /// search results and layout measurements in case the caller changes cell content.
     pub fn cells_mut(&mut self) -> &mut [Cell] {
+        self.bump();
         &mut self.cells
     }
 
@@ -148,6 +208,7 @@ impl TranscriptState {
                     cell_index,
                     score,
                     preview: search_preview(&text, &indices),
+                    matched_indices: indices.clone(),
                     transcript_revision: self.revision,
                 });
             }
@@ -162,6 +223,33 @@ impl TranscriptState {
         results
     }
 
+    /// Create a navigator over the current fuzzy search results.
+    pub fn search_navigator(&self, query: &str, limit: usize) -> TranscriptSearchNavigator {
+        TranscriptSearchNavigator {
+            results: self.search(query, limit),
+            selected: None,
+            transcript_revision: self.revision,
+        }
+    }
+
+    /// Move to the next or previous search result, wrapping at either end.
+    ///
+    /// Returns `false` for an empty or stale navigator. Stale results are discarded.
+    pub fn navigate_search(
+        &mut self,
+        navigator: &mut TranscriptSearchNavigator,
+        direction: SearchDirection,
+    ) -> bool {
+        if navigator.transcript_revision != self.revision {
+            navigator.invalidate();
+            return false;
+        }
+        let Some(index) = navigator.advance(direction) else {
+            return false;
+        };
+        self.jump_to_search_result(&navigator.results[index])
+    }
+
     /// Scroll the transcript to a current search result and highlight its cell.
     ///
     /// The scroll is applied on the next transcript render, after current row heights are
@@ -172,7 +260,19 @@ impl TranscriptState {
         }
         self.list.select(Some(result.cell_index));
         self.pending_search_scroll = Some(result.cell_index);
+        self.active_search_result = Some(result.clone());
         true
+    }
+
+    #[cfg(feature = "widgets")]
+    pub(crate) fn search_highlight(&self) -> Option<(usize, String, Vec<u32>)> {
+        let result = self.active_search_result.as_ref()?;
+        let cell = self.cells.get(result.cell_index)?;
+        Some((
+            result.cell_index,
+            searchable_cell_text(cell),
+            result.matched_indices.clone(),
+        ))
     }
 
     #[cfg(feature = "widgets")]
@@ -344,6 +444,7 @@ impl TranscriptState {
 
     fn bump(&mut self) {
         self.pending_search_scroll = None;
+        self.active_search_result = None;
         self.revision += 1;
     }
 
@@ -442,11 +543,10 @@ impl TranscriptState {
     }
 }
 
-fn searchable_cell_text(cell: &Cell) -> String {
+pub(crate) fn searchable_cell_text(cell: &Cell) -> String {
     let mut text = String::new();
     match cell {
         Cell::User(user) => {
-            append_search_text(&mut text, "User");
             for part in &user.content {
                 match part {
                     super::types::ContentPart::Text(value) => append_search_text(&mut text, value),
@@ -455,15 +555,12 @@ fn searchable_cell_text(cell: &Cell) -> String {
             }
         }
         Cell::Assistant(assistant) => {
-            append_search_text(&mut text, "Assistant");
             append_search_text(&mut text, assistant.stream.source());
         }
         Cell::Thinking(thinking) => {
-            append_search_text(&mut text, "Thinking");
             append_search_text(&mut text, thinking.stream.source());
         }
         Cell::ToolCall(tool) => {
-            append_search_text(&mut text, "Tool");
             append_search_text(&mut text, tool.title());
             append_search_text(&mut text, tool.input_text());
             append_search_text(&mut text, tool.output_text());
@@ -479,17 +576,14 @@ fn searchable_cell_text(cell: &Cell) -> String {
             }
         }
         Cell::Plan(plan) => {
-            append_search_text(&mut text, "Plan");
             for entry in &plan.entries {
                 append_search_text(&mut text, &entry.title);
             }
         }
         Cell::Notice(notice) => {
-            append_search_text(&mut text, "Notice");
             append_search_text(&mut text, &notice.text);
         }
         Cell::Error(error) => {
-            append_search_text(&mut text, "Error");
             append_search_text(&mut text, &error.text);
         }
     }

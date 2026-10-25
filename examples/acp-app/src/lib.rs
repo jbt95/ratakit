@@ -2,13 +2,14 @@
 
 use std::env;
 use std::fs::{File, OpenOptions};
-use std::io::{self, BufWriter, Stdout, Write, stdout};
+use std::io::{self, BufWriter, Stdout, stdout};
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
 use futures_util::StreamExt;
 use ratakit::acp::{AcpBridge, AcpBridgeHandle, AgentCommand, BridgeEvent, PermissionRequestId};
-use ratakit::agent::state::{AgentEvent, Cell, FileIndex, Level, MessageId, PermissionRequest};
+use ratakit::agent::recording::RecordingWriter;
+use ratakit::agent::state::{AgentEvent, Cell, FileIndex, Level, MessageId};
 use ratakit::agent::widgets::{
     AgentLayout, AgentLayoutIntent, AgentLayoutState, TranscriptHistory,
 };
@@ -32,45 +33,14 @@ impl FileIndex for NoFiles {
     }
 }
 
-struct Recorder {
-    output: BufWriter<File>,
-}
+type Recorder = RecordingWriter<BufWriter<File>>;
 
-impl Recorder {
-    fn from_env() -> io::Result<Option<Self>> {
-        let Some(path) = env::var_os("RATAKIT_ACP_RECORD") else {
-            return Ok(None);
-        };
-        Self::create(path).map(Some)
-    }
-
-    fn create(path: impl AsRef<std::path::Path>) -> io::Result<Self> {
-        let file = OpenOptions::new().write(true).create_new(true).open(path)?;
-        Ok(Self {
-            output: BufWriter::new(file),
-        })
-    }
-
-    fn begin_turn(&mut self) -> io::Result<()> {
-        self.output.write_all(b"{\"await_submit\":true}\n")?;
-        self.output.flush()
-    }
-
-    fn event(&mut self, event: &AgentEvent) -> io::Result<()> {
-        serde_json::to_writer(&mut self.output, event).map_err(io::Error::other)?;
-        self.end_line()
-    }
-
-    fn permission(&mut self, request: &PermissionRequest) -> io::Result<()> {
-        let line = serde_json::json!({ "permission": request });
-        serde_json::to_writer(&mut self.output, &line).map_err(io::Error::other)?;
-        self.end_line()
-    }
-
-    fn end_line(&mut self) -> io::Result<()> {
-        self.output.write_all(b"\n")?;
-        self.output.flush()
-    }
+fn recorder_from_env() -> io::Result<Option<Recorder>> {
+    let Some(path) = env::var_os("RATAKIT_ACP_RECORD") else {
+        return Ok(None);
+    };
+    let file = OpenOptions::new().write(true).create_new(true).open(path)?;
+    RecordingWriter::new(BufWriter::new(file)).map(Some)
 }
 
 struct App {
@@ -267,7 +237,7 @@ impl App {
         operations: &mut JoinSet<(bool, Result<(), String>)>,
     ) -> io::Result<()> {
         if let Some(recorder) = &mut self.recorder {
-            recorder.begin_turn()?;
+            recorder.await_submit()?;
         }
         self.prompt_in_flight = true;
         let handle = bridge.clone();
@@ -310,7 +280,7 @@ pub async fn run(command: AgentCommand, agent_name: &str) -> io::Result<()> {
         return run_headless(agent_name);
     }
 
-    let recorder = Recorder::from_env()?;
+    let recorder = recorder_from_env()?;
     let working_directory = env::current_dir()?;
     let mut bridge = AcpBridge::spawn(command, &working_directory)
         .await
@@ -451,28 +421,19 @@ fn run_headless(agent_name: &str) -> io::Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
+    use std::io::Cursor;
     use std::path::PathBuf;
-    use std::sync::atomic::{AtomicU64, Ordering};
 
+    use ratakit::agent::recording::{RecordingEntry, RecordingReader, RecordingWriter};
     use ratakit::agent::state::{
         AgentEvent, MessageId, StopReason, ToolCall, ToolCallId, ToolContent, ToolKind, ToolStatus,
     };
     use ratakit::text::DiffModel;
 
-    use super::Recorder;
-
-    static NEXT_TEST_FILE: AtomicU64 = AtomicU64::new(0);
-
     #[test]
     fn recording_output_is_replayable_jsonl() {
-        let file_id = NEXT_TEST_FILE.fetch_add(1, Ordering::Relaxed);
-        let path = std::env::temp_dir().join(format!(
-            "ratakit-acp-recording-{}-{file_id}.jsonl",
-            std::process::id()
-        ));
-        let mut recorder = Recorder::create(&path).expect("create recording file");
-        recorder.begin_turn().expect("write turn marker");
+        let mut recorder = RecordingWriter::new(Vec::new()).expect("recording header");
+        recorder.await_submit().expect("write turn marker");
         recorder
             .event(&AgentEvent::AssistantDelta {
                 id: MessageId::new("assistant-1"),
@@ -501,17 +462,20 @@ mod tests {
                 reason: StopReason::EndTurn,
             })
             .expect("write turn end");
-        drop(recorder);
-
-        let lines = fs::read_to_string(&path).expect("read recording");
-        let parsed = lines
-            .lines()
-            .map(|line| serde_json::from_str::<serde_json::Value>(line).expect("valid JSONL"))
-            .collect::<Vec<_>>();
-        assert_eq!(parsed[0], serde_json::json!({ "await_submit": true }));
-        assert_eq!(parsed[1]["AssistantDelta"]["text"], "captured response");
-        let replayed: AgentEvent = serde_json::from_value(parsed[2].clone()).expect("replay event");
-        let AgentEvent::ToolCallStarted(call) = replayed else {
+        let bytes = recorder.into_inner().expect("flush recording");
+        let mut reader = RecordingReader::new(Cursor::new(bytes));
+        assert_eq!(
+            reader.next_entry().expect("turn marker"),
+            Some(RecordingEntry::AwaitSubmit)
+        );
+        assert!(matches!(
+            reader.next_entry().expect("assistant event"),
+            Some(RecordingEntry::Event(AgentEvent::AssistantDelta { text, .. }))
+                if text == "captured response"
+        ));
+        let Some(RecordingEntry::Event(AgentEvent::ToolCallStarted(call))) =
+            reader.next_entry().expect("tool event")
+        else {
             panic!("recorded tool event should deserialize");
         };
         let [ToolContent::Diff { model, .. }] = call.content.as_slice() else {
@@ -521,7 +485,12 @@ mod tests {
             model.source_texts(),
             Some(("fn answer() {}\n", "fn answer() -> u8 { 42 }\n"))
         );
-        assert_eq!(parsed[3]["TurnEnded"]["reason"], "EndTurn");
-        fs::remove_file(path).expect("remove test recording");
+        assert!(matches!(
+            reader.next_entry().expect("turn end"),
+            Some(RecordingEntry::Event(AgentEvent::TurnEnded {
+                reason: StopReason::EndTurn
+            }))
+        ));
+        assert_eq!(reader.next_entry().expect("end of recording"), None);
     }
 }

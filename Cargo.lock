@@ -11,7 +11,6 @@ dependencies = [
  "ratakit-testing",
  "ratatui",
  "ratatui-crossterm",
- "serde_json",
  "tokio",
 ]
 
@@ -1542,8 +1541,6 @@ dependencies = [
  "ratakit-testing",
  "ratatui",
  "ratatui-crossterm",
- "serde",
- "serde_json",
  "tokio",
 ]
 
@@ -2149,6 +2146,7 @@ dependencies = [
  "ratatui-core",
  "ratatui-widgets",
  "serde",
+ "serde_json",
  "unicode-segmentation",
  "unicode-width",
 ]

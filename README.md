@@ -19,8 +19,8 @@ a terminal; widgets are thin renderers per frame.
 inline transcript scrollback, and user documentation are implemented. The project
 is **not published to crates.io**; a 0.1.0 release is pending Jordi's approval.
 
-Start with the [English user guide](docs/USER_GUIDE.md). The design and roadmap
-(Spanish) are in [`docs/DISENO.md`](docs/DISENO.md).
+Start with the [English user guide](docs/USER_GUIDE.md) and
+[integration cookbook](docs/COOKBOOK.md).
 
 ## Workspace crates
 
@@ -105,4 +105,4 @@ versions. They are not a claim that every future patch release has been tested.
 ## License
 
 Apache-2.0. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE). Codex-derived code
-will be attributed per [`THIRD_PARTY.md`](THIRD_PARTY.md) and the design doc.
+is tracked in [`THIRD_PARTY.md`](THIRD_PARTY.md).

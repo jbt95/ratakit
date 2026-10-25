@@ -26,6 +26,9 @@
 
 pub mod state;
 
+#[cfg(feature = "recording")]
+pub mod recording;
+
 #[cfg(feature = "widgets")]
 mod tool_call_aux;
 
@@ -44,5 +47,6 @@ pub use widgets::{
 
 pub use state::{
     AgentEvent, Attachment, Cell, ComposerIntent, ComposerState, FileIndex, QueuedMessage,
-    QueuedPayload, SlashCommand, TranscriptSearchResult, TranscriptState,
+    QueuedPayload, SearchDirection, SlashCommand, TranscriptSearchNavigator,
+    TranscriptSearchResult, TranscriptState,
 };

@@ -1,11 +1,11 @@
 //! Parse `.jsonl` replay scripts into phased event streams.
 
-use std::fs;
+use std::fs::File;
+use std::io::BufReader;
 use std::path::Path;
 
+use ratakit::agent::recording::{RecordingEntry, RecordingReader};
 use ratakit::agent::state::{AgentEvent, PermissionRequest};
-use serde::Deserialize;
-use serde_json::Value;
 
 /// One line in a replay script.
 #[derive(Debug, Clone)]
@@ -21,26 +21,17 @@ pub struct ReplayScript {
     pub phases: Vec<Vec<ReplayStep>>,
 }
 
-#[derive(Deserialize)]
-struct AwaitSubmitLine {
-    await_submit: bool,
-}
-
-#[derive(Deserialize)]
-struct PermissionLine {
-    permission: PermissionRequest,
-}
-
-/// Load a script from a `.jsonl` file (phases separated by `{"await_submit":true}`).
+/// Load a versioned or legacy `.jsonl` file with submit markers separating phases.
 pub fn load_script(path: &Path) -> Result<ReplayScript, String> {
-    let text = fs::read_to_string(path).map_err(|e| e.to_string())?;
+    let file = File::open(path).map_err(|error| error.to_string())?;
+    let mut reader = RecordingReader::new(BufReader::new(file));
     let mut phases: Vec<Vec<ReplayStep>> = vec![Vec::new()];
-    for (lineno, line) in text.lines().enumerate() {
-        let trimmed = line.trim();
-        if trimmed.is_empty() || trimmed.starts_with('#') {
-            continue;
-        }
-        let step = parse_line(trimmed).map_err(|e| format!("line {}: {e}", lineno + 1))?;
+    while let Some(entry) = reader.next_entry().map_err(|error| error.to_string())? {
+        let step = match entry {
+            RecordingEntry::Event(event) => ReplayStep::Event(event),
+            RecordingEntry::Permission(permission) => ReplayStep::Permission(permission),
+            RecordingEntry::AwaitSubmit => ReplayStep::AwaitSubmit,
+        };
         if matches!(step, ReplayStep::AwaitSubmit) {
             phases.push(Vec::new());
             continue;
@@ -54,20 +45,6 @@ pub fn load_script(path: &Path) -> Result<ReplayScript, String> {
         phases.push(Vec::new());
     }
     Ok(ReplayScript { phases })
-}
-
-fn parse_line(line: &str) -> Result<ReplayStep, String> {
-    let value: Value = serde_json::from_str(line).map_err(|e| e.to_string())?;
-    if let Ok(await_line) = serde_json::from_value::<AwaitSubmitLine>(value.clone()) {
-        if await_line.await_submit {
-            return Ok(ReplayStep::AwaitSubmit);
-        }
-    }
-    if let Ok(perm) = serde_json::from_value::<PermissionLine>(value.clone()) {
-        return Ok(ReplayStep::Permission(perm.permission));
-    }
-    let event: AgentEvent = serde_json::from_value(value).map_err(|e| e.to_string())?;
-    Ok(ReplayStep::Event(event))
 }
 
 /// Drives phased replay against the mock app's layout state.

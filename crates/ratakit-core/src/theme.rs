@@ -26,7 +26,44 @@ pub struct Palette {
     pub border: SemanticColor,
 }
 
+/// Semantic text color included in [`Palette::text_contrast_ratios`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PaletteTextRole {
+    Foreground,
+    Accent,
+    Success,
+    Warning,
+    Error,
+    Muted,
+}
+
+/// Measured contrast for one semantic text color against the palette background.
+///
+/// `ratio` is `None` when either color uses a terminal palette index, whose RGB value is
+/// controlled by the terminal and cannot be measured portably.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct PaletteTextContrast {
+    pub role: PaletteTextRole,
+    pub ratio: Option<f64>,
+}
+
 impl Palette {
+    /// Measure all semantic text colors against this palette's background.
+    pub fn text_contrast_ratios(&self) -> [PaletteTextContrast; 6] {
+        [
+            (PaletteTextRole::Foreground, self.foreground),
+            (PaletteTextRole::Accent, self.accent),
+            (PaletteTextRole::Success, self.success),
+            (PaletteTextRole::Warning, self.warning),
+            (PaletteTextRole::Error, self.error),
+            (PaletteTextRole::Muted, self.muted),
+        ]
+        .map(|(role, color)| PaletteTextContrast {
+            role,
+            ratio: contrast_ratio(color, self.background),
+        })
+    }
+
     pub fn dark_defaults() -> Self {
         Self {
             background: SemanticColor::Rgb(Rgb {
@@ -146,6 +183,36 @@ impl Palette {
     }
 }
 
+/// Calculate WCAG relative-luminance contrast for two explicit RGB colors.
+///
+/// Returns `None` for indexed colors because the actual RGB values depend on the user's
+/// terminal palette.
+pub fn contrast_ratio(foreground: SemanticColor, background: SemanticColor) -> Option<f64> {
+    let foreground = color_luminance(foreground)?;
+    let background = color_luminance(background)?;
+    Some((foreground.max(background) + 0.05) / (foreground.min(background) + 0.05))
+}
+
+fn color_luminance(color: SemanticColor) -> Option<f64> {
+    let SemanticColor::Rgb(rgb) = color else {
+        return None;
+    };
+    Some(luminance(rgb))
+}
+
+fn luminance(rgb: Rgb) -> f64 {
+    fn linear(channel: u8) -> f64 {
+        let channel = f64::from(channel) / 255.0;
+        if channel <= 0.04045 {
+            channel / 12.92
+        } else {
+            ((channel + 0.055) / 1.055).powf(2.4)
+        }
+    }
+
+    0.2126 * linear(rgb.r) + 0.7152 * linear(rgb.g) + 0.0722 * linear(rgb.b)
+}
+
 const fn rgb(r: u8, g: u8, b: u8) -> SemanticColor {
     SemanticColor::Rgb(Rgb { r, g, b })
 }
@@ -259,7 +326,7 @@ impl Revisioned for Theme {
 
 #[cfg(test)]
 mod tests {
-    use super::{Palette, Rgb, SemanticColor, Theme};
+    use super::{Palette, SemanticColor, Theme, contrast_ratio};
 
     #[test]
     fn high_contrast_palettes_meet_seven_to_one_for_semantic_text() {
@@ -276,9 +343,31 @@ mod tests {
                 palette.muted,
                 palette.border,
             ] {
-                assert!(contrast_ratio(color, palette.background) >= 7.0);
+                assert!(
+                    contrast_ratio(color, palette.background).is_some_and(|ratio| ratio >= 7.0)
+                );
             }
         }
+    }
+
+    #[test]
+    fn custom_palette_reports_unmeasurable_terminal_indices() {
+        let mut palette = Palette::dark_defaults();
+        palette.muted = SemanticColor::Index(8);
+
+        let report = palette.text_contrast_ratios();
+        let muted = report
+            .iter()
+            .find(|entry| entry.role == super::PaletteTextRole::Muted)
+            .expect("muted role is reported");
+        assert_eq!(muted.ratio, None);
+        assert_eq!(report.len(), 6);
+        assert!(
+            report
+                .iter()
+                .filter(|entry| entry.role != super::PaletteTextRole::Muted)
+                .all(|entry| entry.ratio.is_some())
+        );
     }
 
     #[test]
@@ -291,31 +380,5 @@ mod tests {
         assert_eq!(theme.motion, super::MotionMode::Reduced);
         assert_eq!(theme.glyphs, super::GlyphSet::Ascii);
         assert!(theme.theme_revision() > before);
-    }
-
-    fn contrast_ratio(foreground: SemanticColor, background: SemanticColor) -> f64 {
-        let foreground = luminance(rgb_color(foreground));
-        let background = luminance(rgb_color(background));
-        (foreground.max(background) + 0.05) / (foreground.min(background) + 0.05)
-    }
-
-    fn rgb_color(color: SemanticColor) -> Rgb {
-        match color {
-            SemanticColor::Rgb(rgb) => rgb,
-            SemanticColor::Index(_) => panic!("high-contrast palette should use RGB colors"),
-        }
-    }
-
-    fn luminance(rgb: Rgb) -> f64 {
-        fn linear(channel: u8) -> f64 {
-            let channel = f64::from(channel) / 255.0;
-            if channel <= 0.04045 {
-                channel / 12.92
-            } else {
-                ((channel + 0.055) / 1.055).powf(2.4)
-            }
-        }
-
-        0.2126 * linear(rgb.r) + 0.7152 * linear(rgb.g) + 0.0722 * linear(rgb.b)
     }
 }

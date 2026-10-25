@@ -53,6 +53,13 @@ fn benchmark_long_transcript(criterion: &mut Criterion) {
         );
     });
     group.finish();
+
+    let transcript = transcript_with_turns(500);
+    let mut search_group = criterion.benchmark_group("transcript_search");
+    search_group.bench_function("500_turns_query_module_limit_20", |bencher| {
+        bencher.iter(|| black_box(transcript.search(black_box("module"), 20)));
+    });
+    search_group.finish();
 }
 
 criterion_group!(benches, benchmark_long_transcript);

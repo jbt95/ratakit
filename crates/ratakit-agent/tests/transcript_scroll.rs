@@ -3,8 +3,12 @@ use ratakit_agent::widgets::Transcript;
 use ratakit_core::{
     Component, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, Keymap, Theme,
 };
-use ratakit_testing::{assert_stateful_widget_snapshot, render_stateful_widget};
+use ratakit_testing::{
+    assert_stateful_widget_snapshot, buffer_to_string, render_stateful_buffer,
+    render_stateful_widget,
+};
 use ratakit_text::SyntectHighlighter;
+use ratatui::style::Modifier;
 
 fn mid(s: &str) -> MessageId {
     MessageId::new(s)
@@ -107,13 +111,20 @@ fn search_result_jumps_to_and_highlights_the_matching_cell() {
     assert!(state.jump_to_search_result(&result));
 
     assert_eq!(state.list().selected(), Some(2));
-    let rendered = render_stateful_widget(
+    let buffer = render_stateful_buffer(
         Transcript::new(&theme, &SyntectHighlighter).scrollbar(false),
-        &mut state,
         40,
         3,
+        &mut state,
     );
     assert_eq!(state.list().scroll().offset(), 2);
     assert!(!state.list().scroll().follow_tail());
+    let rendered = buffer_to_string(&buffer);
     assert!(rendered.contains("searchable result"));
+    assert!(
+        buffer
+            .content()
+            .iter()
+            .any(|cell| cell.style().add_modifier.contains(Modifier::UNDERLINED))
+    );
 }

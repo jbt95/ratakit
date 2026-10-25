@@ -5,8 +5,9 @@ use ratakit_agent::state::{
 };
 use ratakit_agent::widgets::{Transcript, TranscriptHistory};
 use ratakit_core::Theme;
-use ratakit_testing::assert_stateful_widget_snapshot;
-use ratakit_testing::render_stateful_widget;
+use ratakit_testing::{
+    assert_accessible_labels, assert_stateful_widget_snapshot, render_stateful_widget,
+};
 use ratakit_text::SyntectHighlighter;
 use ratatui::backend::TestBackend;
 use ratatui::widgets::Widget;
@@ -234,15 +235,16 @@ fn transcript_screen_reader_uses_spoken_labels() {
         80,
         16,
     );
-    for label in [
-        "User:",
-        "Assistant:",
-        "Warning:",
-        "Error:",
-        "running: search tool",
-    ] {
-        assert!(rendered.contains(label), "missing {label:?} in {rendered}");
-    }
+    assert_accessible_labels(
+        &rendered,
+        &[
+            "User:",
+            "Assistant:",
+            "Warning:",
+            "Error:",
+            "running: search tool",
+        ],
+    );
     for decorative_glyph in ["›", "◆", "·", "▸", "✓"] {
         assert!(!rendered.contains(decorative_glyph));
     }

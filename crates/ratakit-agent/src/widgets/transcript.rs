@@ -121,6 +121,7 @@ impl StatefulWidget for Transcript<'_> {
         };
 
         let pending_search_scroll = state.take_pending_search_scroll();
+        let search_highlight = state.search_highlight();
         let layout_key = layout_revision(state.revision(), content_width, self.theme);
         let (cells, list, tool_aux) = state.layout_borrow_mut();
 
@@ -155,6 +156,7 @@ impl StatefulWidget for Transcript<'_> {
             self.highlighter,
             tool_aux,
             self.show_scrollbar,
+            search_highlight.as_ref(),
         );
     }
 }
@@ -205,6 +207,7 @@ fn paint_viewport(
     highlighter: &dyn Highlighter,
     tool_aux: &mut [ToolCallCardAux],
     show_scrollbar: bool,
+    search_highlight: Option<&(usize, String, Vec<u32>)>,
 ) {
     let content_height = list.layout().content_height;
     let scroll_offset = list.scroll().offset();
@@ -245,6 +248,11 @@ fn paint_viewport(
             let aux = tool_aux_mut(cell, tool_aux, index);
             render_cell(cell, row_area, buf, skip, theme, highlighter, aux);
         }
+        if let Some((highlight_index, text, indices)) = search_highlight {
+            if *highlight_index == index {
+                highlight_search_indices(row_area, buf, text, indices);
+            }
+        }
         y += drawable;
         remaining -= drawable;
     }
@@ -269,6 +277,53 @@ fn paint_viewport(
             buf,
             &mut scrollbar_state,
         );
+    }
+}
+
+fn highlight_search_indices(area: Rect, buf: &mut Buffer, text: &str, indices: &[u32]) {
+    use std::collections::HashSet;
+    use unicode_segmentation::UnicodeSegmentation;
+
+    let matched: HashSet<usize> = indices
+        .iter()
+        .filter_map(|index| usize::try_from(*index).ok())
+        .collect();
+    if matched.is_empty() {
+        return;
+    }
+
+    let mut visible = Vec::new();
+    for y in area.y..area.y.saturating_add(area.height) {
+        for x in area.x..area.x.saturating_add(area.width) {
+            let symbol = buf.cell((x, y)).map_or(" ", |cell| cell.symbol());
+            if symbol != " " {
+                visible.push((x, y, symbol.to_owned()));
+            }
+        }
+    }
+
+    let mut visible_index = 0;
+    for (source_index, grapheme) in text.graphemes(true).enumerate() {
+        if grapheme == "\n" || grapheme == "\r" {
+            continue;
+        }
+        let found = visible
+            .iter()
+            .enumerate()
+            .skip(visible_index)
+            .find(|(_, (_, _, symbol))| symbol.graphemes(true).any(|visible| visible == grapheme));
+        let Some((position, (x, y, _))) = found else {
+            continue;
+        };
+        visible_index = position + 1;
+        if matched.contains(&source_index) {
+            if let Some(cell) = buf.cell_mut((*x, *y)) {
+                cell.set_style(
+                    cell.style()
+                        .add_modifier(Modifier::BOLD | Modifier::UNDERLINED),
+                );
+            }
+        }
     }
 }
 

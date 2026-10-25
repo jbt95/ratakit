@@ -81,6 +81,10 @@ fn humanize_action_id(action: &ActionId) -> String {
 ///
 /// At most `limit` hints are returned; duplicate actions are skipped (first binding wins).
 pub fn key_hints_from_keymap(keymap: &Keymap, labels: &ActionLabels, limit: usize) -> Vec<KeyHint> {
+    if limit == 0 {
+        return Vec::new();
+    }
+
     let mut out = Vec::new();
     let mut seen = std::collections::HashSet::new();
 

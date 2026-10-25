@@ -1,5 +1,6 @@
 use ratatui::Terminal;
 use ratatui::backend::TestBackend;
+use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
 use ratatui::widgets::{StatefulWidget, Widget};
 
@@ -41,6 +42,37 @@ pub fn render_stateful<W: StatefulWidget>(
         .expect("draw");
     let buffer = terminal.backend().buffer();
     buffer_to_string(buffer)
+}
+
+/// Render a [`StatefulWidget`] and return its final buffer for style and cell assertions.
+pub fn render_stateful_buffer<W: StatefulWidget>(
+    widget: W,
+    width: u16,
+    height: u16,
+    state: &mut W::State,
+) -> Buffer {
+    let backend = TestBackend::new(width, height);
+    let mut terminal = Terminal::new(backend).expect("terminal");
+    terminal
+        .draw(|frame| {
+            let area = Rect::new(0, 0, width, height);
+            widget.render(area, frame.buffer_mut(), state);
+        })
+        .expect("draw");
+    terminal.backend().buffer().clone()
+}
+
+/// Assert that rendered output includes each expected screen-reader label or phrase.
+pub fn assert_accessible_labels(rendered: &str, expected: &[&str]) {
+    let missing: Vec<&str> = expected
+        .iter()
+        .copied()
+        .filter(|label| !rendered.contains(label))
+        .collect();
+    assert!(
+        missing.is_empty(),
+        "missing accessible labels {missing:?} in rendered output:\n{rendered}"
+    );
 }
 
 /// Assert an insta snapshot for a widget at the given size.
